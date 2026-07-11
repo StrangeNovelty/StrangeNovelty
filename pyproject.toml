@@ -1,0 +1,85 @@
+[project]
+name = "strange-novelty"
+version = "0.0.0"
+description = "Private, secure creative workspace for a solo author and artist"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "django>=5.2.14,<5.3",
+    "psycopg>=3.3,<3.4",
+]
+
+[dependency-groups]
+lint = [
+    "ruff>=0.12,<1",
+]
+test = [
+    "psycopg-binary>=3.3,<3.4",
+    "pytest>=8.4,<10",
+    "pytest-django>=4.11,<5",
+]
+typing = [
+    "mypy>=1.16,<2",
+]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "typing" },
+]
+production = [
+    "psycopg-c>=3.3,<3.4",
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = [
+    "private-data",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+    "DJ",
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+minversion = "8.4"
+addopts = [
+    "--strict-config",
+    "--strict-markers",
+]
+testpaths = ["tests"]
+markers = [
+    "postgresql: requires the configured PostgreSQL test database",
+]
+
+[tool.mypy]
+python_version = "3.14"
+check_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+exclude = [
+    "^private-data/",
+]

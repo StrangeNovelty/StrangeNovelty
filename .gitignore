@@ -1,4 +1,54 @@
+# Private creative material
 private-data/
+
+# Local configuration and secrets
 .env
 .env.*
 !.env.example
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version.local
+
+# Test, coverage, lint, and type-check output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.hypothesis/
+
+# Packaging and generated build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Local databases and database artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.dump
+*.backup
+
+# Editor and operating-system noise
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
