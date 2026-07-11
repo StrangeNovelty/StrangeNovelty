@@ -304,6 +304,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | ADR | Title | Status | Decision date | Supersedes |
 | --- | --- | --- | --- | --- |
 | [`0001`](0001-deployment-and-trust-boundary-model.md) | Deployment and Trust-Boundary Model | Accepted | 2026-07-11 | — |
+| [`0002`](0002-application-runtime-and-framework.md) | Application Runtime and Framework | Accepted | 2026-07-11 | — |
 
 Index rules:
 
