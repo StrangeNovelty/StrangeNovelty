@@ -315,6 +315,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0010`](0010-background-jobs-idempotency-records-and-transactional-dispatch.md) | Background Jobs, Idempotency Records, and Transactional Dispatch | Accepted | 2026-07-11 | — |
 | [`0011`](0011-ai-provider-boundary-suggestion-records-and-human-approval.md) | AI Provider Boundary, Suggestion Records, and Human Approval | Accepted | 2026-07-11 | — |
 | [`0012`](0012-search-derived-projections-and-rebuildability.md) | Search, Derived Projections, and Rebuildability | Accepted | 2026-07-11 | — |
+| [`0013`](0013-import-legacy-story-engine-migration-and-identity-mapping.md) | Import, Legacy Story Engine Migration, and Identity Mapping | Accepted | 2026-07-11 | — |
 
 Index rules:
 
