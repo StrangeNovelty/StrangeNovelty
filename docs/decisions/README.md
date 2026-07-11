@@ -313,6 +313,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0008`](0008-physical-schema-constraints-and-initial-migration-boundary.md) | Physical Schema, Constraints, and Initial Migration Boundary | Accepted | 2026-07-11 | — |
 | [`0009`](0009-backup-structured-archive-export-and-restoration-verification.md) | Backup, Structured Archive Export, and Restoration Verification | Accepted | 2026-07-11 | — |
 | [`0010`](0010-background-jobs-idempotency-records-and-transactional-dispatch.md) | Background Jobs, Idempotency Records, and Transactional Dispatch | Accepted | 2026-07-11 | — |
+| [`0011`](0011-ai-provider-boundary-suggestion-records-and-human-approval.md) | AI Provider Boundary, Suggestion Records, and Human Approval | Accepted | 2026-07-11 | — |
 
 Index rules:
 
