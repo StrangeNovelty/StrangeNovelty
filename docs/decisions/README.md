@@ -316,6 +316,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0011`](0011-ai-provider-boundary-suggestion-records-and-human-approval.md) | AI Provider Boundary, Suggestion Records, and Human Approval | Accepted | 2026-07-11 | — |
 | [`0012`](0012-search-derived-projections-and-rebuildability.md) | Search, Derived Projections, and Rebuildability | Accepted | 2026-07-11 | — |
 | [`0013`](0013-import-legacy-story-engine-migration-and-identity-mapping.md) | Import, Legacy Story Engine Migration, and Identity Mapping | Accepted | 2026-07-11 | — |
+| [`0014`](0014-deployment-environments-secrets-operations-and-observability.md) | Deployment Environments, Secrets, Operations, and Observability | Accepted | 2026-07-11 | — |
 
 Index rules:
 
