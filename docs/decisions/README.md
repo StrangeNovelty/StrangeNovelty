@@ -311,6 +311,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0006`](0006-scene-content-representation-and-editor-persistence-boundary.md) | Scene Content Representation and Editor Persistence Boundary | Accepted | 2026-07-11 | — |
 | [`0007`](0007-core-domain-schema-and-workspace-scoped-record-model.md) | Core Domain Schema and Workspace-Scoped Record Model | Accepted | 2026-07-11 | — |
 | [`0008`](0008-physical-schema-constraints-and-initial-migration-boundary.md) | Physical Schema, Constraints, and Initial Migration Boundary | Accepted | 2026-07-11 | — |
+| [`0009`](0009-backup-structured-archive-export-and-restoration-verification.md) | Backup, Structured Archive Export, and Restoration Verification | Accepted | 2026-07-11 | — |
 
 Index rules:
 
