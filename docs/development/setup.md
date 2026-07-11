@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document describes the Phase 0 development foundation. Django has not been initialized, no application package exists, and no migrations or database commands should be run yet.
+This document describes the local development foundation through Phase 1. The Django project and custom Account migration exist, but no migration has been applied because no safe local PostgreSQL configuration was available during Phase 1 verification.
 
 ## Selected Toolchain
 
@@ -55,7 +55,7 @@ Copy `.env.example` to `.env` and replace every placeholder with environment-spe
 
 The example intentionally contains no working credentials. PostgreSQL is required for application and integration-test work; SQLite must not be introduced as an authoritative or convenience substitute.
 
-Phase 1 will implement and test configuration loading. Production configuration will be externally injected, production-only, validated at startup, and fail closed when required or unsafe values are missing.
+The settings modules validate configuration at import/startup. Production configuration is externally injected, production-only, and fails closed when required or unsafe values are missing. The production settings require an explicit secret key, PostgreSQL URL with credentials, non-wildcard allowed hosts, HTTPS CSRF trusted origins, `STRANGE_NOVELTY_ENV=production`, and `DJANGO_DEBUG=false`.
 
 ## Quality Commands
 
@@ -68,7 +68,7 @@ uv run --locked mypy .
 uv run --locked pytest
 ```
 
-Until application source and tests exist, these commands primarily validate configuration and documentation-adjacent Python files if any are added. pytest may report that no tests were collected; Phase 1 will add the first application and migration tests.
+The Phase 1 suite exercises settings validation, the Account model and manager, migration contents, the minimal health URL, and Django system checks without connecting to PostgreSQL.
 
 Validate dependency metadata and the lockfile without changing them:
 
@@ -78,7 +78,7 @@ uv lock --check
 
 ## Intended Django Layout
 
-Phase 1 is expected to create:
+Phase 1 created:
 
 ```text
 manage.py
@@ -90,7 +90,37 @@ src/
 tests/
 ```
 
-The exact settings-module split and later apps for Jobs, search, recovery, import, and AI remain deferred. The custom Account model must be defined before the first Django migration is created or run.
+Settings are split into `base`, `local`, `test`, and `production`. Later apps for Jobs, search, recovery, import, and AI remain deferred. The custom Account model is present in `accounts/migrations/0001_initial.py`, before any migration has been applied.
+
+## Django Settings and Checks
+
+`manage.py` defaults to local settings. Commands may select another module explicitly:
+
+```console
+DJANGO_SETTINGS_MODULE=strange_novelty.settings.local uv run --locked python manage.py check
+DJANGO_SETTINGS_MODULE=strange_novelty.settings.test uv run --locked python manage.py check
+```
+
+Local settings require `DATABASE_URL`. Test settings use a clearly test-only PostgreSQL URL with a reserved `.invalid` host so database-free checks cannot contact a real service. PostgreSQL integration tests require an explicit `TEST_DATABASE_URL`. Production process entry points default to `strange_novelty.settings.production` and fail closed without the required environment.
+
+## PostgreSQL and Migrations
+
+Once a dedicated local PostgreSQL database and synthetic-only test database exist, set local values without committing them:
+
+```console
+export DATABASE_URL='postgresql://<local-user>:<local-password>@<local-host>:<local-port>/<local-database>'
+export TEST_DATABASE_URL='postgresql://<test-user>:<test-password>@<test-host>:<test-port>/<test-database>'
+```
+
+Then verify and apply migrations only to the intended local database:
+
+```console
+uv run --locked python manage.py check --settings=strange_novelty.settings.local
+uv run --locked python manage.py makemigrations --check --dry-run --settings=strange_novelty.settings.local
+uv run --locked python manage.py migrate --settings=strange_novelty.settings.local
+```
+
+Confirm the target before `migrate`. Do not run these commands against an unknown or production database, and never substitute SQLite.
 
 ## Repository Safety
 
@@ -98,4 +128,4 @@ The exact settings-module split and later apps for Jobs, search, recovery, impor
 - Never copy production or Story Engine private data into this repository.
 - Never commit `.env`, `private-data/`, databases, dumps, exports, backups, credentials, keys, certificates, manuscripts, or artwork.
 - Do not modify `/home/burmuss/projects/the-story-engine`.
-- Do not run migrations until Phase 1 establishes the custom Account model and reviewed initial migration sequence.
+- Do not apply migrations until a dedicated local PostgreSQL target is explicitly configured and confirmed.

@@ -253,7 +253,7 @@ wheels = [
 [[package]]
 name = "strange-novelty"
 version = "0.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "django" },
     { name = "psycopg" },

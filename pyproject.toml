@@ -9,6 +9,13 @@ dependencies = [
     "psycopg>=3.3,<3.4",
 ]
 
+[build-system]
+requires = ["setuptools>=80,<81"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [dependency-groups]
 lint = [
     "ruff>=0.12,<1",
@@ -31,7 +38,6 @@ production = [
 ]
 
 [tool.uv]
-package = false
 default-groups = ["dev"]
 
 [tool.ruff]
@@ -65,14 +71,18 @@ addopts = [
     "--strict-markers",
 ]
 testpaths = ["tests"]
+pythonpath = ["src"]
+DJANGO_SETTINGS_MODULE = "strange_novelty.settings.test"
 markers = [
     "postgresql: requires the configured PostgreSQL test database",
 ]
 
 [tool.mypy]
 python_version = "3.14"
+mypy_path = "src"
 check_untyped_defs = true
 disallow_incomplete_defs = true
+ignore_missing_imports = true
 no_implicit_optional = true
 show_error_codes = true
 strict_equality = true
@@ -82,4 +92,5 @@ warn_unused_configs = true
 warn_unused_ignores = true
 exclude = [
     "^private-data/",
+    "^src/accounts/migrations/",
 ]
