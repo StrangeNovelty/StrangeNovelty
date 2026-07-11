@@ -305,6 +305,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | --- | --- | --- | --- | --- |
 | [`0001`](0001-deployment-and-trust-boundary-model.md) | Deployment and Trust-Boundary Model | Accepted | 2026-07-11 | — |
 | [`0002`](0002-application-runtime-and-framework.md) | Application Runtime and Framework | Accepted | 2026-07-11 | — |
+| [`0003`](0003-primary-database-and-physical-persistence.md) | Primary Database and Physical Persistence | Accepted | 2026-07-11 | — |
 
 Index rules:
 
