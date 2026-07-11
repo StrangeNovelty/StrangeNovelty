@@ -17,6 +17,10 @@ class AccountManager(BaseUserManager):
         normalized = BaseUserManager.normalize_email(email)
         return cast(str, normalized).strip().casefold()
 
+    def get_by_natural_key(self, username: str) -> Account:
+        normalized_email = self.normalize_login_email(username)
+        return cast("Account", self.get(**{self.model.USERNAME_FIELD: normalized_email}))
+
     def _create_user(self, email: str, password: str | None, **extra_fields: Any) -> Account:
         if not email or not email.strip():
             raise ValueError("An email address is required.")

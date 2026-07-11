@@ -122,6 +122,41 @@ uv run --locked python manage.py migrate --settings=strange_novelty.settings.loc
 
 Confirm the target before `migrate`. Do not run these commands against an unknown or production database, and never substitute SQLite.
 
+## Initial Owner Bootstrap
+
+After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
+
+```console
+uv run --locked python manage.py bootstrap_owner \
+  --email '<owner-email>' \
+  --workspace-name '<workspace-name>' \
+  --settings=strange_novelty.settings.local
+```
+
+The command requests and confirms the password through hidden terminal input. It never accepts a password argument or prints the password. Repeating the exact command after successful bootstrap reports that no changes were made; conflicting owner or Workspace values fail.
+
+For controlled automation only, `--no-input` reads the password from the ephemeral environment variable named by `--password-env` (default `STRANGE_NOVELTY_BOOTSTRAP_PASSWORD`). Inject that value through protected process configuration, remove it immediately after use, and never place it in Git, `.env.example`, documentation, logs, or command arguments.
+
+Do not use real private manuscript content yet. Phase 2 implements password login but deliberately does not enforce the WebAuthn/TOTP MFA boundary required by ADR-0005 before real private content is introduced.
+
+## Local Authentication
+
+Start the local development server only after confirming `DATABASE_URL` and applying migrations:
+
+```console
+uv run --locked python manage.py runserver --settings=strange_novelty.settings.local
+```
+
+Local routes are:
+
+- `/login/` — normalized-email and password login;
+- `/logout/` — POST-only logout from the authenticated Workspace page;
+- `/workspace/` — minimal private Workspace landing page;
+- `/admin/` — operational Django administration, not Workspace authority;
+- `/health/` — bounded process-level response.
+
+Login throttling, MFA, recovery, session inventory, remote session revocation, and Scene features are not implemented yet.
+
 ## Repository Safety
 
 - Use synthetic test data only.
