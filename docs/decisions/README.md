@@ -309,6 +309,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0004`](0004-stable-identifiers-revisions-and-optimistic-concurrency.md) | Stable Identifiers, Revisions, and Optimistic Concurrency | Accepted | 2026-07-11 | — |
 | [`0005`](0005-authentication-sessions-authorization-mfa-and-account-recovery.md) | Authentication, Sessions, Authorization, MFA, and Account Recovery | Accepted | 2026-07-11 | — |
 | [`0006`](0006-scene-content-representation-and-editor-persistence-boundary.md) | Scene Content Representation and Editor Persistence Boundary | Accepted | 2026-07-11 | — |
+| [`0007`](0007-core-domain-schema-and-workspace-scoped-record-model.md) | Core Domain Schema and Workspace-Scoped Record Model | Accepted | 2026-07-11 | — |
 
 Index rules:
 
