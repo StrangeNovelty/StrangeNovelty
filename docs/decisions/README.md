@@ -307,6 +307,7 @@ Maintain an index in this README once numbered ADRs exist. Use a compact table o
 | [`0002`](0002-application-runtime-and-framework.md) | Application Runtime and Framework | Accepted | 2026-07-11 | — |
 | [`0003`](0003-primary-database-and-physical-persistence.md) | Primary Database and Physical Persistence | Accepted | 2026-07-11 | — |
 | [`0004`](0004-stable-identifiers-revisions-and-optimistic-concurrency.md) | Stable Identifiers, Revisions, and Optimistic Concurrency | Accepted | 2026-07-11 | — |
+| [`0005`](0005-authentication-sessions-authorization-mfa-and-account-recovery.md) | Authentication, Sessions, Authorization, MFA, and Account Recovery | Accepted | 2026-07-11 | — |
 
 Index rules:
 
