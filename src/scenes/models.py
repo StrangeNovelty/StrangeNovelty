@@ -263,3 +263,123 @@ class SceneRevision(models.Model):
                 )
         if errors:
             raise ValidationError(errors)
+
+
+class SceneSaveRequest(models.Model):
+    class State(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SUCCEEDED = "succeeded", "Succeeded"
+        CONFLICTED = "conflicted", "Conflicted"
+        FAILED_TERMINAL = "failed_terminal", "Failed terminal"
+
+    class FailureClassification(models.TextChoices):
+        NONE = "", "None"
+        OPTIMISTIC_CONCURRENCY = "optimistic_concurrency", "Optimistic concurrency"
+        INVALID_REQUEST = "invalid_request", "Invalid request"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="scene_save_requests"
+    )
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="scene_save_requests",
+    )
+    scene = models.ForeignKey(Scene, on_delete=models.PROTECT, related_name="save_requests")
+    idempotency_key = models.CharField(max_length=128)
+    request_fingerprint = models.CharField(max_length=64)
+    state = models.CharField(max_length=24, choices=State.choices, default=State.PENDING)
+    failure_classification = models.CharField(
+        max_length=32,
+        choices=FailureClassification.choices,
+        blank=True,
+        default=FailureClassification.NONE,
+    )
+    result_revision = models.ForeignKey(
+        SceneRevision,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="successful_save_requests",
+    )
+    result_scene_version = models.BigIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("workspace", "account", "scene", "idempotency_key"),
+                name="unique_scene_save_request_key",
+            ),
+            models.CheckConstraint(
+                condition=Q(state__in=("pending", "succeeded", "conflicted", "failed_terminal")),
+                name="scene_save_request_state_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    failure_classification__in=(
+                        "",
+                        "optimistic_concurrency",
+                        "invalid_request",
+                    )
+                ),
+                name="scene_save_failure_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(result_scene_version__isnull=True) | Q(result_scene_version__gte=0),
+                name="scene_save_result_version_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(idempotency_key__regex=r"^[A-Za-z0-9._~-]{16,128}$"),
+                name="scene_save_key_format_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(request_fingerprint__regex=r"^[0-9a-f]{64}$"),
+                name="scene_save_fingerprint_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        state="pending",
+                        failure_classification="",
+                        result_revision__isnull=True,
+                        result_scene_version__isnull=True,
+                        completed_at__isnull=True,
+                    )
+                    | Q(
+                        state="succeeded",
+                        failure_classification="",
+                        result_revision__isnull=False,
+                        result_scene_version__isnull=False,
+                        completed_at__isnull=False,
+                    )
+                    | Q(
+                        state="conflicted",
+                        failure_classification="optimistic_concurrency",
+                        result_revision__isnull=True,
+                        result_scene_version__isnull=True,
+                        completed_at__isnull=False,
+                    )
+                    | Q(
+                        state="failed_terminal",
+                        failure_classification="invalid_request",
+                        result_revision__isnull=True,
+                        result_scene_version__isnull=True,
+                        completed_at__isnull=False,
+                    )
+                ),
+                name="scene_save_outcome_consistent",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=("workspace", "scene", "created_at"),
+                name="scene_save_ws_scene_idx",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return cast(str, self.get_state_display())

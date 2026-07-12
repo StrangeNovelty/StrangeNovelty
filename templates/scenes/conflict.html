@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Save conflict — {{ scene.title }}{% endblock %}
+
+{% block content %}
+  <h1>Save conflict</h1>
+  <p role="alert">{{ conflict_message }}</p>
+  <p>The submitted draft remains below so you can copy from it or edit it manually.</p>
+
+  <h2>Current saved content</h2>
+  <label for="current-content">Current authoritative Scene content</label><br>
+  <textarea id="current-content" rows="18" readonly>{{ current_content }}</textarea>
+
+  <h2>Submitted draft</h2>
+  <form method="post" action="{% url 'scene-save' scene.id %}">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    <p>
+      <label for="{{ form.content.id_for_label }}">Edit the submitted draft against the current content</label><br>
+      {{ form.content }}
+    </p>
+    <p>This is a new save attempt using the latest revision and version.</p>
+    <button type="submit">Save manually reconciled content</button>
+  </form>
+  <p><a href="{% url 'scene-editor' scene.id %}">Discard this draft and return to the current editor</a></p>
+  <script src="{% static 'scenes/editor.js' %}" defer></script>
+{% endblock %}

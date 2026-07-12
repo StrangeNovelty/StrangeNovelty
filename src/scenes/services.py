@@ -5,7 +5,7 @@ from typing import cast
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, models, transaction
 from django.http import Http404
 
 from accounts.models import Account
@@ -64,14 +64,20 @@ def create_scene(
     actor: Account | AnonymousUser,
     workspace_id: uuid.UUID,
     title: str,
-    ordering: int,
+    ordering: int | None = None,
 ) -> SceneMutationResult:
     normalized_title = validate_scene_title(title)
-    normalized_ordering = validate_scene_ordering(ordering)
     normalized_content = normalize_scene_content("")
 
     with transaction.atomic():
-        workspace = _lock_authorized_workspace(actor, workspace_id)
+        workspace = lock_authorized_workspace(actor, workspace_id)
+        if ordering is None:
+            highest_order = Scene.objects.filter(workspace=workspace).aggregate(
+                highest=models.Max("ordering")
+            )["highest"]
+            normalized_ordering = 1024 if highest_order is None else highest_order + 1024
+        else:
+            normalized_ordering = validate_scene_ordering(ordering)
         try:
             scene = Scene.objects.create(
                 workspace=workspace,
@@ -129,7 +135,7 @@ def revise_scene_content(
     normalized_content = normalize_scene_content(proposed_content)
 
     with transaction.atomic():
-        workspace = _lock_authorized_workspace(actor, workspace_id)
+        workspace = lock_authorized_workspace(actor, workspace_id)
         try:
             scene = cast(
                 Scene,
@@ -189,9 +195,7 @@ def revise_scene_content(
     return SceneMutationResult(scene=scene, revision=revision, operation=operation)
 
 
-def _lock_authorized_workspace(
-    actor: Account | AnonymousUser, workspace_id: uuid.UUID
-) -> Workspace:
+def lock_authorized_workspace(actor: Account | AnonymousUser, workspace_id: uuid.UUID) -> Workspace:
     if not actor.is_authenticated:
         raise NotAuthenticated("Authentication is required.")
     if not actor.is_active:
@@ -223,6 +227,7 @@ __all__ = [
     "SceneMutationIntent",
     "SceneMutationResult",
     "create_scene",
+    "lock_authorized_workspace",
     "revise_scene_content",
     "validate_scene_ordering",
     "validate_scene_title",

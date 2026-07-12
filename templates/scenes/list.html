@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Scenes — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>Scenes</h1>
+  <p><a href="{% url 'scene-create' %}">Create a Scene</a></p>
+  {% if scenes %}
+    <ol>
+      {% for scene in scenes %}
+        <li>
+          <a href="{% url 'scene-editor' scene.id %}">{{ scene.title }}</a>
+          <span>— {{ scene.get_lifecycle_display }}</span>
+          <span>— updated <time datetime="{{ scene.updated_at|date:'c' }}">{{ scene.updated_at }}</time></span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p>No Scenes yet.</p>
+  {% endif %}
+  <p><a href="{% url 'workspace-home' %}">Back to Workspace</a></p>
+{% endblock %}

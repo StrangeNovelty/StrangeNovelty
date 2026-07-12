@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ scene.title }} — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>{{ scene.title }}</h1>
+  <p>State: {{ scene.get_lifecycle_display }}</p>
+  <p>Revision {{ current_revision.revision_number }}. Scene version {{ scene.version }}.</p>
+
+  {% if scene.lifecycle == "active" %}
+    {% include "scenes/_form_errors.html" %}
+    <form method="post" action="{% url 'scene-save' scene.id %}">
+      {% csrf_token %}
+      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+      <p>
+        <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label><br>
+        {{ form.content }}
+        {{ form.content.errors }}
+      </p>
+      <p role="status">Changes are saved only after the server confirms the save.</p>
+      <button type="submit">Save Scene</button>
+    </form>
+  {% else %}
+    <p role="status">Archived Scenes are read-only.</p>
+    <label for="archived-scene-content">Scene content</label><br>
+    <textarea id="archived-scene-content" rows="28" readonly>{{ current_revision.content }}</textarea>
+  {% endif %}
+  <p><a href="{% url 'scene-list' %}">Back to Scenes</a></p>
+  <script src="{% static 'scenes/editor.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Create Scene — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>Create Scene</h1>
+  {% include "scenes/_form_errors.html" %}
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+      {{ form.title }}
+      {{ form.title.errors }}
+    </p>
+    <button type="submit">Create Scene</button>
+  </form>
+  <p><a href="{% url 'scene-list' %}">Cancel</a></p>
+{% endblock %}

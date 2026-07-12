@@ -131,6 +131,17 @@ uv run --locked pytest -m postgresql
 
 The Phase 3 tests use synthetic text only. Do not use manuscript content as fixtures. Phase 3 provides domain services and no Scene HTTP route, form, template, or editor UI.
 
+Phase 4 adds `scenes/migrations/0002_scenesaverequest.py`. Apply it only through the same confirmed local PostgreSQL migration command. After starting the local server, the private workflow is available at:
+
+- `/scenes/` — authorized Scene list;
+- `/scenes/new/` — Scene creation;
+- `/scenes/<scene-uuid>/` — current Scene editor;
+- `/scenes/<scene-uuid>/save/` — POST-only complete-content save.
+
+To test conflicts manually, open one Scene in two tabs, save a synthetic change in the first tab, and submit a different synthetic change from the stale second tab. The second submission must show the submitted draft beside current saved content and must not overwrite it. Use only synthetic text during development.
+
+Phase 4 has explicit save only. It has no autosave or browser draft persistence. Password login also remains an interim boundary without the required production MFA enforcement.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
