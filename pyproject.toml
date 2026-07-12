@@ -5,8 +5,11 @@ description = "Private, secure creative workspace for a solo author and artist"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "cryptography>=46,<47",
     "django>=5.2.14,<5.3",
+    "pyotp>=2.9,<3",
     "psycopg>=3.3,<3.4",
+    "webauthn>=2.7,<3",
 ]
 
 [build-system]

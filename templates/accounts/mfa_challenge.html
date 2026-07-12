@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Verify sign-in</title></head><body>
+<main><h1>Verify sign-in</h1><p>Your password was accepted. Complete multi-factor authentication before opening private content.</p>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}<p>{{ form.code.label_tag }} {{ form.code }} {{ form.code.errors }}</p><button type="submit">Verify TOTP</button></form>
+<form method="post" action="{% url 'recovery-code-verify' %}">{% csrf_token %}<label for="recovery-code">Recovery code</label><input id="recovery-code" name="code" type="password" autocomplete="one-time-code"><button type="submit">Use recovery code</button></form>
+<button id="webauthn-auth" type="button">Use a security key</button><p id="webauthn-status" role="status"></p>
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form></main>
+<script src="/static/accounts/webauthn.js" defer></script></body></html>

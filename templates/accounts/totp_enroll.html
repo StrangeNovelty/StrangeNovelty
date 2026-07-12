@@ -1,0 +1,2 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Enroll TOTP</title></head><body><main><h1>Enroll TOTP fallback</h1>
+{% if secret %}<p>This secret is shown once. Store it in your authenticator:</p><pre>{{ secret }}</pre><form method="post" action="{% url 'totp-confirm' %}">{% csrf_token %}{{ confirm_form.as_p }}<button type="submit">Confirm</button></form>{% else %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Begin enrollment</button></form>{% endif %}</main></body></html>

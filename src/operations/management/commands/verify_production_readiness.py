@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from jobs.registry import get_handler
 from operations.health import database_ready
-from operations.readiness import static_readiness_checks
+from operations.readiness import mfa_configuration_ready, owner_mfa_ready, static_readiness_checks
 
 
 class Command(BaseCommand):
@@ -33,7 +33,9 @@ class Command(BaseCommand):
         if not options["static_only"]:
             checks["database_and_migrations"] = database_ready()
         if options["private_content"]:
-            checks["mfa_private_content_gate"] = settings.MFA_ENFORCED
+            checks["mfa_private_content_gate"] = mfa_configuration_ready()
+            if not options["static_only"]:
+                checks["mfa_owner_enrollment"] = owner_mfa_ready()
         for name, passed in sorted(checks.items()):
             self.stdout.write(f"readiness check={name} outcome={'pass' if passed else 'fail'}")
         if not all(checks.values()):

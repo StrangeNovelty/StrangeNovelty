@@ -1,5 +1,7 @@
 # Incident Response Runbook
 
+Authentication compromise requires maintenance mode, worker pause, session invalidation, bounded evidence review, appropriate secret rotation, and the account-recovery runbook for factor reset. Never resume restored challenges or recovery enrollment.
+
 ## Detect and Triage
 
 Classify availability, confidentiality, integrity, authentication, database, backup, Job, import, AI, and storage symptoms. Preserve privacy-safe correlation identifiers, Security Events, Job Attempts, release identity, and bounded operational logs. Do not copy manuscript content into incident notes.

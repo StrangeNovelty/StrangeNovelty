@@ -11,6 +11,16 @@ AI_ENABLED = False
 AI_ADAPTER = "disabled"
 MAINTENANCE_MODE = False
 MFA_ENFORCED = False
+MFA_ENCRYPTION_KEY = "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
+WEBAUTHN_RP_ID = "localhost"
+WEBAUTHN_ORIGIN = "http://localhost:8000"
+WEBAUTHN_RP_NAME = "Strange Novelty"
+WEBAUTHN_CHALLENGE_SECONDS = 300
+MFA_RECENT_AUTH_SECONDS = 300
+MFA_SESSION_MAX_AGE_SECONDS = 43200
+AUTH_THROTTLE_WINDOW_SECONDS = 600
+AUTH_THROTTLE_MAX_ATTEMPTS = 5
+AUTH_THROTTLE_BLOCK_SECONDS = 900
 SERVICE_ROLE = "development"
 RELEASE_VERSION = "development"
 SOURCE_COMMIT = "development"
@@ -44,6 +54,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.MfaAssuranceMiddleware",
     "operations.middleware.MaintenanceModeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

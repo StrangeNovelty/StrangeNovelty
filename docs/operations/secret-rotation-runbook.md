@@ -1,5 +1,7 @@
 # Secret Rotation Runbook
 
+`MFA_ENCRYPTION_KEY` is separate from the Django signing secret. Rotation requires reviewed re-encryption or TOTP re-enrollment: pause authentication changes, revoke challenges, back up, rotate through protected injection, re-enroll affected fallback factors, and verify WebAuthn/recovery/readiness. Never simply replace the key while ciphertext depends on it.
+
 ## General Boundary
 
 Use external secret injection and purpose-specific credentials. Never record values in Git, images, commands, tickets, logs, metrics, archives, or this runbook. Record only secret category, key identifier, custodian, rotation time, and verification outcome.

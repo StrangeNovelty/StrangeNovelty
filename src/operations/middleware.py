@@ -36,6 +36,7 @@ class MaintenanceModeMiddleware:
             settings.MAINTENANCE_MODE
             and request.method not in SAFE_METHODS
             and request.path not in RECOVERY_PATHS
+            and not request.path.startswith(("/mfa/", "/account/security/"))
             and not request.path.startswith("/health/")
         ):
             return render(request, "operations/maintenance.html", status=503)

@@ -2,6 +2,7 @@
 
 import os
 
+from cryptography.fernet import Fernet
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
@@ -40,6 +41,27 @@ if AI_ENABLED:
     )
 
 MAINTENANCE_MODE = parse_bool("MAINTENANCE_MODE", default=False)
+MFA_ENFORCED = parse_bool("MFA_ENFORCED", default=False)
+MFA_ENCRYPTION_KEY = os.environ.get("MFA_ENCRYPTION_KEY", "").strip()
+WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "").strip()
+WEBAUTHN_ORIGIN = os.environ.get("WEBAUTHN_ORIGIN", "").strip()
+WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "").strip()
+if MFA_ENFORCED:
+    try:
+        Fernet(MFA_ENCRYPTION_KEY.encode("ascii"))
+    except (ValueError, UnicodeEncodeError) as exc:
+        raise ImproperlyConfigured("MFA encryption configuration is invalid.") from exc
+    if not WEBAUTHN_RP_NAME:
+        raise ImproperlyConfigured("WebAuthn relying-party name is required.")
+    if (
+        not WEBAUTHN_RP_ID
+        or "://" in WEBAUTHN_RP_ID
+        or "/" in WEBAUTHN_RP_ID
+        or len(WEBAUTHN_RP_ID) > 253
+    ):
+        raise ImproperlyConfigured("WebAuthn RP configuration is invalid.")
+    if not WEBAUTHN_ORIGIN.startswith("https://") or WEBAUTHN_ORIGIN.count("/") != 2:
+        raise ImproperlyConfigured("WebAuthn origin must be one protected origin.")
 SERVICE_ROLE = require_value("SERVICE_ROLE")
 if SERVICE_ROLE not in {"web", "worker", "migration"}:
     raise ImproperlyConfigured("SERVICE_ROLE is unsupported.")

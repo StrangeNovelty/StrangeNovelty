@@ -140,7 +140,7 @@ Phase 4 adds `scenes/migrations/0002_scenesaverequest.py`. Apply it only through
 
 To test conflicts manually, open one Scene in two tabs, save a synthetic change in the first tab, and submit a different synthetic change from the stale second tab. The second submission must show the submitted draft beside current saved content and must not overwrite it. Use only synthetic text during development.
 
-Phase 4 has explicit save only. It has no autosave or browser draft persistence. Password login also remains an interim boundary without the required production MFA enforcement.
+Phase 4 has explicit save only. It has no autosave or browser draft persistence. Password-only mode is development-only; production private content requires enforced MFA.
 
 Phase 5 adds `security_events/migrations/0001_initial.py`. Apply it only to the same explicitly confirmed local PostgreSQL target. Authorized Django staff can inspect Security Events and Mutation Operations through read-only admin model pages; those pages do not grant Workspace authority and provide no add, change, or delete action.
 
@@ -207,7 +207,7 @@ Phase 10 AI assistance is disabled by default and has no real provider. For synt
 
 After restoration, run `quarantine_unfinished_ai_requests` in addition to the existing Job reconciliation. No AI Request, provider operation, or worker resumes automatically. There is no chat, tool use, agent, browsing, file retrieval, embedding, semantic-search, RAG, or automatic-application capability.
 
-Phase 11 selects one vendor-neutral OCI image with separate web, worker, and migration commands. Local development remains non-production. The image and runbooks do not authorize launch with real private content: `verify_production_readiness --private-content` must fail until reviewed WebAuthn and TOTP MFA support exists.
+Phase 11 selects one vendor-neutral OCI image with separate web, worker, and migration commands. Local development remains non-production. For MFA testing use the localhost RP/origin and development-only key. Production requires `MFA_ENFORCED=true`, a dedicated injected Fernet key, exact RP ID, HTTPS origin, enrolled owner WebAuthn, and recovery codes. Enrollment is at `/account/security/`; challenge is `/mfa/`. Run operator recovery only under its runbook.
 
 Static production configuration may be checked with safe placeholders and no database connection:
 
@@ -232,7 +232,7 @@ The command requests and confirms the password through hidden terminal input. It
 
 For controlled automation only, `--no-input` reads the password from the ephemeral environment variable named by `--password-env` (default `STRANGE_NOVELTY_BOOTSTRAP_PASSWORD`). Inject that value through protected process configuration, remove it immediately after use, and never place it in Git, `.env.example`, documentation, logs, or command arguments.
 
-Do not use real private manuscript content yet. Phase 2 implements password login but deliberately does not enforce the WebAuthn/TOTP MFA boundary required by ADR-0005 before real private content is introduced.
+Do not use real private manuscript content in password-only mode. Enforced WebAuthn, bounded TOTP fallback, recovery codes, and database readiness must be verified first.
 
 ## Local Authentication
 
@@ -250,7 +250,7 @@ Local routes are:
 - `/admin/` — operational Django administration, not Workspace authority;
 - `/health/` — bounded process-level response.
 
-Login throttling, MFA, recovery, session inventory, remote session revocation, and Scene features are not implemented yet.
+Authentication throttling, MFA, recovery codes, session inventory, revocation, and password change are implemented. There is no email reset, SMS, or remembered-device bypass.
 
 ## Repository Safety
 

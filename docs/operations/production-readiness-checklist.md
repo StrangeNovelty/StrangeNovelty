@@ -3,7 +3,9 @@
 ## Blocking Gate
 
 - [ ] WebAuthn and bounded TOTP fallback are implemented and tested.
-- [ ] `MFA_ENFORCED` is true only after that implementation is reviewed.
+- [ ] `MFA_ENFORCED=true` with a dedicated injected Fernet key, exact RP ID, and HTTPS origin.
+- [ ] An active owner has an active WebAuthn credential, unused recovery codes, and no open recovery enrollment.
+- [ ] Database-backed `verify_production_readiness --private-content` passes; this does not replace the remaining checks below.
 - [ ] Private-content production approval is recorded. Password-only authentication is non-production only.
 
 Until all three are complete, production use with real private manuscript content is prohibited.
