@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}AI request status — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>AI request status</h1>
+  <p role="status">State: {{ ai_request.get_state_display }}.</p>
+  <p>The request remains non-authoritative.</p>
+  {% if suggestion %}
+    <p><a href="{% url 'ai-suggestion-review' suggestion.id %}">Review the suggestion</a></p>
+  {% else %}
+    <p>Run the local worker to process queued work, then refresh this page.</p>
+  {% endif %}
+  {% if ai_request.state == "queued" or ai_request.state == "running" %}
+    <form method="post" action="{% url 'ai-request-cancel' ai_request.id %}">
+      {% csrf_token %}
+      <button type="submit">Cancel request</button>
+    </form>
+  {% endif %}
+  <p><a href="{% url 'scene-editor' ai_request.scene.id %}">Return to Scene</a></p>
+{% endblock %}

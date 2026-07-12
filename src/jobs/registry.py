@@ -44,10 +44,18 @@ def _validate_legacy_import(context: JobContext) -> HandlerResult:
     return HandlerResult(HandlerOutcome.SUCCEEDED)
 
 
+def _generate_ai_suggestion(context: JobContext) -> HandlerResult:
+    from ai_assistance.services import generate_suggestion
+
+    generate_suggestion(context)
+    return HandlerResult(HandlerOutcome.SUCCEEDED)
+
+
 _HANDLERS: dict[str, JobHandler] = {
     "internal_noop": _internal_noop,
     "rebuild_scene_search_projection": _rebuild_scene_search,
     "validate_legacy_import": _validate_legacy_import,
+    "generate_ai_scene_suggestion": _generate_ai_suggestion,
 }
 
 

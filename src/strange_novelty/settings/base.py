@@ -7,6 +7,8 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 SECRET_KEY = ""
 DEBUG = False
 ALLOWED_HOSTS: list[str] = []
+AI_ENABLED = False
+AI_ADAPTER = "disabled"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,6 +25,7 @@ INSTALLED_APPS = [
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",
     "legacy_imports.apps.LegacyImportsConfig",
+    "ai_assistance.apps.AiAssistanceConfig",
 ]
 
 MIDDLEWARE = [

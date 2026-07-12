@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Request AI suggestion — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>Request a Scene suggestion</h1>
+  <p>This sends only the selected current Scene Revision to the configured adapter. Output is non-authoritative and requires human review.</p>
+  <p>Source Revision {{ source_revision.revision_number }}; Scene version {{ scene.version }}.</p>
+  {% include "scenes/_form_errors.html" %}
+  <form method="post">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    <p>
+      <label for="{{ form.instruction.id_for_label }}">{{ form.instruction.label }}</label><br>
+      {{ form.instruction }}
+      {{ form.instruction.errors }}
+    </p>
+    <button type="submit">Queue private suggestion</button>
+  </form>
+  <p><a href="{% url 'scene-editor' scene.id %}">Return to Scene</a></p>
+{% endblock %}

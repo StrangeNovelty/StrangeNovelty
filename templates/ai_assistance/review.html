@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Review AI suggestion — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>Review AI suggestion</h1>
+  <p role="status">Suggestion state: {{ suggestion.get_state_display }}.</p>
+  {% if stale %}
+    <p role="alert">The Scene changed after this suggestion was requested. Direct application is blocked. Copy useful text into the current editor or request a new suggestion.</p>
+  {% endif %}
+
+  <h2>Current authoritative Scene text</h2>
+  <textarea rows="18" readonly>{{ suggestion.scene.current_revision.content }}</textarea>
+
+  <h2>Original AI output</h2>
+  <textarea rows="18" readonly>{{ suggestion.original_output }}</textarea>
+
+  {% if suggestion.state == "ready" %}
+    {% include "scenes/_form_errors.html" %}
+    <form method="post" action="{% url 'ai-suggestion-apply' suggestion.id %}">
+      {% csrf_token %}
+      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+      <p>
+        <label for="{{ form.review_text.id_for_label }}">{{ form.review_text.label }}</label><br>
+        {{ form.review_text }}
+        {{ form.review_text.errors }}
+      </p>
+      <p>Editing this complete proposal records human editing or partial acceptance. It never changes the original AI output.</p>
+      <button type="submit" {% if stale %}disabled{% endif %}>Apply reviewed text</button>
+    </form>
+    <form method="post" action="{% url 'ai-suggestion-reject' suggestion.id %}">
+      {% csrf_token %}
+      <button type="submit">Reject suggestion</button>
+    </form>
+    <form method="post" action="{% url 'ai-suggestion-expire' suggestion.id %}">
+      {% csrf_token %}
+      <button type="submit">Expire suggestion</button>
+    </form>
+  {% endif %}
+  <p><a href="{% url 'scene-editor' suggestion.scene.id %}">Return to current Scene editor</a></p>
+{% endblock %}

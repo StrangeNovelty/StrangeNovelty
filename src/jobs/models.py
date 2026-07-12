@@ -13,6 +13,7 @@ class Job(models.Model):
         INTERNAL_NOOP = "internal_noop", "Internal no-op"
         REBUILD_SCENE_SEARCH = "rebuild_scene_search_projection", "Rebuild Scene search"
         VALIDATE_LEGACY_IMPORT = "validate_legacy_import", "Validate legacy import"
+        GENERATE_AI_SUGGESTION = "generate_ai_scene_suggestion", "Generate AI Scene suggestion"
 
     class State(models.TextChoices):
         QUEUED = "queued", "Queued"
@@ -30,6 +31,7 @@ class Job(models.Model):
         WORKSPACE = "workspace", "Workspace"
         SCENE = "scene", "Scene"
         IMPORT_BATCH = "import_batch", "Import batch"
+        AI_REQUEST = "ai_request", "AI request"
 
     class EffectClass(models.TextChoices):
         INTERNAL_IDEMPOTENT = "internal_idempotent", "Internal idempotent"
@@ -114,12 +116,21 @@ class Job(models.Model):
                         "internal_noop",
                         "rebuild_scene_search_projection",
                         "validate_legacy_import",
+                        "generate_ai_scene_suggestion",
                     )
                 ),
                 name="job_type_valid",
             ),
             models.CheckConstraint(
-                condition=Q(target_category__in=("system", "workspace", "scene", "import_batch")),
+                condition=Q(
+                    target_category__in=(
+                        "system",
+                        "workspace",
+                        "scene",
+                        "import_batch",
+                        "ai_request",
+                    )
+                ),
                 name="job_target_category_valid",
             ),
             models.CheckConstraint(
@@ -174,6 +185,16 @@ class Job(models.Model):
                         expected_revision_id__isnull=True,
                         expected_scene_version__isnull=True,
                         projection_version="story-engine-scenes-v1",
+                    )
+                    | Q(
+                        job_type="generate_ai_scene_suggestion",
+                        workspace__isnull=False,
+                        target_category="ai_request",
+                        target_id__isnull=False,
+                        expected_revision_id__isnull=False,
+                        expected_scene_version__isnull=False,
+                        projection_version="ai-scene-v1",
+                        effect_class="external_ambiguous",
                     )
                 ),
                 name="job_type_parameters_consistent",

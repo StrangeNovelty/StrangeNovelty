@@ -21,6 +21,13 @@ if "*" in ALLOWED_HOSTS:
 
 DATABASES = {"default": postgres_database(require_value("DATABASE_URL"), require_credentials=True)}
 
+AI_ENABLED = parse_bool("AI_ENABLED", default=False)
+AI_ADAPTER = os.environ.get("AI_ADAPTER", "disabled").strip()
+if AI_ENABLED:
+    raise ImproperlyConfigured(
+        "Production AI cannot be enabled until a reviewed provider adapter is configured."
+    )
+
 CSRF_TRUSTED_ORIGINS = parse_csv("DJANGO_CSRF_TRUSTED_ORIGINS", required=True)
 if any(not origin.startswith("https://") for origin in CSRF_TRUSTED_ORIGINS):
     raise ImproperlyConfigured("Production CSRF trusted origins must use protected transport.")

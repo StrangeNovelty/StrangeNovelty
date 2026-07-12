@@ -21,6 +21,7 @@
       <p role="status">Changes are saved only after the server confirms the save.</p>
       <button type="submit">Save Scene</button>
     </form>
+    <p><a href="{% url 'ai-request' scene.id %}">Request an AI Scene suggestion</a></p>
   {% else %}
     <p role="status">Archived Scenes are read-only.</p>
     <label for="archived-scene-content">Scene content</label><br>

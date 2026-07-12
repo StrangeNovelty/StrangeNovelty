@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from accounts.models import Account
+from ai_assistance.services import quarantine_unfinished_ai_requests
 from jobs.services import quarantine_unfinished_jobs
 from legacy_imports.services import quarantine_unfinished_imports
 from scenes.content import CONTENT_FORMAT_VERSION, NORMALIZATION_VERSION
@@ -185,6 +186,7 @@ def export_workspace_archive(
                 "search_projections",
                 "provider_and_deployment_secrets",
                 "legacy_import_staging_findings_and_mappings",
+                "ai_requests_suggestions_and_provider_effects",
             ],
         }
         (temporary / "manifest.json").write_bytes(_canonical(manifest))
@@ -545,6 +547,7 @@ def restore_workspace_archive(
             Session.objects.all().delete()
             quarantined = quarantine_unfinished_jobs()
             imports_quarantined = quarantine_unfinished_imports()
+            ai_requests_quarantined = quarantine_unfinished_ai_requests()
             reset = SceneSearchProjection.objects.count()
             SceneSearchProjection.objects.all().delete()
             report = _verification_report(
@@ -554,6 +557,7 @@ def restore_workspace_archive(
                     "sessions_invalidated": sessions,
                     "jobs_quarantined": quarantined,
                     "imports_quarantined": imports_quarantined,
+                    "ai_requests_quarantined": ai_requests_quarantined,
                     "search_projections_reset": reset,
                 },
                 dry_run=False,
@@ -698,6 +702,7 @@ def _verification_report(
         "sessions_invalidated": actions.get("sessions_invalidated", 0),
         "jobs_quarantined": actions.get("jobs_quarantined", 0),
         "imports_quarantined": actions.get("imports_quarantined", 0),
+        "ai_requests_quarantined": actions.get("ai_requests_quarantined", 0),
         "search_projections_reset": actions.get("search_projections_reset", 0),
         "record_counts": validation.counts,
         "dry_run": dry_run,

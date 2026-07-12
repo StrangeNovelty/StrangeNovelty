@@ -14,5 +14,7 @@ _TEST_DATABASE_URL = os.environ.get(
     "postgresql://test-only:test-only@postgresql.invalid:5432/strange_novelty_test",
 )
 DATABASES = {"default": postgres_database(_TEST_DATABASE_URL, require_credentials=True)}
+AI_ENABLED = False
+AI_ADAPTER = "disabled"
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.PBKDF2PasswordHasher"]
