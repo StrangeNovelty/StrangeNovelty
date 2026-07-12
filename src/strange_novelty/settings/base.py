@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "scenes.apps.ScenesConfig",
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
+    "archives.apps.ArchivesConfig",
 ]
 
 MIDDLEWARE = [

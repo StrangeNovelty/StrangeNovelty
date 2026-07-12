@@ -181,6 +181,17 @@ uv run --locked python manage.py reset_search_projections --all-workspaces --con
 
 Search is PostgreSQL full-text search only. There is no external, semantic, vector, embedding, recommendation, or AI retrieval system.
 
+Phase 8 adds filesystem-only archive/export/restore commands and no migration. Use only synthetic data and paths outside the repository:
+
+```console
+uv run --locked python manage.py export_workspace_readable --workspace '<workspace-uuid>' --output '<output-directory>' --dry-run --settings=strange_novelty.settings.local
+uv run --locked python manage.py export_workspace_archive --workspace '<workspace-uuid>' --output '<archive-directory>' --dry-run --settings=strange_novelty.settings.local
+uv run --locked python manage.py validate_workspace_archive --archive '<archive-directory>' --settings=strange_novelty.settings.local
+uv run --locked python manage.py restore_workspace_archive --archive '<archive-directory>' --report '<report-file>' --dry-run --settings=strange_novelty.settings.local
+```
+
+Actual restore additionally requires `--confirm --acknowledge-isolated`, a non-serving empty domain, and pre-existing matching Account UUIDs. It never starts workers or activates traffic. See `docs/operations/backup-and-restore-runbook.md`.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
