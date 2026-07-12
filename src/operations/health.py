@@ -3,7 +3,7 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_http_methods
 
 
 def database_ready() -> bool:
@@ -19,14 +19,14 @@ def database_ready() -> bool:
 
 
 @never_cache
-@require_GET
+@require_http_methods(["GET", "HEAD"])
 def liveness(request: HttpRequest) -> HttpResponse:
     del request
     return HttpResponse("live", content_type="text/plain")
 
 
 @never_cache
-@require_GET
+@require_http_methods(["GET", "HEAD"])
 def readiness(request: HttpRequest) -> HttpResponse:
     del request
     ready = not settings.MAINTENANCE_MODE and settings.SERVICE_ROLE == "web" and database_ready()

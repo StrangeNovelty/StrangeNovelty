@@ -42,9 +42,12 @@ def test_liveness_is_process_only_and_readiness_is_bounded() -> None:
     client = Client()
     live = client.get("/health/live/")
     assert live.status_code == 200 and live.content == b"live"
+    assert client.head("/health/live/").status_code == 200
     with patch("operations.health.database_ready", return_value=True):
         ready = client.get("/health/ready/")
+        ready_head = client.head("/health/ready/")
     assert ready.status_code == 200 and ready.content == b"ready"
+    assert ready_head.status_code == 200
     assert "postgres" not in ready.content.decode().casefold()
 
 
