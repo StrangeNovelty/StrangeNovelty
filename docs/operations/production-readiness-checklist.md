@@ -1,5 +1,10 @@
 # Production Readiness Checklist
 
+## PostgreSQL Integration Validation
+
+- [ ] Complete migration-from-zero, the 110 PostgreSQL-backed tests, physical schema inspection, command smoke checks, and disposable backup/restore rehearsal. The 2026-07-11 validation attempt was safely blocked because no local server, explicit `TEST_DATABASE_URL`, server-control tools, or container runtime was available; see `docs/implementation/postgresql-integration-validation.md`.
+- [x] Database-free validation passed: 124 tests, migration drift, local/test checks, static production readiness, deploy checks, Ruff, formatting, and mypy. This does not replace the unchecked PostgreSQL item above.
+
 ## Blocking Gate
 
 - [ ] WebAuthn and bounded TOTP fallback are implemented and tested.
