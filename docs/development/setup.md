@@ -122,6 +122,15 @@ uv run --locked python manage.py migrate --settings=strange_novelty.settings.loc
 
 Confirm the target before `migrate`. Do not run these commands against an unknown or production database, and never substitute SQLite.
 
+Phase 3 adds `scenes/migrations/0001_initial.py`. The same `migrate` command applies Account, Workspace, Grant, Scene, Revision, and Mutation Operation migrations to the explicitly confirmed local PostgreSQL target. To run all PostgreSQL integration tests, set `TEST_DATABASE_URL` to a dedicated disposable test database before invoking pytest:
+
+```console
+export TEST_DATABASE_URL='postgresql://<test-user>:<test-password>@<test-host>:<test-port>/<test-database>'
+uv run --locked pytest -m postgresql
+```
+
+The Phase 3 tests use synthetic text only. Do not use manuscript content as fixtures. Phase 3 provides domain services and no Scene HTTP route, form, template, or editor UI.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
