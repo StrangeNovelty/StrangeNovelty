@@ -3,6 +3,7 @@ import uuid
 from argparse import ArgumentParser
 from typing import Any
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from jobs.services import claim_jobs, execute_claim, recover_expired_leases
@@ -22,6 +23,8 @@ class Command(BaseCommand):
         batch_size = options["batch_size"]
         idle_sleep = options["idle_sleep"]
         worker_id = options["worker_id"]
+        if settings.MAINTENANCE_MODE:
+            raise CommandError("Worker claiming is disabled during maintenance.")
         if not 1 <= batch_size <= 100 or not 0 <= idle_sleep <= 60:
             raise CommandError("Worker bounds are invalid.")
         try:

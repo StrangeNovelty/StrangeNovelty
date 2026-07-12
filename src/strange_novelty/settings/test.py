@@ -16,5 +16,7 @@ _TEST_DATABASE_URL = os.environ.get(
 DATABASES = {"default": postgres_database(_TEST_DATABASE_URL, require_credentials=True)}
 AI_ENABLED = False
 AI_ADAPTER = "disabled"
+MAINTENANCE_MODE = False
+SERVICE_ROLE = "web"
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.PBKDF2PasswordHasher"]

@@ -9,6 +9,13 @@ DEBUG = False
 ALLOWED_HOSTS: list[str] = []
 AI_ENABLED = False
 AI_ADAPTER = "disabled"
+MAINTENANCE_MODE = False
+MFA_ENFORCED = False
+SERVICE_ROLE = "development"
+RELEASE_VERSION = "development"
+SOURCE_COMMIT = "development"
+BUILD_IDENTIFIER = "development"
+CONFIGURATION_SCHEMA_VERSION = "config-v1"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -26,15 +33,18 @@ INSTALLED_APPS = [
     "archives.apps.ArchivesConfig",
     "legacy_imports.apps.LegacyImportsConfig",
     "ai_assistance.apps.AiAssistanceConfig",
+    "operations.apps.OperationsConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "security_events.middleware.RequestCorrelationMiddleware",
+    "operations.middleware.OperationalRequestLogMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "operations.middleware.MaintenanceModeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

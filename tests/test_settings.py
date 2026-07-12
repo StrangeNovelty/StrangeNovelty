@@ -38,6 +38,12 @@ def _valid_production_environment() -> dict[str, str]:
             "postgresql://production-user:production-password@"
             "db.example.invalid:5432/strange_novelty"
         ),
+        "TRUST_PROXY_HEADERS": "true",
+        "SERVICE_ROLE": "web",
+        "RELEASE_VERSION": "v1-test",
+        "SOURCE_COMMIT": "a" * 40,
+        "BUILD_IDENTIFIER": "build-test",
+        "CONFIGURATION_SCHEMA_VERSION": "config-v1",
     }
 
 

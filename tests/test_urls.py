@@ -8,7 +8,7 @@ def test_health_response_is_minimal() -> None:
     response = Client().get("/health/")
 
     assert response.status_code == 200
-    assert response.content == b"ok"
+    assert response.content == b"live"
     assert response.headers["Content-Type"].startswith("text/plain")
 
 

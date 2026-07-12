@@ -34,7 +34,9 @@ dev = [
     { include-group = "typing" },
 ]
 production = [
+    "gunicorn>=23,<24",
     "psycopg-c>=3.3,<3.4",
+    "whitenoise>=6.9,<7",
 ]
 
 [tool.uv]

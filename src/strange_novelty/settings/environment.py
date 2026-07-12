@@ -41,6 +41,17 @@ def parse_csv(name: str, *, required: bool = False) -> list[str]:
     return values
 
 
+def parse_int(name: str, *, default: int, minimum: int, maximum: int) -> int:
+    raw = os.environ.get(name, str(default)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"Setting {name} must be an integer.") from exc
+    if value < minimum or value > maximum:
+        raise ImproperlyConfigured(f"Setting {name} is outside its supported bounds.")
+    return value
+
+
 def postgres_database(
     url: str,
     *,

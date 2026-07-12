@@ -1,7 +1,6 @@
 """Root URL configuration with no private application routes yet."""
 
 from django.contrib import admin
-from django.http import HttpRequest, HttpResponse
 from django.urls import path
 
 from accounts.views import WorkspaceLoginView, WorkspaceLogoutView
@@ -14,16 +13,10 @@ from ai_assistance.views import (
     request_ai_suggestion,
     review_ai_suggestion,
 )
+from operations.health import liveness, readiness
 from scenes.search_views import scene_search
 from scenes.views import scene_create, scene_editor, scene_list, scene_save
 from workspaces.views import root, workspace_home
-
-
-def health(request: HttpRequest) -> HttpResponse:
-    """Return a bounded process-level response without internal details."""
-    del request
-    return HttpResponse("ok", content_type="text/plain")
-
 
 urlpatterns = [
     path("", root, name="root"),
@@ -55,5 +48,7 @@ urlpatterns = [
     ),
     path("search/", scene_search, name="scene-search"),
     path("admin/", admin.site.urls),
-    path("health/", health, name="health"),
+    path("health/live/", liveness, name="health-live"),
+    path("health/ready/", readiness, name="health-ready"),
+    path("health/", liveness, name="health"),
 ]

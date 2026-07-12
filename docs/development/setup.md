@@ -207,6 +207,16 @@ Phase 10 AI assistance is disabled by default and has no real provider. For synt
 
 After restoration, run `quarantine_unfinished_ai_requests` in addition to the existing Job reconciliation. No AI Request, provider operation, or worker resumes automatically. There is no chat, tool use, agent, browsing, file retrieval, embedding, semantic-search, RAG, or automatic-application capability.
 
+Phase 11 selects one vendor-neutral OCI image with separate web, worker, and migration commands. Local development remains non-production. The image and runbooks do not authorize launch with real private content: `verify_production_readiness --private-content` must fail until reviewed WebAuthn and TOTP MFA support exists.
+
+Static production configuration may be checked with safe placeholders and no database connection:
+
+```console
+uv run --locked --all-groups python manage.py verify_production_readiness --static --settings=strange_novelty.settings.production
+```
+
+The operations runbooks under `docs/operations/` define image build, explicit migrations, web/worker startup, maintenance, rollback, backup/restore, incidents, secret rotation, and break glass. Never use development data, secrets, or Django's development server as a production substitute.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
