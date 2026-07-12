@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "workspaces.apps.WorkspacesConfig",
     "scenes.apps.ScenesConfig",
     "security_events.apps.SecurityEventsConfig",
+    "jobs.apps.JobsConfig",
 ]
 
 MIDDLEWARE = [

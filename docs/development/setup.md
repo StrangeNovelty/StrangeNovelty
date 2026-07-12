@@ -148,6 +148,22 @@ Every HTTP response carries a server-generated random, non-semantic `X-Request-I
 
 Phase 5 adds no Security Event cleanup schedule and no external logging, metrics, tracing, SIEM, or alerting service. Exact event retention remains an operational decision. Do not place private values in logs while testing event failure paths.
 
+Phase 6 adds `jobs/migrations/0001_initial.py`. Apply it only to the explicitly confirmed PostgreSQL target. Run one bounded worker iteration with:
+
+```console
+uv run --locked python manage.py run_worker --once --settings=strange_novelty.settings.local
+```
+
+For local continuous execution, use `uv run --locked python manage.py run_worker --settings=strange_novelty.settings.local` in a separate terminal and stop it with Ctrl-C. This is a development process only; no production supervisor is configured.
+
+After restoring an isolated database and before any worker starts, quarantine unfinished work with:
+
+```console
+uv run --locked python manage.py quarantine_unfinished_jobs --settings=strange_novelty.settings.local
+```
+
+The Version 1 queue is PostgreSQL-backed. There is no external broker, Redis, Celery, scheduled cleanup, or production worker supervision.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
