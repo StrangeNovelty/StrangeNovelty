@@ -2,6 +2,8 @@ import uuid
 from typing import cast
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -383,3 +385,45 @@ class SceneSaveRequest(models.Model):
 
     def __str__(self) -> str:
         return cast(str, self.get_state_display())
+
+
+class SceneSearchProjection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="scene_search_projections"
+    )
+    scene = models.OneToOneField(Scene, on_delete=models.PROTECT, related_name="search_projection")
+    source_revision = models.ForeignKey(
+        SceneRevision, on_delete=models.PROTECT, related_name="search_projections"
+    )
+    source_scene_version = models.BigIntegerField()
+    projection_schema_version = models.CharField(max_length=32)
+    search_configuration_version = models.CharField(max_length=32)
+    title_vector = SearchVectorField()
+    body_vector = SearchVectorField()
+    source_content_hash = models.CharField(max_length=64)
+    built_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(source_scene_version__gte=1),
+                name="search_projection_scene_version_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(projection_schema_version="scene-search-v1"),
+                name="search_projection_schema_supported",
+            ),
+            models.CheckConstraint(
+                condition=Q(search_configuration_version="simple-v1"),
+                name="search_configuration_supported",
+            ),
+            models.CheckConstraint(
+                condition=Q(source_content_hash__regex=r"^[0-9a-f]{64}$"),
+                name="search_projection_hash_valid",
+            ),
+        ]
+        indexes = [GinIndex(fields=("title_vector", "body_vector"), name="scene_search_vector_gin")]
+
+    def __str__(self) -> str:
+        return f"Scene Search Projection {self.id}"

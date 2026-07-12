@@ -164,6 +164,23 @@ uv run --locked python manage.py quarantine_unfinished_jobs --settings=strange_n
 
 The Version 1 queue is PostgreSQL-backed. There is no external broker, Redis, Celery, scheduled cleanup, or production worker supervision.
 
+Phase 7 adds `jobs/migrations/0002_...` and `scenes/migrations/0003_scenesearchprojection.py`. After applying them to a confirmed PostgreSQL target, run the worker to build projections. The private search page is `/search/` and submits queries only through CSRF-protected POST bodies.
+
+Enqueue a bounded rebuild without executing it:
+
+```console
+uv run --locked python manage.py enqueue_search_rebuild --workspace '<workspace-uuid>' --dry-run --settings=strange_novelty.settings.local
+uv run --locked python manage.py enqueue_search_rebuild --workspace '<workspace-uuid>' --settings=strange_novelty.settings.local
+```
+
+After an isolated restore, quarantine unfinished Jobs first, then discard untrusted projections and explicitly enqueue replacements:
+
+```console
+uv run --locked python manage.py reset_search_projections --all-workspaces --confirm --enqueue --settings=strange_novelty.settings.local
+```
+
+Search is PostgreSQL full-text search only. There is no external, semantic, vector, embedding, recommendation, or AI retrieval system.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:

@@ -11,6 +11,7 @@ from workspaces.models import Workspace
 class Job(models.Model):
     class JobType(models.TextChoices):
         INTERNAL_NOOP = "internal_noop", "Internal no-op"
+        REBUILD_SCENE_SEARCH = "rebuild_scene_search_projection", "Rebuild Scene search"
 
     class State(models.TextChoices):
         QUEUED = "queued", "Queued"
@@ -26,6 +27,7 @@ class Job(models.Model):
     class TargetCategory(models.TextChoices):
         SYSTEM = "system", "System"
         WORKSPACE = "workspace", "Workspace"
+        SCENE = "scene", "Scene"
 
     class EffectClass(models.TextChoices):
         INTERNAL_IDEMPOTENT = "internal_idempotent", "Internal idempotent"
@@ -59,6 +61,9 @@ class Job(models.Model):
     state = models.CharField(max_length=24, choices=State.choices)
     target_category = models.CharField(max_length=16, choices=TargetCategory.choices)
     target_id = models.UUIDField(null=True, blank=True)
+    expected_revision_id = models.UUIDField(null=True, blank=True)
+    expected_scene_version = models.BigIntegerField(null=True, blank=True)
+    projection_version = models.CharField(max_length=32, blank=True, default="")
     payload_version = models.PositiveSmallIntegerField(default=1)
     effect_class = models.CharField(max_length=24, choices=EffectClass.choices)
     available_at = models.DateTimeField()
@@ -102,10 +107,11 @@ class Job(models.Model):
                 name="job_state_valid",
             ),
             models.CheckConstraint(
-                condition=Q(job_type__in=("internal_noop",)), name="job_type_valid"
+                condition=Q(job_type__in=("internal_noop", "rebuild_scene_search_projection")),
+                name="job_type_valid",
             ),
             models.CheckConstraint(
-                condition=Q(target_category__in=("system", "workspace")),
+                condition=Q(target_category__in=("system", "workspace", "scene")),
                 name="job_target_category_valid",
             ),
             models.CheckConstraint(
@@ -130,6 +136,30 @@ class Job(models.Model):
             ),
             models.CheckConstraint(
                 condition=Q(payload_version=1), name="job_payload_version_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(expected_scene_version__isnull=True) | Q(expected_scene_version__gte=1),
+                name="job_expected_scene_version_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        job_type="internal_noop",
+                        expected_revision_id__isnull=True,
+                        expected_scene_version__isnull=True,
+                        projection_version="",
+                    )
+                    | Q(
+                        job_type="rebuild_scene_search_projection",
+                        workspace__isnull=False,
+                        target_category="scene",
+                        target_id__isnull=False,
+                        expected_revision_id__isnull=False,
+                        expected_scene_version__isnull=False,
+                        projection_version="scene-search-v1:simple-v1",
+                    )
+                ),
+                name="job_type_parameters_consistent",
             ),
             models.CheckConstraint(
                 condition=Q(maximum_attempts__gte=1), name="job_max_attempts_valid"

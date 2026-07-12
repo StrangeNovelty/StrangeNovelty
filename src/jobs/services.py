@@ -53,12 +53,15 @@ def enqueue_job(
     job_type: str = "internal_noop",
     target_category: str = "system",
     target_id: uuid.UUID | None = None,
+    expected_revision_id: uuid.UUID | None = None,
+    expected_scene_version: int | None = None,
+    projection_version: str = "",
     effect_class: str = "internal_idempotent",
     available_at: datetime | None = None,
     maximum_attempts: int = DEFAULT_MAXIMUM_ATTEMPTS,
 ) -> EnqueueResult:
     get_handler(job_type)
-    if target_category not in ("system", "workspace"):
+    if target_category not in ("system", "workspace", "scene"):
         raise ValueError("Invalid target category.")
     if effect_class not in ("internal_idempotent", "external_ambiguous"):
         raise ValueError("Invalid effect classification.")
@@ -97,6 +100,9 @@ def enqueue_job(
             state=state,
             target_category=target_category,
             target_id=target_id,
+            expected_revision_id=expected_revision_id,
+            expected_scene_version=expected_scene_version,
+            projection_version=projection_version,
             payload_version=1,
             effect_class=effect_class,
             available_at=ready_at,

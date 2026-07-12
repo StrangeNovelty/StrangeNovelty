@@ -30,7 +30,17 @@ def _internal_noop(context: JobContext) -> HandlerResult:
     return HandlerResult(HandlerOutcome.SUCCEEDED)
 
 
-_HANDLERS: dict[str, JobHandler] = {"internal_noop": _internal_noop}
+def _rebuild_scene_search(context: JobContext) -> HandlerResult:
+    from scenes.search_indexing import rebuild_scene_search_projection
+
+    rebuild_scene_search_projection(context.job_id)
+    return HandlerResult(HandlerOutcome.SUCCEEDED)
+
+
+_HANDLERS: dict[str, JobHandler] = {
+    "internal_noop": _internal_noop,
+    "rebuild_scene_search_projection": _rebuild_scene_search,
+}
 
 
 def get_handler(job_type: str) -> JobHandler:

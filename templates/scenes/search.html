@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Search Scenes — Strange Novelty{% endblock %}
+
+{% block content %}
+  <h1>Search Scenes</h1>
+  {% include "scenes/_form_errors.html" %}
+  <form method="post" action="{% url 'scene-search' %}">
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+      {{ form.query }}
+      {{ form.query.errors }}
+    </p>
+    <p>
+      {{ form.include_archived }}
+      <label for="{{ form.include_archived.id_for_label }}">{{ form.include_archived.label }}</label>
+    </p>
+    <button type="submit">Search</button>
+  </form>
+
+  {% if searched %}
+    <h2>Results</h2>
+    {% if results %}
+      <ol>
+        {% for result in results %}
+          <li>
+            <h3><a href="{% url 'scene-editor' result.scene.id %}">{{ result.scene.title }}</a></h3>
+            <p>{{ result.scene.get_lifecycle_display }}</p>
+            <p>{{ result.snippet }}</p>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p role="status">No current matching Scenes were found. Recently changed Scenes may still be indexing.</p>
+    {% endif %}
+  {% endif %}
+  <p><a href="{% url 'workspace-home' %}">Back to Workspace</a></p>
+{% endblock %}

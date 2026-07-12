@@ -112,6 +112,9 @@ def create_scene(
             scene.version = 1
             scene.full_clean()
             scene.save(update_fields=("current_revision", "version", "updated_at"))
+            from scenes.search_indexing import invalidate_and_enqueue_scene_search
+
+            invalidate_and_enqueue_scene_search(scene, revision)
         except (IntegrityError, ValidationError) as exc:
             raise DomainIntegrityFailure(
                 "Scene creation could not preserve domain integrity."
@@ -187,6 +190,9 @@ def revise_scene_content(
             scene.version += 1
             scene.full_clean()
             scene.save(update_fields=("current_revision", "version", "updated_at"))
+            from scenes.search_indexing import invalidate_and_enqueue_scene_search
+
+            invalidate_and_enqueue_scene_search(scene, revision)
         except (IntegrityError, ValidationError) as exc:
             raise DomainIntegrityFailure(
                 "Scene revision could not preserve domain integrity."

@@ -5,6 +5,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import path
 
 from accounts.views import WorkspaceLoginView, WorkspaceLogoutView
+from scenes.search_views import scene_search
 from scenes.views import scene_create, scene_editor, scene_list, scene_save
 from workspaces.views import root, workspace_home
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path("scenes/new/", scene_create, name="scene-create"),
     path("scenes/<uuid:scene_id>/", scene_editor, name="scene-editor"),
     path("scenes/<uuid:scene_id>/save/", scene_save, name="scene-save"),
+    path("search/", scene_search, name="scene-search"),
     path("admin/", admin.site.urls),
     path("health/", health, name="health"),
 ]
