@@ -3,6 +3,7 @@ import os
 import pytest
 from django.http import Http404
 from django.test import Client, override_settings
+from django.utils import timezone
 
 from accounts.models import Account
 from ai_assistance.adapters import (
@@ -286,7 +287,9 @@ def test_stale_suggestion_cannot_apply_and_revoked_grant_denies() -> None:
         apply_suggestion(
             account=account, suggestion_id=suggestion.id, review_text="", idempotency_key="h" * 32
         )
-    WorkspaceGrant.objects.filter(workspace=workspace, account=account).update(state="revoked")
+    WorkspaceGrant.objects.filter(workspace=workspace, account=account).update(
+        state="revoked", revoked_at=timezone.now()
+    )
     with pytest.raises(Http404):
         apply_suggestion(
             account=account, suggestion_id=suggestion.id, review_text="", idempotency_key="i" * 32

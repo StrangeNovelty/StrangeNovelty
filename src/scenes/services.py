@@ -142,7 +142,7 @@ def revise_scene_content(
         try:
             scene = cast(
                 Scene,
-                Scene.objects.select_for_update()
+                Scene.objects.select_for_update(of=("self",))
                 .select_related("current_revision")
                 .get(id=scene_id, workspace=workspace),
             )
@@ -202,7 +202,7 @@ def revise_scene_content(
 
 
 def lock_authorized_workspace(actor: Account | AnonymousUser, workspace_id: uuid.UUID) -> Workspace:
-    if not actor.is_authenticated:
+    if not actor.is_authenticated or getattr(getattr(actor, "_state", None), "adding", False):
         raise NotAuthenticated("Authentication is required.")
     if not actor.is_active:
         raise SceneInaccessible("Workspace is unavailable.")

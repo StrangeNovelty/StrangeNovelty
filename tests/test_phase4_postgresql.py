@@ -240,7 +240,7 @@ def test_stale_save_returns_escaped_conflict_without_domain_mutation(stale_field
     assert response.status_code == 409
     assert b"No changes were saved" in response.content
     assert b"&lt;b&gt;Submitted synthetic draft&lt;/b&gt;" in response.content
-    assert b"force" not in response.content.casefold()
+    assert b"force" not in response.content.lower()
     assert SceneRevision.objects.count() == revisions
     assert MutationOperation.objects.count() == operations
     assert SceneSaveRequest.objects.get().state == SceneSaveRequest.State.CONFLICTED

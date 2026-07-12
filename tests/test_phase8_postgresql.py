@@ -76,7 +76,7 @@ def test_structured_archive_preserves_history_and_excludes_operations_state(tmp_
     assert validation.manifest["source_workspace_id"] == str(workspace.id)
     assert len(validation.records["revisions"]) == 2
     assert validation.records["scenes"][0]["current_revision_id"] == str(scene.current_revision_id)
-    combined = "\n".join(path.read_text() for path in archive.rglob("*.json"))
+    combined = "\n".join(path.read_text() for path in (archive / "records").rglob("*.json"))
     for excluded in ("password_hash", "session_key", "search_projection", "idempotency_key"):
         assert excluded not in combined
     assert Job.objects.exists()

@@ -1,97 +1,99 @@
-# PostgreSQL Integration Validation
+# PostgreSQL Runtime Integration Validation
 
-## Status and execution boundary
+## Status and safety boundary
 
-Validation was attempted on 2026-07-11 from the repository workspace. No production, shared, remote, development-authoritative, or unknown database was contacted. No real private data, legacy repository data, working credential, cloud resource, or deployment was used.
+Completed on 2026-07-11 against an isolated, user-owned PostgreSQL 16 cluster inside the current WSL Ubuntu environment. No system-managed cluster was started or changed. No production, remote, shared, or development-authoritative database was contacted. All Accounts, Workspace data, Scene records, import material, AI records, credentials, and MFA evidence were synthetic and disposable.
 
-The PostgreSQL execution portion is **blocked**, not passed. `TEST_DATABASE_URL` was unconfigured; local TCP and standard Unix-socket readiness probes found no reachable PostgreSQL server; local `initdb`/`pg_ctl` server-control tools were unavailable; and neither Docker nor Podman was available as the permitted disposable fallback. The safety policy therefore prohibited creating a database or attempting administrator discovery. No unrelated databases or roles were enumerated.
+## Local environment
 
-## Environment discovery
+Ubuntu 24.04 already supplied PostgreSQL 16.14 server/client packages and `build-essential`. The stopped system cluster on the default port was classified unrelated and left untouched. A fresh cluster was initialized under `$HOME/.local/share/strange-novelty-postgres`, with its socket in a restrictive sibling directory and PostgreSQL bound only to `127.0.0.1` on high port 55439. A one-day self-signed local certificate enabled the production settings' required TLS boundary. The directory was absent before initialization.
 
-| Capability | Result |
-| --- | --- |
-| Project virtual environment | available, CPython 3.14 |
-| Project-local uv at discovery | available, version locked by repository workflow |
-| `TEST_DATABASE_URL` | unconfigured |
-| Local PostgreSQL TCP listener | unreachable |
-| Local PostgreSQL standard socket | unreachable |
-| PostgreSQL client tools | available, PostgreSQL 16.14 |
-| `pg_dump` / `pg_restore` | available, PostgreSQL 16.14 |
-| Local server-control tools | unavailable |
-| PostgreSQL C development header | unavailable (`pg_config.h`) |
-| Docker / Podman | unavailable |
+The bounded `strange_novelty_test_runner` role had LOGIN and CREATEDB only: no superuser, role creation, replication, or bypass-RLS authority. CREATEDB was required for Django's temporary `test_strange_novelty_test` database. Runtime-generated credentials existed only in mode-0600 `/tmp` files, were never printed or committed, and were deleted during cleanup.
 
-PostgreSQL 16.14 above is the **client-tool version only**. No server version was available and none is claimed.
+PostgreSQL server and client version: 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1).
 
-## Dependency validation
+## Dependencies
 
-`uv lock --check` passed. `uv sync --locked` successfully restored the locked default development groups, including the binary Psycopg test implementation. `uv sync --locked --all-groups` was attempted and failed specifically while building locked `psycopg-c` 3.3.4 because the host lacks PostgreSQL development headers. The dependency lock was not changed. This is an expected host prerequisite distinction: tests use `psycopg-binary`; the production image/build environment must provide controlled libpq headers/tooling.
+`uv lock --check` and `uv sync --locked` passed with the binary Psycopg test implementation. Locked all-groups/production synchronization was attempted. `psycopg-c` 3.3.4 could not build because `libpq-dev`/`pg_config.h` was absent. Installation of only `libpq-dev` was authorized and attempted, but local `sudo` required interactive authentication that was not supplied; the attempt was cancelled without package changes. The lockfile and dependency versions remain unchanged. The controlled production image still must provide libpq development headers.
 
-## Migration and schema validation
+## Migration-from-zero and physical schema
 
-Database migration execution from zero, `showmigrations` applied-state evidence, SQL introspection, constraint execution, index inspection, protective deletion execution, and restored-schema comparison were blocked because no safe PostgreSQL server existed.
+The complete migration chain applied successfully from an empty `strange_novelty_test` database across Django and every project app. `showmigrations --plan` showed the chain applied, and `makemigrations --check --dry-run` reported no drift. Local, test, safe production, and deploy checks used PostgreSQL only; no SQLite backend was introduced.
 
-Database-free migration drift validation completed: `makemigrations --check --dry-run` reported no changes. Local and test Django checks passed with a reserved `.invalid` PostgreSQL target and never fell back to SQLite. Existing static migration/model tests exercised the declared custom Account-first dependency, UUID fields, Workspace/Grant, Scene/Revision/Mutation Operation, Scene Save Request, Security Event, Job/Attempt/Idempotency, PostgreSQL search-vector/GIN declarations, import/provenance, AI, and MFA schemas. These results validate declarations only; they do not substitute for physical PostgreSQL outcomes.
+Bounded catalog inspection found:
 
-Phase 8 remains migration-free as designed. No parallel integer identity or SQLite configuration was found by the static suite and repository scan. Physical foreign-key action and cross-table invariant verification remains pending.
+- UUID primary keys on all project-owned Account, Workspace, Scene/history, security, Job/idempotency, search projection, import/provenance, AI, MFA, challenge, recovery, assurance, and throttle records;
+- only Django-generated Account many-to-many join tables used bigint surrogate keys, not project-owned domain identities;
+- 105 project check constraints;
+- the `scene_search_vector_gin` PostgreSQL GIN index;
+- 71 protective project foreign keys and zero project cascading foreign keys;
+- physical tables for Scene Save Requests, Security Events, Jobs/Attempts/Idempotency, legacy import provenance, AI Requests/Suggestions/provider effects, and MFA/session assurance;
+- no Phase 8 archive model and no parallel domain integer identity.
 
-## Test results
+The Account migration remained first in the project chain before dependent application records. Migration execution and the integration suite exercised Workspace/Grant consistency, Scene/Revision/Mutation Operation constraints, immutable history, save idempotency, Job states/leases, search publication, import mappings, AI provenance, and MFA secret/session boundaries.
 
-The complete suite ran without `TEST_DATABASE_URL`:
+## Complete PostgreSQL test result
 
-- 124 passed;
-- 110 skipped, all PostgreSQL-dependent under the repository test boundary;
+Final run:
+
+- 234 passed;
 - 0 failed;
-- final pytest-reported duration: 2.74 seconds.
+- 0 skipped;
+- 110 PostgreSQL-backed tests executed that had previously been skipped;
+- pytest duration 79.59 seconds.
 
-Accordingly, **zero PostgreSQL-backed tests ran**. Authentication/Workspace, Scene/editor/idempotency, competing Job claims and leases, full-text search execution, archive/restore, legacy import application, fake-AI persistence, MFA persistence/throttling concurrency, and management-command mutation scenarios remain blocked. Their database-free schema, parser, service-boundary, template, command-registration, privacy, and configuration tests passed, but this report makes no integration claim for them.
+Coverage executed owner bootstrap, normalized-email authentication, Workspace authorization and Grant revocation, WebAuthn boundaries, encrypted TOTP, one-time recovery codes, assurance/session revocation and database throttling; Scene creation, immutable complete Revisions, dual concurrency and idempotent editor saves; Job rollback/idempotency/SKIP LOCKED/competing claims/leases/retries/quarantine; PostgreSQL SearchVectors, GIN-backed queries, stale-worker protection and lifecycle filtering; archive export/validation/restore; staged import/reconstruction/provenance; deterministic fake AI Suggestions, stale-source protection and application; and restore quarantine for Jobs, imports, AI, sessions, challenges, recovery state, and search projections.
 
-## Operational command validation
+## Defects found and corrected
 
-Command discovery confirmed registration of `bootstrap_owner`, `run_worker`, `quarantine_unfinished_jobs`, `enqueue_search_rebuild`, `reset_search_projections`, `export_workspace_archive`, `validate_workspace_archive`, `verify_restore_readiness`, `report_legacy_import`, `quarantine_unfinished_imports`, `quarantine_unfinished_ai_requests`, and `verify_production_readiness`.
+PostgreSQL execution exposed genuine issues hidden by the earlier database-free run:
 
-Static `verify_production_readiness --static --private-content` passed using bounded temporary production values and no database connection. Its database-backed/private-owner enrollment mode was not run. All other requested smoke operations require authoritative disposable rows or database state and were blocked; none was falsely executed against an unknown target.
+1. `select_for_update()` attempted to lock nullable `current_revision` outer joins. Scene, save-idempotency, search-indexing, and AI request services now use `of=("self",)` so only the authoritative Scene row is locked.
+2. An unsaved `Account()` reports Django authentication semantics as true. The Scene authorization service now rejects model instances still in the adding state as unauthenticated.
+3. The login template omitted generic non-field authentication errors. It now renders the bounded generic message and accurately describes password as the first factor.
+4. PostgreSQL tests were corrected where they called `bytes.casefold()`, searched the archive manifest's explicit exclusion declaration as though it were stored projection data, or revoked Grants without the required `revoked_at` timestamp. Assertions and fixture updates now respect the accepted constraints without weakening them.
 
-## Backup, archive, and restore
+Focused regressions and the complete suite passed after these corrections. No constraint, authorization boundary, skip condition, or concurrency assertion was weakened.
 
-`pg_dump` and `pg_restore` 16.14 were available, but there was no safe source database or second restore target. No dump was created, no archive artifact was written, and no restore was attempted. Application archive and restore integration likewise remained blocked because it requires synthetic authoritative records in PostgreSQL. Existing database-free archive parser/hash/path/scope tests passed. No backup artifact remains.
+## Management-command smoke validation
 
-## Safe checks completed
+Against disposable synthetic rows, the following passed:
 
-- locked dependency metadata check and locked development synchronization;
-- attempted locked production-group synchronization with the missing-header failure preserved;
-- full database-free pytest suite;
-- local and test Django checks;
-- safe temporary production static readiness and deploy checks;
-- migration drift check;
-- management-command registration check;
-- Ruff lint and format, mypy, `git diff --check`, and repository safety scans (completed in final verification).
+- `bootstrap_owner` using an ephemeral noninteractive secret;
+- synthetic Scene creation and `run_worker --once`;
+- `quarantine_unfinished_jobs`;
+- `enqueue_search_rebuild --dry-run` and `reset_search_projections --dry-run`;
+- structured archive export and archive validation;
+- portable archive restore to an empty target and `verify_restore_readiness`;
+- legacy import staging/report plus import quarantine;
+- AI-request quarantine;
+- static production readiness;
+- database/private-content readiness failing specifically before MFA enrollment evidence;
+- database/private-content readiness passing after a synthetic WebAuthn/recovery-code fixture.
 
-The deploy check reported only the existing conservative HSTS include-subdomains and preload warnings. No production readiness or deployment completion is inferred.
+Worker readiness has no separate management command; worker execution and Job registry/readiness were exercised through the worker and production-readiness commands.
 
-## Defects and repository changes
+## Native and application restore rehearsal
 
-No implementation defect was established because the database integration path could not run. No test was weakened, skipped, or changed, and no application code, dependency version, migration, ADR, or prior implementation record was modified. This report and a checklist status note are the only repository changes.
+`pg_dump -Fc` created a custom-format dump outside the repository. `pg_restore` restored it into a separately created empty `strange_novelty_restore_test` database. Applied migration state and non-null Scene current pointers were verified. Post-restore reconciliation invalidated sessions/assurance/challenges/pending recovery state, quarantined unfinished Jobs/imports/AI Requests, and reset derived search projections without starting a worker.
 
-## Cleanup
+The restore target was then recreated empty to exercise the portable Workspace archive path with a synthetic pre-existing Account reference. UUID-preserving restore, revoked Grant policy, semantic report generation, and `verify_restore_readiness` passed. The dump, archive, report, databases, role, TLS material, credentials, logs, and synthetic import artifact were removed during cleanup.
 
-No database, role, container, dump, archive, restored target, temporary credential, or source artifact was created, so no database/container teardown was required. Temporary production values existed only in process environments. The repository contains no resulting URL, password, database file, backup, or private fixture.
+## Final checks
 
-## Exact prerequisites for completion
+The final PostgreSQL suite passed as above. Ruff lint and formatting, mypy, local/test/safe-production Django checks, deploy checks, migration drift, and `git diff --check` passed. Deploy checks retained only the deliberately conservative HSTS include-subdomains and preload warnings. Repository scans found no persistent secret, database URL, dump, database file, real email, private manuscript content, SQLite setting, production hostname, or weakened PostgreSQL skip.
 
-Provide one of the following before rerunning this phase:
+## Cleanup and remaining blockers
 
-1. an explicitly documented disposable local `TEST_DATABASE_URL` whose host is localhost, `127.0.0.1`, or a local Unix socket and whose database name is clearly test-only; or
-2. an already-running local PostgreSQL administrator boundary authorized to create the bounded `strange_novelty_test_runner` role and `strange_novelty_test`/restore databases; or
-3. an already-installed Docker/Podman runtime supported for an ephemeral local PostgreSQL container.
+Both disposable databases and the bounded test role were dropped. The repository-specific PostgreSQL cluster was stopped and removed, along with its socket and every temporary credential, certificate, dump, archive, report, command-output, and source fixture. No `TEST_DATABASE_URL` was persisted.
 
-For production dependency validation, install the deployment-controlled PostgreSQL/libpq development headers needed by locked `psycopg-c`. These prerequisites must not be satisfied by production credentials, an unknown server, SQLite, or invented test results.
+Remaining production blockers are operational rather than PostgreSQL application correctness:
 
-## Remaining production blockers
+- install `libpq-dev` in the controlled build environment and confirm locked `psycopg-c` production synchronization;
+- perform real owner WebAuthn enrollment and protected secret injection;
+- configure and exercise production backup scheduling/storage, monitoring, alert routing, and incident procedures;
+- build/review the immutable image in its controlled environment;
+- provision and validate the actual isolated production PostgreSQL roles/TLS/backup boundary;
+- complete deployment approval and controlled launch procedures.
 
-- complete migration-from-zero and physical schema validation on disposable PostgreSQL;
-- all 110 PostgreSQL integration tests, including concurrency and full-text execution;
-- disposable application archive/restore and `pg_dump`/`pg_restore` rehearsal;
-- database-backed management-command smoke checks and MFA-owner readiness fixture;
-- production dependency build in the controlled image environment;
-- the still-open operational, backup, monitoring, enrollment, and deployment checklist items.
+No cloud resource or deployment was created, and this validation does not mark those activities complete.

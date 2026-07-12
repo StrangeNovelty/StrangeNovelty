@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from django.http import Http404
+from django.utils import timezone
 
 from accounts.models import Account
 from jobs.models import IdempotencyRecord, Job
@@ -103,7 +104,7 @@ def test_owner_approval_revalidates_grant_and_staging(tmp_path: Path) -> None:
             acknowledge_nonempty=False,
         )
     WorkspaceGrant.objects.filter(workspace=workspace, account=account).update(
-        state=WorkspaceGrant.State.REVOKED
+        state=WorkspaceGrant.State.REVOKED, revoked_at=timezone.now()
     )
     with pytest.raises(Http404):
         approve_import(account=account, batch_id=batch.id)

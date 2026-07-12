@@ -53,7 +53,7 @@ def rebuild_scene_search_projection(job_id: str) -> None:
         with transaction.atomic():
             try:
                 scene = (
-                    Scene.objects.select_for_update()
+                    Scene.objects.select_for_update(of=("self",))
                     .select_related("workspace", "current_revision")
                     .get(id=job.target_id, workspace_id=job.workspace_id)
                 )

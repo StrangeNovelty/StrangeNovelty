@@ -105,7 +105,7 @@ def save_scene_content(
         try:
             scene = cast(
                 Scene,
-                Scene.objects.select_for_update()
+                Scene.objects.select_for_update(of=("self",))
                 .select_related("current_revision")
                 .get(id=scene_id, workspace=workspace),
             )

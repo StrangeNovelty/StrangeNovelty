@@ -2,8 +2,8 @@
 
 ## PostgreSQL Integration Validation
 
-- [ ] Complete migration-from-zero, the 110 PostgreSQL-backed tests, physical schema inspection, command smoke checks, and disposable backup/restore rehearsal. The 2026-07-11 validation attempt was safely blocked because no local server, explicit `TEST_DATABASE_URL`, server-control tools, or container runtime was available; see `docs/implementation/postgresql-integration-validation.md`.
-- [x] Database-free validation passed: 124 tests, migration drift, local/test checks, static production readiness, deploy checks, Ruff, formatting, and mypy. This does not replace the unchecked PostgreSQL item above.
+- [x] Migration-from-zero, all 110 PostgreSQL-backed tests, physical schema inspection, command smoke checks, native dump/restore, and portable archive restore passed on an isolated PostgreSQL 16.14 cluster; see `docs/implementation/postgresql-integration-validation.md`.
+- [ ] Install `libpq-dev` in the controlled production build environment and confirm the locked `psycopg-c` production group. Local installation was blocked by an unattended interactive `sudo` prompt.
 
 ## Blocking Gate
 

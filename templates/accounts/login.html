@@ -9,6 +9,7 @@
     <div role="alert" aria-labelledby="sign-in-error-heading" tabindex="-1">
       <h2 id="sign-in-error-heading">Unable to sign in</h2>
       <p>Check your credentials and try again.</p>
+      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
     </div>
   {% endif %}
 
@@ -31,5 +32,5 @@
     <button type="submit">Sign in</button>
   </form>
 
-  <p>Password-only sign-in is an interim setup state. Private manuscript use requires the later MFA phase.</p>
+  <p>Password is the first factor. Enforced private access also requires MFA.</p>
 {% endblock %}
