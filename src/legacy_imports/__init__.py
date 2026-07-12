@@ -1,0 +1,1 @@
+"""Staged legacy import boundary."""

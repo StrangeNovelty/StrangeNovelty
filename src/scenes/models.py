@@ -85,9 +85,12 @@ class MutationOperation(models.Model):
     class OperationType(models.TextChoices):
         SCENE_CREATED = "scene_created", "Scene created"
         SCENE_CONTENT_REVISED = "scene_content_revised", "Scene content revised"
+        SCENE_IMPORTED = "scene_imported", "Scene imported"
+        SCENE_REVISION_IMPORTED = "scene_revision_imported", "Scene revision imported"
 
     class Source(models.TextChoices):
         OWNER = "owner", "Owner"
+        IMPORT = "import", "Import"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
@@ -117,11 +120,18 @@ class MutationOperation(models.Model):
         ordering = ("created_at", "id")
         constraints = [
             models.CheckConstraint(
-                condition=Q(operation_type__in=("scene_created", "scene_content_revised")),
+                condition=Q(
+                    operation_type__in=(
+                        "scene_created",
+                        "scene_content_revised",
+                        "scene_imported",
+                        "scene_revision_imported",
+                    )
+                ),
                 name="mutation_operation_type_valid",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=("owner",)),
+                condition=Q(source__in=("owner", "import")),
                 name="mutation_operation_source_valid",
             ),
         ]
@@ -156,6 +166,7 @@ class MutationOperation(models.Model):
 class SceneRevision(models.Model):
     class Source(models.TextChoices):
         OWNER = "owner", "Owner"
+        IMPORT = "import", "Import"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
@@ -218,7 +229,7 @@ class SceneRevision(models.Model):
                 name="revision_normalization_supported",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=("owner",)),
+                condition=Q(source__in=("owner", "import")),
                 name="revision_source_valid",
             ),
         ]

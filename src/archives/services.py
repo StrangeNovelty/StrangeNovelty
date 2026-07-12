@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_datetime
 
 from accounts.models import Account
 from jobs.services import quarantine_unfinished_jobs
+from legacy_imports.services import quarantine_unfinished_imports
 from scenes.content import CONTENT_FORMAT_VERSION, NORMALIZATION_VERSION
 from scenes.models import MutationOperation, Scene, SceneRevision, SceneSearchProjection
 from workspaces.models import Workspace, WorkspaceGrant
@@ -183,6 +184,7 @@ def export_workspace_archive(
                 "jobs_and_attempts",
                 "search_projections",
                 "provider_and_deployment_secrets",
+                "legacy_import_staging_findings_and_mappings",
             ],
         }
         (temporary / "manifest.json").write_bytes(_canonical(manifest))
@@ -542,6 +544,7 @@ def restore_workspace_archive(
             sessions = Session.objects.count()
             Session.objects.all().delete()
             quarantined = quarantine_unfinished_jobs()
+            imports_quarantined = quarantine_unfinished_imports()
             reset = SceneSearchProjection.objects.count()
             SceneSearchProjection.objects.all().delete()
             report = _verification_report(
@@ -550,6 +553,7 @@ def restore_workspace_archive(
                 | {
                     "sessions_invalidated": sessions,
                     "jobs_quarantined": quarantined,
+                    "imports_quarantined": imports_quarantined,
                     "search_projections_reset": reset,
                 },
                 dry_run=False,
@@ -693,6 +697,7 @@ def _verification_report(
         "grants_restored_revoked": not dry_run,
         "sessions_invalidated": actions.get("sessions_invalidated", 0),
         "jobs_quarantined": actions.get("jobs_quarantined", 0),
+        "imports_quarantined": actions.get("imports_quarantined", 0),
         "search_projections_reset": actions.get("search_projections_reset", 0),
         "record_counts": validation.counts,
         "dry_run": dry_run,

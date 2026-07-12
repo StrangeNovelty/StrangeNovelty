@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",
+    "legacy_imports.apps.LegacyImportsConfig",
 ]
 
 MIDDLEWARE = [

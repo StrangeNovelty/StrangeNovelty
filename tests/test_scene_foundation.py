@@ -151,9 +151,11 @@ def test_revision_and_operation_fields_are_bounded_and_content_free() -> None:
     assert set(MutationOperation.OperationType.values) == {
         "scene_created",
         "scene_content_revised",
+        "scene_imported",
+        "scene_revision_imported",
     }
-    assert list(MutationOperation.Source.values) == ["owner"]
-    assert list(SceneRevision.Source.values) == ["owner"]
+    assert list(MutationOperation.Source.values) == ["owner", "import"]
+    assert list(SceneRevision.Source.values) == ["owner", "import"]
 
 
 def test_revision_and_operation_instance_updates_are_rejected_before_database_use() -> None:

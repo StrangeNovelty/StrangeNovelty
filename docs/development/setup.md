@@ -192,6 +192,17 @@ uv run --locked python manage.py restore_workspace_archive --archive '<archive-d
 
 Actual restore additionally requires `--confirm --acknowledge-isolated`, a non-serving empty domain, and pre-existing matching Account UUIDs. It never starts workers or activates traffic. See `docs/operations/backup-and-restore-runbook.md`.
 
+Phase 9 accepts only the synthetic, versioned JSON envelope documented in `docs/reference/legacy-story-engine-import-format-v1.md`. Never point these commands at the old repository or a database. With a protected test artifact outside Git, stage and inspect bounded results before explicit approval and application:
+
+```console
+uv run --locked python manage.py create_legacy_import_batch --account '<account-uuid>' --workspace '<workspace-uuid>' --source '<protected-json-file>' --settings=strange_novelty.settings.local
+uv run --locked python manage.py report_legacy_import --batch '<batch-uuid>' --settings=strange_novelty.settings.local
+uv run --locked python manage.py approve_legacy_import --account '<account-uuid>' --batch '<batch-uuid>' --confirm --settings=strange_novelty.settings.local
+uv run --locked python manage.py apply_legacy_import --account '<account-uuid>' --batch '<batch-uuid>' --source '<same-protected-json-file>' --confirm --settings=strange_novelty.settings.local
+```
+
+Use `--acknowledge-nonempty` only after reviewing duplicate/conflict findings for a non-empty Workspace. Import never merges or overwrites existing Scenes. After restoration, run `quarantine_unfinished_imports`; no Batch or Job resumes automatically.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:

@@ -12,6 +12,7 @@ class Job(models.Model):
     class JobType(models.TextChoices):
         INTERNAL_NOOP = "internal_noop", "Internal no-op"
         REBUILD_SCENE_SEARCH = "rebuild_scene_search_projection", "Rebuild Scene search"
+        VALIDATE_LEGACY_IMPORT = "validate_legacy_import", "Validate legacy import"
 
     class State(models.TextChoices):
         QUEUED = "queued", "Queued"
@@ -28,6 +29,7 @@ class Job(models.Model):
         SYSTEM = "system", "System"
         WORKSPACE = "workspace", "Workspace"
         SCENE = "scene", "Scene"
+        IMPORT_BATCH = "import_batch", "Import batch"
 
     class EffectClass(models.TextChoices):
         INTERNAL_IDEMPOTENT = "internal_idempotent", "Internal idempotent"
@@ -107,11 +109,17 @@ class Job(models.Model):
                 name="job_state_valid",
             ),
             models.CheckConstraint(
-                condition=Q(job_type__in=("internal_noop", "rebuild_scene_search_projection")),
+                condition=Q(
+                    job_type__in=(
+                        "internal_noop",
+                        "rebuild_scene_search_projection",
+                        "validate_legacy_import",
+                    )
+                ),
                 name="job_type_valid",
             ),
             models.CheckConstraint(
-                condition=Q(target_category__in=("system", "workspace", "scene")),
+                condition=Q(target_category__in=("system", "workspace", "scene", "import_batch")),
                 name="job_target_category_valid",
             ),
             models.CheckConstraint(
@@ -157,6 +165,15 @@ class Job(models.Model):
                         expected_revision_id__isnull=False,
                         expected_scene_version__isnull=False,
                         projection_version="scene-search-v1:simple-v1",
+                    )
+                    | Q(
+                        job_type="validate_legacy_import",
+                        workspace__isnull=False,
+                        target_category="import_batch",
+                        target_id__isnull=False,
+                        expected_revision_id__isnull=True,
+                        expected_scene_version__isnull=True,
+                        projection_version="story-engine-scenes-v1",
                     )
                 ),
                 name="job_type_parameters_consistent",

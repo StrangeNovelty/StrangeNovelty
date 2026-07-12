@@ -37,9 +37,17 @@ def _rebuild_scene_search(context: JobContext) -> HandlerResult:
     return HandlerResult(HandlerOutcome.SUCCEEDED)
 
 
+def _validate_legacy_import(context: JobContext) -> HandlerResult:
+    from legacy_imports.services import validate_staged_import_job
+
+    validate_staged_import_job(context.job_id)
+    return HandlerResult(HandlerOutcome.SUCCEEDED)
+
+
 _HANDLERS: dict[str, JobHandler] = {
     "internal_noop": _internal_noop,
     "rebuild_scene_search_projection": _rebuild_scene_search,
+    "validate_legacy_import": _validate_legacy_import,
 }
 
 
