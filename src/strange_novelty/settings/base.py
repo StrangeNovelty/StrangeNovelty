@@ -18,10 +18,12 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "workspaces.apps.WorkspacesConfig",
     "scenes.apps.ScenesConfig",
+    "security_events.apps.SecurityEventsConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "security_events.middleware.RequestCorrelationMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

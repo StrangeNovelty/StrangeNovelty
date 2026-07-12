@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
+from accounts.models import Account
 from scenes.content import MAX_CONTENT_CHARACTERS
 from scenes.exceptions import (
     DomainIntegrityFailure,
@@ -17,8 +18,18 @@ from scenes.exceptions import (
 )
 from scenes.forms import SceneCreateForm, SceneSaveForm
 from scenes.models import Scene
-from scenes.save_requests import IdempotencyKeyConflict, SaveRequestOutcome, save_scene_content
+from scenes.save_requests import SaveRequestOutcome, save_scene_content
 from scenes.services import create_scene
+from security_events.middleware import request_correlation_id
+from security_events.services import SecurityEventSpec, record_security_event
+from security_events.taxonomy import (
+    SecurityEventType,
+    SecurityOutcome,
+    SecurityReason,
+    SecurityServiceRole,
+    SecurityTargetCategory,
+)
+from workspaces.models import Workspace
 from workspaces.services import resolve_owner_workspace
 
 MAX_SAVE_REQUEST_BYTES = MAX_CONTENT_CHARACTERS * 4 + 8192
@@ -30,16 +41,58 @@ def _see_other(location: str) -> HttpResponseRedirect:
     return response
 
 
+def _request_workspace(request: HttpRequest) -> Workspace:
+    try:
+        return resolve_owner_workspace(request.user)
+    except Http404:
+        record_security_event(
+            SecurityEventSpec(
+                event_type=SecurityEventType.WORKSPACE_ACCESS_DENIED,
+                outcome=SecurityOutcome.DENIED,
+                actor=cast(Account, request.user) if request.user.is_authenticated else None,
+                target_category=SecurityTargetCategory.WORKSPACE,
+                correlation_id=request_correlation_id(request),
+                service_role=SecurityServiceRole.WEB,
+                reason=SecurityReason.INACCESSIBLE,
+            )
+        )
+        raise
+
+
 def _authorized_scene(request: HttpRequest, scene_id: uuid.UUID) -> Scene:
-    workspace = resolve_owner_workspace(request.user)
+    workspace = _request_workspace(request)
     try:
         scene = cast(
             Scene,
             Scene.objects.select_related("current_revision").get(id=scene_id, workspace=workspace),
         )
     except Scene.DoesNotExist as exc:
+        record_security_event(
+            SecurityEventSpec(
+                event_type=SecurityEventType.SCENE_ACCESS_DENIED,
+                outcome=SecurityOutcome.DENIED,
+                actor=cast(Account, request.user),
+                workspace=workspace,
+                target_category=SecurityTargetCategory.SCENE,
+                correlation_id=request_correlation_id(request),
+                service_role=SecurityServiceRole.WEB,
+                reason=SecurityReason.INACCESSIBLE,
+            )
+        )
         raise Http404("Scene is unavailable.") from exc
     if scene.lifecycle == Scene.Lifecycle.TRASHED or scene.current_revision is None:
+        record_security_event(
+            SecurityEventSpec(
+                event_type=SecurityEventType.SCENE_ACCESS_DENIED,
+                outcome=SecurityOutcome.DENIED,
+                actor=cast(Account, request.user),
+                workspace=workspace,
+                target_category=SecurityTargetCategory.SCENE,
+                correlation_id=request_correlation_id(request),
+                service_role=SecurityServiceRole.WEB,
+                reason=SecurityReason.INACCESSIBLE,
+            )
+        )
         raise Http404("Scene is unavailable.")
     return scene
 
@@ -47,7 +100,7 @@ def _authorized_scene(request: HttpRequest, scene_id: uuid.UUID) -> Scene:
 @never_cache
 @login_required
 def scene_list(request: HttpRequest) -> HttpResponse:
-    workspace = resolve_owner_workspace(request.user)
+    workspace = _request_workspace(request)
     scenes = Scene.objects.filter(workspace=workspace).exclude(lifecycle=Scene.Lifecycle.TRASHED)
     return render(request, "scenes/list.html", {"scenes": scenes})
 
@@ -56,7 +109,7 @@ def scene_list(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_http_methods(["GET", "POST"])
 def scene_create(request: HttpRequest) -> HttpResponse:
-    workspace = resolve_owner_workspace(request.user)
+    workspace = _request_workspace(request)
     form = SceneCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         try:
@@ -123,7 +176,7 @@ def scene_save(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             status=422,
         )
 
-    workspace = resolve_owner_workspace(request.user)
+    workspace = _request_workspace(request)
     try:
         result = save_scene_content(
             actor=request.user,
@@ -134,17 +187,18 @@ def scene_save(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             proposed_content=form.cleaned_data["content"],
             idempotency_key=form.cleaned_data["idempotency_key"],
             save_intent=form.cleaned_data["save_intent"],
+            correlation_id=request_correlation_id(request),
         )
-    except IdempotencyKeyConflict:
+    except SceneDomainError:
+        raise Http404("Scene is unavailable.") from None
+
+    if result.outcome == SaveRequestOutcome.IDEMPOTENCY_CONFLICTED:
         return _render_conflict(
             request,
             scene_id=scene.id,
             submitted_content=form.cleaned_data["content"],
             message="This save request identifier was already used for different changes.",
         )
-    except SceneDomainError:
-        raise Http404("Scene is unavailable.") from None
-
     if result.outcome == SaveRequestOutcome.CONFLICTED:
         return _render_conflict(
             request,

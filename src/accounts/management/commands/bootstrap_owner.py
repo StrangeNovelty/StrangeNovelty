@@ -11,6 +11,18 @@ from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 
 from accounts.models import Account
+from security_events.services import (
+    SecurityEventSpec,
+    new_correlation_id,
+    record_security_event,
+)
+from security_events.taxonomy import (
+    SecurityEventType,
+    SecurityOutcome,
+    SecurityReason,
+    SecurityServiceRole,
+    SecurityTargetCategory,
+)
 from workspaces.models import OwnerBootstrap, Workspace, WorkspaceGrant
 
 INITIAL_BOOTSTRAP_ID = uuid.UUID("8f603cf7-569d-4c63-9d78-61ecdfaacdd7")
@@ -46,6 +58,7 @@ class Command(BaseCommand):
             return
 
         if self._application_state_exists():
+            self._record_rejection(SecurityReason.EXISTING_STATE)
             raise CommandError(
                 "Bootstrap refused because Account, Workspace, or Grant state already exists."
             )
@@ -55,6 +68,10 @@ class Command(BaseCommand):
         try:
             validate_password(password, user=candidate)
         except ValidationError as exc:
+            self._record_rejection(
+                SecurityReason.INVALID_INPUT,
+                outcome=SecurityOutcome.FAILED,
+            )
             raise CommandError("The supplied password does not satisfy password policy.") from exc
 
         try:
@@ -80,6 +97,19 @@ class Command(BaseCommand):
                     id=INITIAL_BOOTSTRAP_ID,
                     account=account,
                     workspace=workspace,
+                )
+                record_security_event(
+                    SecurityEventSpec(
+                        event_type=SecurityEventType.OWNER_BOOTSTRAP_SUCCEEDED,
+                        outcome=SecurityOutcome.SUCCEEDED,
+                        actor=account,
+                        workspace=workspace,
+                        target_category=SecurityTargetCategory.BOOTSTRAP,
+                        target_id=INITIAL_BOOTSTRAP_ID,
+                        correlation_id=new_correlation_id(),
+                        service_role=SecurityServiceRole.OPERATOR,
+                    ),
+                    required=True,
                 )
         except IntegrityError as exc:
             existing = self._existing_bootstrap()
@@ -143,10 +173,39 @@ class Command(BaseCommand):
         )
 
     def _report_existing(self, existing: OwnerBootstrap, email: str, workspace_name: str) -> None:
-        self._ensure_same(existing, email, workspace_name)
+        try:
+            self._ensure_same(existing, email, workspace_name)
+        except CommandError:
+            self._record_rejection(
+                SecurityReason.EXISTING_STATE,
+                actor=existing.account,
+                workspace=existing.workspace,
+            )
+            raise
         self.stdout.write("Owner bootstrap is already complete; no changes were made.")
 
     @staticmethod
     def _ensure_same(existing: OwnerBootstrap, email: str, workspace_name: str) -> None:
         if existing.account.email != email or existing.workspace.name != workspace_name:
             raise CommandError("Bootstrap conflicts with the existing initial owner state.")
+
+    @staticmethod
+    def _record_rejection(
+        reason: SecurityReason,
+        *,
+        outcome: SecurityOutcome = SecurityOutcome.CONFLICTED,
+        actor: Account | None = None,
+        workspace: Workspace | None = None,
+    ) -> None:
+        record_security_event(
+            SecurityEventSpec(
+                event_type=SecurityEventType.OWNER_BOOTSTRAP_REJECTED,
+                outcome=outcome,
+                actor=actor,
+                workspace=workspace,
+                target_category=SecurityTargetCategory.BOOTSTRAP,
+                correlation_id=new_correlation_id(),
+                service_role=SecurityServiceRole.OPERATOR,
+                reason=reason,
+            )
+        )

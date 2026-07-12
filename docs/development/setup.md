@@ -142,6 +142,12 @@ To test conflicts manually, open one Scene in two tabs, save a synthetic change 
 
 Phase 4 has explicit save only. It has no autosave or browser draft persistence. Password login also remains an interim boundary without the required production MFA enforcement.
 
+Phase 5 adds `security_events/migrations/0001_initial.py`. Apply it only to the same explicitly confirmed local PostgreSQL target. Authorized Django staff can inspect Security Events and Mutation Operations through read-only admin model pages; those pages do not grant Workspace authority and provide no add, change, or delete action.
+
+Every HTTP response carries a server-generated random, non-semantic `X-Request-ID` correlation value. Browser-supplied correlation headers are always replaced so they cannot smuggle private identifiers into operational evidence. Correlation values are troubleshooting evidence, never authorization.
+
+Phase 5 adds no Security Event cleanup schedule and no external logging, metrics, tracing, SIEM, or alerting service. Exact event retention remains an operational decision. Do not place private values in logs while testing event failure paths.
+
 ## Initial Owner Bootstrap
 
 After applying migrations to a confirmed local PostgreSQL database, create the one initial owner and Workspace through the explicit interactive command:
