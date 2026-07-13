@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Account
+from scenes.models import Scene
+from scenes.services import create_scene
 from workspaces.models import OwnerBootstrap, Workspace, WorkspaceGrant
 from workspaces.services import get_authorized_workspace
 
@@ -57,6 +59,39 @@ def test_normalized_email_login_and_private_landing(client: Client) -> None:
     assert landing.status_code == 200
     assert b"Synthetic Workspace" in landing.content
     assert "no-store" in landing.headers["Cache-Control"]
+
+
+def test_workspace_dashboard_renders_real_scene_data(client: Client) -> None:
+    account = _account()
+    workspace, _ = _owner_workspace(account)
+
+    active = create_scene(
+        actor=account,
+        workspace_id=workspace.id,
+        title="Active Dashboard Scene",
+        ordering=None,
+    ).scene
+    archived = create_scene(
+        actor=account,
+        workspace_id=workspace.id,
+        title="Archived Dashboard Scene",
+        ordering=None,
+    ).scene
+    archived.lifecycle = Scene.Lifecycle.ARCHIVED
+    archived.save(update_fields=("lifecycle", "updated_at"))
+
+    client.force_login(account)
+    response = client.get(reverse("workspace-home"))
+
+    assert response.status_code == 200
+    assert response.context["active_scene_count"] == 1
+    assert response.context["archived_scene_count"] == 1
+    assert response.context["revision_count"] == 2
+    assert list(response.context["recent_scenes"]) == [active]
+    assert response.context["latest_revision"] is not None
+    assert b"Active Dashboard Scene" in response.content
+    assert b"1 archived" in response.content
+    assert b"2" in response.content
 
 
 def test_invalid_and_inactive_login_use_generic_message(client: Client) -> None:
