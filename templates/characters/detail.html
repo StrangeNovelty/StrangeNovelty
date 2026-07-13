@@ -41,6 +41,21 @@
       </header>
 
       <div class="workspace-main character-dossier-workspace">
+        <section class="ability-summary-strip" aria-label="Ability summary">
+          <div>
+            <p class="card-label">Abilities</p>
+            <p class="ability-summary-value">{{ ability_count }}</p>
+          </div>
+          <div>
+            <p class="card-label">Active now</p>
+            <p class="ability-summary-value">{{ active_ability_count }}</p>
+          </div>
+          <div>
+            <p class="card-label">Current stages</p>
+            <p class="ability-summary-value">{{ current_stage_count }}</p>
+          </div>
+        </section>
+
         {% include "characters/_form_errors.html" %}
         <form class="character-dossier-form" method="post">
           {% csrf_token %}
@@ -150,6 +165,86 @@
             <button class="button button-primary" type="submit">Save dossier</button>
           </div>
         </form>
+
+        <section class="dossier-section character-abilities" aria-labelledby="character-abilities-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Abilities and progression</p>
+              <h2 id="character-abilities-heading">What {{ character.name }} can do now</h2>
+            </div>
+            <a class="button button-secondary" href="{% url 'ability-create' character.id %}">
+              Add Ability
+            </a>
+          </div>
+
+          {% if abilities %}
+            <div class="ability-card-list">
+              {% for ability in abilities %}
+                <article class="ability-card">
+                  <div class="ability-card-heading">
+                    <div>
+                      <p class="ability-card-category">
+                        {% if ability.category %}{{ ability.category }}{% else %}Uncategorized Ability{% endif %}
+                      </p>
+                      <h3>
+                        <a href="{% url 'ability-detail' character.id ability.id %}">
+                          {{ ability.name }}
+                        </a>
+                      </h3>
+                    </div>
+                    <div class="ability-badge-row">
+                      <span class="ability-badge">{{ ability.get_mastery_display }}</span>
+                      <span class="ability-badge ability-status-{{ ability.status }}">
+                        {{ ability.get_status_display }}
+                      </span>
+                    </div>
+                  </div>
+
+                  {% if ability.current_stages %}
+                    <p class="ability-current-stage">
+                      <span>Current stage</span>
+                      {{ ability.current_stages.0.name }}
+                    </p>
+                  {% endif %}
+
+                  <div class="ability-card-body">
+                    <div>
+                      <p class="card-label">Current capability</p>
+                      <p>{% if ability.description %}{{ ability.description }}{% else %}No current description yet.{% endif %}</p>
+                    </div>
+                    <div>
+                      <p class="card-label">Limitations</p>
+                      <p>{% if ability.limitations %}{{ ability.limitations }}{% else %}No limitations recorded.{% endif %}</p>
+                    </div>
+                    <div>
+                      <p class="card-label">Costs or consequences</p>
+                      <p>{% if ability.costs %}{{ ability.costs }}{% else %}No costs recorded.{% endif %}</p>
+                    </div>
+                    {% if ability.notes %}
+                      <div>
+                        <p class="card-label">Notes</p>
+                        <p>{{ ability.notes }}</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <a class="side-link" href="{% url 'ability-detail' character.id ability.id %}">
+                    Open Ability progression
+                  </a>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="ability-empty-state">
+              <p class="card-value">No Abilities recorded yet.</p>
+              <p class="empty-state">
+                Begin with one thing this Character can do—or might only be starting to discover.
+              </p>
+              <a class="button button-primary" href="{% url 'ability-create' character.id %}">
+                Add the first Ability
+              </a>
+            </div>
+          {% endif %}
+        </section>
 
         <section class="dossier-section character-scenes" aria-labelledby="character-scenes-heading">
           <div class="dossier-section-heading">

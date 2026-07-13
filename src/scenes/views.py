@@ -159,6 +159,9 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "form": form,
             "character_selector_form": character_selector_form,
             "scene_characters": scene.characters.order_by("name"),
+            "ability_events": scene.ability_events.select_related(
+                "ability", "ability__character"
+            ).order_by("-created_at", "-id"),
         },
     )
 

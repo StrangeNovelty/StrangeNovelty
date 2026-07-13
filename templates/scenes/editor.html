@@ -132,6 +132,20 @@
         </section>
       {% endif %}
 
+      {% if ability_events %}
+        <section class="side-panel">
+          <p class="card-label">Ability progression</p>
+          <div class="scene-ability-events">
+            {% for event in ability_events %}
+              <a class="side-link" href="{% url 'ability-detail' event.ability.character.id event.ability.id %}">
+                {{ event.ability.character.name }} · {{ event.ability.name }}
+              </a>
+              <p class="side-copy">{{ event.title }}</p>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+
       {% if scene.lifecycle == "active" %}
         <section class="side-panel">
           <p class="card-label">Writing tools</p>

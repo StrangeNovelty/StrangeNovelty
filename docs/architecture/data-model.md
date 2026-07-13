@@ -128,6 +128,14 @@ A Character represents a person or person-like participant. It supports identity
 
 Names are not unique identity. Version 1 does not hard-code roles, species, relationship taxonomies, knowledge states, or story-specific biography templates.
 
+#### Character abilities and progression
+
+The initial Character progression workflow uses four explicit typed records owned by the same Workspace as the Character: Ability, Ability Stage, Ability Event, and Ability Prediction. An Ability records an author-defined name and category, current capability, limitations, costs, bounded mastery and availability status, and notes. Ordered Ability Stages represent past, current, possible, or rejected development; a database constraint permits at most one current Stage per Ability.
+
+Ability Events form the established development history. They may record both an optional calendar date and an optional freeform story-time label, and may link only to a Scene in the same Workspace. Ability Predictions are private speculative records and remain visually and semantically distinct from established history; recording or resolving a Prediction does not establish Canon automatically.
+
+These records use ordinary creation and modification timestamps in the first workflow rather than an immutable revision system. They are contained by the Character's Ability, use explicit author-initiated hard deletion for now, and do not introduce a generalized powers model, entity graph, or numeric ranking system. Future revision or lifecycle behavior requires a deliberate model change.
+
 ### Location
 
 A Location represents a place. It supports identity, Workspace ownership, primary name, optional aliases, short description, optional longer notes, explicit association with relevant Worlds, contextual state, provenance, timestamps, and archive, deprecation, and recovery status.
