@@ -434,6 +434,68 @@ svg {
   margin-top: 0.55rem;
 }
 
+
+.scene-list-panel {
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.scene-list-panel h2 {
+  margin-top: 0.45rem;
+}
+
+.scene-list {
+  display: grid;
+  margin-top: 1rem;
+}
+
+.scene-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.scene-list-item:hover .scene-list-title,
+.scene-list-item:focus-visible .scene-list-title {
+  color: var(--color-accent-strong);
+}
+
+.scene-list-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.scene-list-title {
+  font-weight: 700;
+}
+
+.scene-list-meta {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.scene-list-action {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.scene-empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
 @media (max-width: 74rem) {
   .app-shell {
     grid-template-columns: 15rem minmax(0, 1fr);
