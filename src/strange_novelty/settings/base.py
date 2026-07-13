@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "workspaces.apps.WorkspacesConfig",
     "scenes.apps.ScenesConfig",
     "characters.apps.CharactersConfig",
+    "stories.apps.StoriesConfig",
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",

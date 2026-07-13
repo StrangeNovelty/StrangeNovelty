@@ -63,7 +63,27 @@ from characters.views import (
 )
 from operations.health import liveness, readiness
 from scenes.search_views import scene_search
-from scenes.views import scene_create, scene_editor, scene_list, scene_save
+from scenes.views import (
+    scene_create,
+    scene_editor,
+    scene_list,
+    scene_placement_update,
+    scene_save,
+)
+from stories.views import (
+    arc_create_view,
+    arc_edit_view,
+    chapter_create_view,
+    chapter_detail,
+    chapter_scene_attach,
+    chapter_scene_create,
+    structure_delete_view,
+    volume_create_view,
+    volume_edit_view,
+    work_create,
+    work_detail,
+    work_list,
+)
 from workspaces.views import root, workspace_home
 
 urlpatterns = [
@@ -110,10 +130,70 @@ urlpatterns = [
     ),
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
+    path("works/", work_list, name="work-list"),
+    path("works/new/", work_create, name="work-create"),
+    path("works/<uuid:work_id>/", work_detail, name="work-detail"),
+    path(
+        "works/<uuid:work_id>/delete/",
+        structure_delete_view,
+        {"record_kind": "work"},
+        name="work-delete",
+    ),
+    path("works/<uuid:work_id>/volumes/new/", volume_create_view, name="volume-create"),
+    path(
+        "works/<uuid:work_id>/volumes/<uuid:volume_id>/",
+        volume_edit_view,
+        name="volume-edit",
+    ),
+    path(
+        "works/<uuid:work_id>/volumes/<uuid:record_id>/delete/",
+        structure_delete_view,
+        {"record_kind": "volume"},
+        name="volume-delete",
+    ),
+    path("works/<uuid:work_id>/arcs/new/", arc_create_view, name="arc-create"),
+    path(
+        "works/<uuid:work_id>/arcs/<uuid:arc_id>/",
+        arc_edit_view,
+        name="arc-edit",
+    ),
+    path(
+        "works/<uuid:work_id>/arcs/<uuid:record_id>/delete/",
+        structure_delete_view,
+        {"record_kind": "arc"},
+        name="arc-delete",
+    ),
+    path("works/<uuid:work_id>/chapters/new/", chapter_create_view, name="chapter-create"),
+    path(
+        "works/<uuid:work_id>/chapters/<uuid:chapter_id>/",
+        chapter_detail,
+        name="chapter-detail",
+    ),
+    path(
+        "works/<uuid:work_id>/chapters/<uuid:record_id>/delete/",
+        structure_delete_view,
+        {"record_kind": "chapter"},
+        name="chapter-delete",
+    ),
+    path(
+        "works/<uuid:work_id>/chapters/<uuid:chapter_id>/scenes/new/",
+        chapter_scene_create,
+        name="chapter-scene-create",
+    ),
+    path(
+        "works/<uuid:work_id>/chapters/<uuid:chapter_id>/scenes/attach/",
+        chapter_scene_attach,
+        name="chapter-scene-attach",
+    ),
     path("scenes/", scene_list, name="scene-list"),
     path("scenes/new/", scene_create, name="scene-create"),
     path("scenes/<uuid:scene_id>/", scene_editor, name="scene-editor"),
     path("scenes/<uuid:scene_id>/save/", scene_save, name="scene-save"),
+    path(
+        "scenes/<uuid:scene_id>/placement/",
+        scene_placement_update,
+        name="scene-placement-update",
+    ),
     path(
         "scenes/<uuid:scene_id>/characters/",
         scene_characters_update,

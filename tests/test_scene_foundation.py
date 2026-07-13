@@ -59,6 +59,11 @@ def test_scene_schema_has_no_authoritative_body_field() -> None:
         "ordering",
         "version",
         "current_revision",
+        "work",
+        "volume",
+        "arc",
+        "chapter",
+        "structure_order",
         "created_at",
         "updated_at",
     }
@@ -76,9 +81,11 @@ def test_lifecycle_ordering_version_constraints_and_index_are_explicit() -> None
         "scene_lifecycle_valid",
         "scene_ordering_nonnegative",
         "scene_version_nonnegative",
+        "scene_structure_requires_work",
+        "scene_placement_order_consistent",
         "unique_scene_ordering_in_workspace",
     }
-    assert index_names == {"scene_ws_lifecycle_order_idx"}
+    assert index_names == {"scene_ws_lifecycle_order_idx", "scene_ws_structure_idx"}
 
 
 def test_scene_title_and_ordering_validation() -> None:

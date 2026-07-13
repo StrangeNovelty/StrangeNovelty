@@ -33,6 +33,19 @@ class Scene(models.Model):
         blank=True,
         related_name="+",
     )
+    work = models.ForeignKey(
+        "stories.Work", on_delete=models.PROTECT, null=True, blank=True, related_name="scenes"
+    )
+    volume = models.ForeignKey(
+        "stories.Volume", on_delete=models.PROTECT, null=True, blank=True, related_name="scenes"
+    )
+    arc = models.ForeignKey(
+        "stories.Arc", on_delete=models.PROTECT, null=True, blank=True, related_name="scenes"
+    )
+    chapter = models.ForeignKey(
+        "stories.Chapter", on_delete=models.PROTECT, null=True, blank=True, related_name="scenes"
+    )
+    structure_order = models.PositiveBigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -52,12 +65,30 @@ class Scene(models.Model):
                 fields=("workspace", "ordering"),
                 name="unique_scene_ordering_in_workspace",
             ),
+            models.CheckConstraint(
+                condition=(
+                    Q(work__isnull=True, structure_order__isnull=True)
+                    | Q(work__isnull=False, structure_order__isnull=False)
+                ),
+                name="scene_placement_order_consistent",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(work__isnull=False)
+                    | Q(volume__isnull=True, arc__isnull=True, chapter__isnull=True)
+                ),
+                name="scene_structure_requires_work",
+            ),
         ]
         indexes = [
             models.Index(
                 fields=("workspace", "lifecycle", "ordering"),
                 name="scene_ws_lifecycle_order_idx",
-            )
+            ),
+            models.Index(
+                fields=("workspace", "work", "chapter", "structure_order"),
+                name="scene_ws_structure_idx",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -79,6 +110,40 @@ class Scene(models.Model):
                         )
                     }
                 )
+        errors: dict[str, str] = {}
+        if self.work_id and self.work.workspace_id != self.workspace_id:
+            errors["work"] = "Scene Work must belong to this Workspace."
+        if self.volume_id and (
+            not self.work_id
+            or self.volume.workspace_id != self.workspace_id
+            or self.volume.work_id != self.work_id
+        ):
+            errors["volume"] = "Scene Volume must belong to the selected Work and Workspace."
+        if self.arc_id and (
+            not self.work_id
+            or self.arc.workspace_id != self.workspace_id
+            or self.arc.work_id != self.work_id
+        ):
+            errors["arc"] = "Scene Arc must belong to the selected Work and Workspace."
+        if self.chapter_id and (
+            not self.work_id
+            or self.chapter.workspace_id != self.workspace_id
+            or self.chapter.work_id != self.work_id
+        ):
+            errors["chapter"] = "Scene Chapter must belong to the selected Work and Workspace."
+        if self.arc_id and self.arc.volume_id and self.volume_id != self.arc.volume_id:
+            errors["volume"] = "Scene Volume must match the selected Arc’s Volume."
+        if self.chapter_id:
+            if self.chapter.volume_id and self.volume_id != self.chapter.volume_id:
+                errors["volume"] = "Scene Volume must match the selected Chapter’s Volume."
+            if self.chapter.arc_id and self.arc_id != self.chapter.arc_id:
+                errors["arc"] = "Scene Arc must match the selected Chapter’s Arc."
+        if self.work_id is None and self.structure_order is not None:
+            errors["structure_order"] = "Unassigned Scenes cannot have a structure order."
+        if self.work_id is not None and self.structure_order is None:
+            errors["structure_order"] = "Placed Scenes require a structure order."
+        if errors:
+            raise ValidationError(errors)
 
 
 class MutationOperation(models.Model):

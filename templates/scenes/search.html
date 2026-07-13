@@ -50,9 +50,9 @@
         <section class="scene-search-panel" aria-labelledby="scene-search-heading">
           <div>
             <p class="card-label">Find your writing</p>
-            <h2 id="scene-search-heading">Find Scenes, Characters, and Groups.</h2>
+            <h2 id="scene-search-heading">Find Scenes, Characters, Groups, Works, and Chapters.</h2>
             <p class="form-support">
-              Search current Scene revisions, Character dossiers, and cast Groups from one place.
+              Search current Scene revisions, cast records, and story structure from one place.
             </p>
           </div>
 
@@ -85,7 +85,7 @@
                 <p class="card-label">Search results</p>
                 <h2 id="search-results-heading">Matches across your story</h2>
               </div>
-              {% if scene_results or character_results or group_results %}
+              {% if scene_results or character_results or group_results or work_results or chapter_results %}
                 <p class="search-result-count">
                   {{ result_count }} found
                 </p>
@@ -155,11 +155,29 @@
               </ol>
             {% endif %}
 
-            {% if not scene_results and not character_results and not group_results %}
+            {% if work_results %}
+              <h3 class="search-result-group-heading">Works</h3>
+              <ol class="search-result-list">
+                {% for result in work_results %}
+                  <li><a class="search-result" href="{% url 'work-detail' result.work.id %}"><span class="search-result-heading"><span class="search-result-title">{{ result.work.title }}</span><span class="lifecycle-badge">{{ result.work.get_work_type_display }} · {{ result.work.get_status_display }}</span></span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>
+                {% endfor %}
+              </ol>
+            {% endif %}
+
+            {% if chapter_results %}
+              <h3 class="search-result-group-heading">Chapters</h3>
+              <ol class="search-result-list">
+                {% for result in chapter_results %}
+                  <li><a class="search-result" href="{% url 'chapter-detail' result.chapter.work.id result.chapter.id %}"><span class="search-result-heading"><span class="search-result-title">{{ result.chapter.title }}</span><span class="lifecycle-badge">{{ result.chapter.work.title }} · {{ result.chapter.get_status_display }}</span></span>{% if result.chapter.label %}<span class="character-role">{{ result.chapter.label }}</span>{% endif %}<span class="search-result-snippet">{{ result.snippet }}</span></a></li>
+                {% endfor %}
+              </ol>
+            {% endif %}
+
+            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results %}
               <div class="search-empty-state">
                 <p class="card-value">No matches found.</p>
                 <p class="empty-state" role="status">
-                  No matching Scenes, Characters, or Groups were found. Recently changed Scenes may still be indexing.
+                  No matching Scenes, Characters, Groups, Works, or Chapters were found. Recently changed Scenes may still be indexing.
                 </p>
               </div>
             {% endif %}
@@ -173,7 +191,7 @@
         <p class="card-label">Search scope</p>
         <p class="status-value">Current revisions</p>
         <p class="side-copy">
-          Search checks indexed Scene titles and current content, Character dossiers, and Groups.
+          Search checks indexed Scene content plus synchronous Character, Group, Work, and Chapter fields.
         </p>
       </section>
 
@@ -189,6 +207,7 @@
         <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
         <a class="side-link" href="{% url 'character-list' %}">All Characters</a>
         <a class="side-link" href="{% url 'character-group-list' %}">All Groups</a>
+        <a class="side-link" href="{% url 'work-list' %}">All Works</a>
         <a class="side-link" href="{% url 'workspace-home' %}">
           Workspace overview
         </a>
