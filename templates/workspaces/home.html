@@ -130,6 +130,22 @@
             {% endif %}
           </article>
 
+          <article class="dashboard-card">
+            <p class="card-label">Writing now</p>
+            {% if writing_chapter %}
+              <p class="card-value">{{ writing_chapter.title }}</p>
+              <p class="card-support">
+                {{ writing_chapter.work.title }} · {{ writing_chapter.get_status_display }}
+              </p>
+              <a class="side-link" href="{% url 'chapter-detail' writing_chapter.work.id writing_chapter.id %}">
+                Continue Chapter
+              </a>
+            {% else %}
+              <p class="card-support">No Chapter is currently drafting or revising.</p>
+              <a class="side-link" href="{% url 'work-list' %}">Choose a Work</a>
+            {% endif %}
+          </article>
+
           <article class="dashboard-card dashboard-card-wide">
             <div class="card-heading-row">
               <div>

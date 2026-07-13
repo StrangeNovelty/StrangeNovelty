@@ -126,6 +126,8 @@ Volume, Arc, and Chapter siblings use explicit sparse non-negative order values 
 
 Structure records and Scene placement use ordinary creation and modification timestamps. Parent deletion is protective: a Work, Volume, Arc, or Chapter cannot be deleted while contained structure or Scenes still refer to it. The author must explicitly reassign or remove those references first. Scene placement changes preserve Scene identity, revisions, search projection behavior, and editor routes while advancing the Scene concurrency version as a metadata mutation.
 
+The initial Chapter writing workspace stores author-owned planning text directly on Chapter: a one-sentence concept, goal, key beats, emotional arc, character focus, brain dump, and working outline. These optional fields use the Chapter's ordinary updated timestamp rather than immutable planning revisions. Scene prose remains the immutable revision unit. Chapter Scene counts, whitespace-delimited current word totals, estimated reading time at 250 words per minute, recent-writing context, and cast are derived from attached non-trashed Scenes, their current revisions, and existing Character–Scene links rather than stored redundantly. Detaching a Scene removes only its Chapter placement while retaining coherent Work, Volume, and Arc context.
+
 ## Version 1 Structured Entities
 
 Character and Location are explicit typed entities. They share identity, states, provenance, search, linking, archival, and timestamp behaviors but remain distinct types. Version 1 has no generic custom-entity builder.
