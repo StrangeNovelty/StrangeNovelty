@@ -177,6 +177,20 @@ def test_scene_editor_template_uses_application_shell_and_preserves_save_contrac
     assert "editor.js" in template
 
 
+def test_scene_shells_do_not_nest_main_landmarks() -> None:
+    template_root = Path(__file__).parents[1] / "templates/scenes"
+    for name in ("list.html", "create.html", "editor.html"):
+        template = (template_root / name).read_text(encoding="utf-8")
+        assert '<main class="workspace-main' not in template
+
+
+def test_scene_list_titles_wrap_at_narrow_widths() -> None:
+    stylesheet = (Path(__file__).parents[1] / "static/strange_novelty/app.css").read_text(
+        encoding="utf-8"
+    )
+    assert ".scene-list-title {\n  overflow-wrap: anywhere;" in stylesheet
+
+
 def test_progressive_key_generation_has_no_correctness_or_storage_dependency() -> None:
     script = (Path(__file__).parents[1] / "src/scenes/static/scenes/editor.js").read_text(
         encoding="utf-8"

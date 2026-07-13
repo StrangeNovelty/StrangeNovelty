@@ -472,6 +472,7 @@ svg {
 }
 
 .scene-list-title {
+  overflow-wrap: anywhere;
   font-weight: 700;
 }
 
