@@ -3,19 +3,119 @@
 {% block title %}AI request status — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>AI request status</h1>
-  <p role="status">State: {{ ai_request.get_state_display }}.</p>
-  <p>The request remains non-authoritative.</p>
-  {% if suggestion %}
-    <p><a href="{% url 'ai-suggestion-review' suggestion.id %}">Review the suggestion</a></p>
-  {% else %}
-    <p>Run the local worker to process queued work, then refresh this page.</p>
-  {% endif %}
-  {% if ai_request.state == "queued" or ai_request.state == "running" %}
-    <form method="post" action="{% url 'ai-request-cancel' ai_request.id %}">
-      {% csrf_token %}
-      <button type="submit">Cancel request</button>
-    </form>
-  {% endif %}
-  <p><a href="{% url 'scene-editor' ai_request.scene.id %}">Return to Scene</a></p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">AI assistance</p>
+          <h1>AI request status</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-editor' ai_request.scene.id %}">
+          Back to scene
+        </a>
+      </header>
+
+      <div class="workspace-main ai-workspace">
+        <section class="ai-panel" aria-labelledby="ai-status-heading">
+          <div class="ai-panel-heading">
+            <div>
+              <p class="card-label">Request progress</p>
+              <h2 id="ai-status-heading">Your private suggestion request</h2>
+            </div>
+            <span class="lifecycle-badge" role="status">
+              {{ ai_request.get_state_display }}
+            </span>
+          </div>
+
+          <div class="ai-authority-note" role="note">
+            <p class="card-label">Non-authoritative</p>
+            <p>
+              Request completion never changes the Scene. Any output must be reviewed
+              before it can be applied.
+            </p>
+          </div>
+
+          {% if suggestion %}
+            <div class="ai-status-message">
+              <p class="card-value">Your suggestion is ready for review.</p>
+              <p class="form-support">
+                Compare the source, current Scene, and original output before deciding.
+              </p>
+              <a class="button button-primary" href="{% url 'ai-suggestion-review' suggestion.id %}">
+                Review the suggestion
+              </a>
+            </div>
+          {% else %}
+            <div class="ai-status-message">
+              <p class="card-value">No suggestion is available yet.</p>
+              <p class="form-support">
+                Run the local worker to process queued work, then refresh this page.
+              </p>
+            </div>
+          {% endif %}
+
+          <div class="form-actions">
+            {% if ai_request.state == "queued" or ai_request.state == "running" %}
+              <form method="post" action="{% url 'ai-request-cancel' ai_request.id %}">
+                {% csrf_token %}
+                <button class="button button-secondary" type="submit">Cancel request</button>
+              </form>
+            {% endif %}
+            <a class="button button-secondary" href="{% url 'scene-editor' ai_request.scene.id %}">
+              Return to Scene
+            </a>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="AI request details">
+      <section class="side-panel">
+        <p class="card-label">Source scene</p>
+        <p class="status-value ai-scene-title">{{ ai_request.scene.title }}</p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Request state</p>
+        <p class="status-value">{{ ai_request.get_state_display }}</p>
+        <p class="side-copy">The Job status does not grant authority to change your writing.</p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-editor' ai_request.scene.id %}">Current scene</a>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'workspace-home' %}">Workspace overview</a>
+      </section>
+    </aside>
+  </div>
 {% endblock %}

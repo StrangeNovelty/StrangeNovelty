@@ -1,4 +1,5 @@
 import os
+import re
 
 import pytest
 from django.http import Http404
@@ -45,6 +46,13 @@ def _domain() -> tuple[Account, Workspace, Scene]:
     )
     scene = create_scene(actor=account, workspace_id=workspace.id, title="Synthetic Scene").scene
     return account, workspace, scene
+
+
+def _assert_unique_labeled_ids(html: str) -> None:
+    ids = re.findall(r'\bid="([^"]+)"', html)
+    label_targets = re.findall(r'\bfor="([^"]+)"', html)
+    assert len(ids) == len(set(ids))
+    assert set(label_targets) <= set(ids)
 
 
 @override_settings(AI_ENABLED=True, AI_ADAPTER="local_fake", DEBUG=True)
@@ -329,3 +337,88 @@ def test_private_http_routes_are_csrf_protected_and_no_store() -> None:
     assert response.status_code == 200
     assert "no-store" in response.headers["Cache-Control"]
     assert client.post(f"/scenes/{scene.id}/ai/request/", {}).status_code == 403
+
+
+@override_settings(AI_ENABLED=True, AI_ADAPTER="local_fake", DEBUG=True)
+def test_ai_workflow_pages_render_shell_navigation_and_review_controls() -> None:
+    account, workspace, scene = _domain()
+    client = Client()
+    client.force_login(account)
+
+    request_page = client.get(f"/scenes/{scene.id}/ai/request/")
+    request_html = request_page.content.decode()
+    assert request_page.status_code == 200
+    assert request_html.count('<main id="main-content">') == 1
+    assert 'class="app-shell"' in request_html
+    assert 'aria-label="Primary navigation"' in request_html
+    assert f'action="/scenes/{scene.id}/ai/request/"' not in request_html
+    assert 'name="instruction"' in request_html
+    assert 'name="idempotency_key"' in request_html
+    assert "Only the selected current Scene Revision" in request_html
+    assert f"Revision {scene.current_revision.revision_number}" in request_html
+    assert f"Scene version {scene.version}" in request_html
+    assert "Applying a suggestion does not make it Canon" in request_html
+    _assert_unique_labeled_ids(request_html)
+
+    requested = request_suggestion(
+        account=account,
+        scene_id=scene.id,
+        instruction="Synthetic instruction",
+        idempotency_key="n" * 32,
+    ).request
+    status_page = client.get(f"/ai/requests/{requested.id}/")
+    status_html = status_page.content.decode()
+    assert status_page.status_code == 200
+    assert status_html.count('<main id="main-content">') == 1
+    assert f'action="/ai/requests/{requested.id}/cancel/"' in status_html
+    assert "Request completion never changes the Scene" in status_html
+    _assert_unique_labeled_ids(status_html)
+
+    ai_claim = next(
+        item
+        for item in claim_jobs(worker_id="phase10-shell-worker", batch_size=10)
+        if item.job.id == requested.job_id
+    )
+    execute_claim(ai_claim)
+    suggestion = AISuggestion.objects.get(request=requested)
+
+    ready_page = client.get(f"/ai/requests/{requested.id}/")
+    ready_html = ready_page.content.decode()
+    assert ready_page.status_code == 200
+    assert f'href="/ai/suggestions/{suggestion.id}/"' in ready_html
+    assert f'action="/ai/requests/{requested.id}/cancel/"' not in ready_html
+
+    review_page = client.get(f"/ai/suggestions/{suggestion.id}/")
+    review_html = review_page.content.decode()
+    review_text = " ".join(review_html.split())
+    assert review_page.status_code == 200
+    assert review_html.count('<main id="main-content">') == 1
+    assert 'id="current-scene-text"' in review_html
+    assert 'id="original-ai-output"' in review_html
+    assert 'name="review_text"' in review_html
+    assert f'action="/ai/suggestions/{suggestion.id}/apply/"' in review_html
+    assert f'action="/ai/suggestions/{suggestion.id}/reject/"' in review_html
+    assert f'action="/ai/suggestions/{suggestion.id}/expire/"' in review_html
+    assert "does not make the text Canon" in review_html
+    assert f"Source Revision {suggestion.source_revision.revision_number}" in review_text
+    assert "Apply reviewed text" in review_html
+    assert "disabled" not in review_html
+    _assert_unique_labeled_ids(review_html)
+
+    revise_scene_content(
+        actor=account,
+        workspace_id=workspace.id,
+        scene_id=scene.id,
+        expected_current_revision_id=scene.current_revision_id,
+        expected_scene_version=scene.version,
+        proposed_content="Changed after suggestion generation.",
+    )
+    stale_page = client.get(f"/ai/suggestions/{suggestion.id}/")
+    stale_html = stale_page.content.decode()
+    assert stale_page.status_code == 200
+    assert 'class="ai-stale-warning" role="alert"' in stale_html
+    assert "Direct application" in stale_html
+    assert "is blocked" in stale_html
+    assert "Apply reviewed text" in stale_html
+    assert "disabled" in stale_html
+    _assert_unique_labeled_ids(stale_html)

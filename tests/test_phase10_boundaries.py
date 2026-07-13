@@ -78,6 +78,63 @@ def test_templates_and_urls_do_not_put_private_ai_input_in_paths() -> None:
     assert "force" not in review.casefold()
 
 
+def test_ai_workflow_templates_use_the_application_shell_and_preserve_form_contracts() -> None:
+    root = Path(__file__).parents[1]
+    template_directory = root / "templates/ai_assistance"
+    request = (template_directory / "request.html").read_text()
+    status = (template_directory / "request_status.html").read_text()
+    review = (template_directory / "review.html").read_text()
+
+    for template in (request, status, review):
+        assert 'class="app-shell' in template
+        assert 'aria-label="Primary navigation"' in template
+        assert "workspace-home" in template
+        assert "scene-list" in template
+        assert "scene-search" in template
+        assert "request.user.email" in template
+        assert "{% csrf_token %}" in template
+        assert "<main" not in template
+
+    assert 'class="ai-request-form" method="post"' in request
+    assert "form.instruction.id_for_label" in request
+    assert "form.hidden_fields" in request
+    assert "Queue private suggestion" in request
+    assert "Only the selected current Scene Revision" in request
+    assert "source_revision.revision_number" in request
+    assert "scene.version" in request
+
+    assert "ai-request-cancel" in status
+    assert 'role="status"' in status
+    assert "Review the suggestion" in status
+
+    assert "current-scene-text" in review
+    assert "original-ai-output" in review
+    assert "form.review_text.id_for_label" in review
+    assert "form.hidden_fields" in review
+    assert "ai-suggestion-apply" in review
+    assert "ai-suggestion-reject" in review
+    assert "ai-suggestion-expire" in review
+    assert "{% if stale %}disabled{% endif %}" in review
+    assert "does not make the text Canon" in review
+    assert "suggestion.source_revision.revision_number" in review
+
+
+def test_ai_workflow_css_has_scoped_panels_and_narrow_layout() -> None:
+    css = (Path(__file__).parents[1] / "static/strange_novelty/app.css").read_text()
+
+    assert ".ai-panel {" in css
+    assert ".ai-comparison-grid {" in css
+    assert ".ai-form-field textarea" in css
+    assert ".ai-stale-warning" in css
+    assert ".ai-source-summary" in css
+    assert ".ai-scene-title" in css
+    assert "overflow-wrap: anywhere;" in css
+    narrow = css.split("@media (max-width: 48rem)", maxsplit=1)[1]
+    assert ".ai-comparison-grid" in narrow
+    assert "grid-template-columns: 1fr;" in narrow
+    assert ".ai-disposition-actions" in narrow
+
+
 def test_production_ai_enablement_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AI_ENABLED", "true")
     monkeypatch.setenv("AI_ADAPTER", "local_fake")
