@@ -3,37 +3,146 @@
 {% block title %}Search Scenes — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Search Scenes</h1>
-  {% include "scenes/_form_errors.html" %}
-  <form method="post" action="{% url 'scene-search' %}">
-    {% csrf_token %}
-    <p>
-      <label for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
-      {{ form.query }}
-      {{ form.query.errors }}
-    </p>
-    <p>
-      {{ form.include_archived }}
-      <label for="{{ form.include_archived.id_for_label }}">{{ form.include_archived.label }}</label>
-    </p>
-    <button type="submit">Search</button>
-  </form>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
 
-  {% if searched %}
-    <h2>Results</h2>
-    {% if results %}
-      <ol>
-        {% for result in results %}
-          <li>
-            <h3><a href="{% url 'scene-editor' result.scene.id %}">{{ result.scene.title }}</a></h3>
-            <p>{{ result.scene.get_lifecycle_display }}</p>
-            <p>{{ result.snippet }}</p>
-          </li>
-        {% endfor %}
-      </ol>
-    {% else %}
-      <p role="status">No current matching Scenes were found. Recently changed Scenes may still be indexing.</p>
-    {% endif %}
-  {% endif %}
-  <p><a href="{% url 'workspace-home' %}">Back to Workspace</a></p>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-search' %}">
+          Search
+        </a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Story library</p>
+          <h1>Search scenes</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-list' %}">
+          Browse scenes
+        </a>
+      </header>
+
+      <div class="workspace-main search-workspace">
+        <section class="scene-search-panel" aria-labelledby="scene-search-heading">
+          <div>
+            <p class="card-label">Find your writing</p>
+            <h2 id="scene-search-heading">Search scene titles and content.</h2>
+            <p class="form-support">
+              Enter the words you remember to find matching current revisions.
+            </p>
+          </div>
+
+          {% include "scenes/_form_errors.html" %}
+
+          <form class="scene-search-form" method="post" action="{% url 'scene-search' %}">
+            {% csrf_token %}
+            <div class="search-query-field">
+              <label for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+              <div class="search-query-row">
+                {{ form.query }}
+                <button class="button button-primary" type="submit">Search</button>
+              </div>
+              {{ form.query.errors }}
+            </div>
+
+            <div class="search-option">
+              {{ form.include_archived }}
+              <label for="{{ form.include_archived.id_for_label }}">
+                {{ form.include_archived.label }}
+              </label>
+            </div>
+          </form>
+        </section>
+
+        {% if searched %}
+          <section class="search-results-panel" aria-labelledby="search-results-heading">
+            <div class="search-results-heading">
+              <div>
+                <p class="card-label">Search results</p>
+                <h2 id="search-results-heading">Matching scenes</h2>
+              </div>
+              {% if results %}
+                <p class="search-result-count">{{ results|length }} found</p>
+              {% endif %}
+            </div>
+
+            {% if results %}
+              <ol class="search-result-list">
+                {% for result in results %}
+                  <li>
+                    <a
+                      class="search-result"
+                      href="{% url 'scene-editor' result.scene.id %}"
+                    >
+                      <span class="search-result-heading">
+                        <span class="search-result-title">{{ result.scene.title }}</span>
+                        <span class="lifecycle-badge">
+                          {{ result.scene.get_lifecycle_display }}
+                        </span>
+                      </span>
+                      <span class="search-result-snippet">{{ result.snippet }}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ol>
+            {% else %}
+              <div class="search-empty-state">
+                <p class="card-value">No matches found.</p>
+                <p class="empty-state" role="status">
+                  No current matching Scenes were found. Recently changed Scenes may still be indexing.
+                </p>
+              </div>
+            {% endif %}
+          </section>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Search details">
+      <section class="side-panel">
+        <p class="card-label">Search scope</p>
+        <p class="status-value">Current revisions</p>
+        <p class="side-copy">
+          Search checks indexed Scene titles and the current saved content.
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Archived scenes</p>
+        <p class="side-copy">
+          Select “Include archived Scenes” when you want read-only archived work in the results.
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'workspace-home' %}">
+          Workspace overview
+        </a>
+      </section>
+    </aside>
+  </div>
 {% endblock %}

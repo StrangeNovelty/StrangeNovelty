@@ -63,6 +63,25 @@ def test_private_search_route_has_no_query_parameter_contract() -> None:
     assert "<script" not in template
 
 
+def test_search_template_uses_application_shell_and_preserves_form_contract() -> None:
+    template = (Path(__file__).parents[1] / "templates/scenes/search.html").read_text()
+    assert 'class="app-shell"' in template
+    assert 'aria-label="Primary navigation"' in template
+    assert 'class="nav-link nav-link-active"' in template
+    assert '<form class="scene-search-form" method="post"' in template
+    assert "action=\"{% url 'scene-search' %}\"" in template
+    assert "{% csrf_token %}" in template
+    assert "{{ form.query }}" in template
+    assert "{{ form.query.errors }}" in template
+    assert "{{ form.include_archived }}" in template
+    assert "scenes/_form_errors.html" in template
+    assert "{% if searched %}" in template
+    assert "{% if results %}" in template
+    assert "{% url 'scene-editor' result.scene.id %}" in template
+    assert 'role="status"' in template
+    assert '<main class="workspace-main' not in template
+
+
 def test_phase7_migrations_have_vectors_without_semantic_search() -> None:
     root = Path(__file__).parents[1]
     migration = (root / "src/scenes/migrations/0003_scenesearchprojection.py").read_text()
