@@ -158,6 +158,25 @@ def test_scene_create_template_uses_application_shell_and_preserves_form_contrac
     assert "scenes/_form_errors.html" in template
 
 
+def test_scene_editor_template_uses_application_shell_and_preserves_save_contract() -> None:
+    template = (Path(__file__).parents[1] / "templates/scenes/editor.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'class="app-shell"' in template
+    assert 'aria-label="Primary navigation"' in template
+    assert 'class="nav-link nav-link-active"' in template
+    assert "action=\"{% url 'scene-save' scene.id %}\"" in template
+    assert "{% csrf_token %}" in template
+    assert "{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}" in template
+    assert "{{ form.content }}" in template
+    assert "{{ form.content.errors }}" in template
+    assert "scenes/_form_errors.html" in template
+    assert 'role="status"' in template
+    assert "Archived Scenes are read-only." in template
+    assert "readonly" in template
+    assert "editor.js" in template
+
+
 def test_progressive_key_generation_has_no_correctness_or_storage_dependency() -> None:
     script = (Path(__file__).parents[1] / "src/scenes/static/scenes/editor.js").read_text(
         encoding="utf-8"

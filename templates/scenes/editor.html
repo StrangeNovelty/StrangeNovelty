@@ -4,29 +4,124 @@
 {% block title %}{{ scene.title }} — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>{{ scene.title }}</h1>
-  <p>State: {{ scene.get_lifecycle_display }}</p>
-  <p>Revision {{ current_revision.revision_number }}. Scene version {{ scene.version }}.</p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
 
-  {% if scene.lifecycle == "active" %}
-    {% include "scenes/_form_errors.html" %}
-    <form method="post" action="{% url 'scene-save' scene.id %}">
-      {% csrf_token %}
-      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
-      <p>
-        <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label><br>
-        {{ form.content }}
-        {{ form.content.errors }}
-      </p>
-      <p role="status">Changes are saved only after the server confirms the save.</p>
-      <button type="submit">Save Scene</button>
-    </form>
-    <p><a href="{% url 'ai-request' scene.id %}">Request an AI Scene suggestion</a></p>
-  {% else %}
-    <p role="status">Archived Scenes are read-only.</p>
-    <label for="archived-scene-content">Scene content</label><br>
-    <textarea id="archived-scene-content" rows="28" readonly>{{ current_revision.content }}</textarea>
-  {% endif %}
-  <p><a href="{% url 'scene-list' %}">Back to Scenes</a></p>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header editor-header">
+        <div>
+          <p class="eyebrow">Scene editor</p>
+          <h1>{{ scene.title }}</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-list' %}">
+          Back to scenes
+        </a>
+      </header>
+
+      <main class="workspace-main editor-workspace">
+        <section class="scene-editor-panel" aria-labelledby="scene-content-heading">
+          <div class="editor-panel-heading">
+            <div>
+              <p class="card-label">Scene content</p>
+              <h2 id="scene-content-heading">
+                {% if scene.lifecycle == "active" %}Write your scene.{% else %}Read this scene.{% endif %}
+              </h2>
+            </div>
+            <span class="lifecycle-badge">{{ scene.get_lifecycle_display }}</span>
+          </div>
+
+          {% if scene.lifecycle == "active" %}
+            {% include "scenes/_form_errors.html" %}
+            <form class="scene-editor-form" method="post" action="{% url 'scene-save' scene.id %}">
+              {% csrf_token %}
+              {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+              <div class="editor-field">
+                <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+                {{ form.content }}
+                {{ form.content.errors }}
+              </div>
+              <div class="editor-save-row">
+                <p class="save-status" role="status">
+                  Changes are saved only after the server confirms the save.
+                </p>
+                <button class="button button-primary" type="submit">Save Scene</button>
+              </div>
+            </form>
+          {% else %}
+            <p class="archived-status" role="status">Archived Scenes are read-only.</p>
+            <div class="editor-field">
+              <label for="archived-scene-content">Scene content</label>
+              <textarea id="archived-scene-content" rows="28" readonly>{{ current_revision.content }}</textarea>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Scene details">
+      <section class="side-panel">
+        <p class="card-label">Scene state</p>
+        <p class="status-value">{{ scene.get_lifecycle_display }}</p>
+        {% if scene.lifecycle == "active" %}
+          <p class="side-copy">This scene is available for writing and revision.</p>
+        {% else %}
+          <p class="side-copy">Archived scenes remain available as read-only history.</p>
+        {% endif %}
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Current revision</p>
+        <p class="status-value">Revision {{ current_revision.revision_number }}</p>
+        <p class="side-copy">Scene version {{ scene.version }}</p>
+      </section>
+
+      {% if scene.lifecycle == "active" %}
+        <section class="side-panel">
+          <p class="card-label">Writing tools</p>
+          <a class="side-link" href="{% url 'ai-request' scene.id %}">
+            Request an AI Scene suggestion
+          </a>
+          <p class="side-copy">
+            Suggestions remain separate until you explicitly review and apply them.
+          </p>
+        </section>
+      {% endif %}
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'workspace-home' %}">
+          Workspace overview
+        </a>
+      </section>
+    </aside>
+  </div>
   <script src="{% static 'scenes/editor.js' %}" defer></script>
 {% endblock %}

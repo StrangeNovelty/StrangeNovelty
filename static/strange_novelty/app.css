@@ -574,6 +574,127 @@ svg {
   margin-top: 1.5rem;
 }
 
+.editor-header h1 {
+  overflow-wrap: anywhere;
+}
+
+.editor-workspace {
+  align-content: start;
+}
+
+.scene-editor-panel {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.editor-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.editor-panel-heading h2 {
+  margin: 0.45rem 0 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.15;
+}
+
+.lifecycle-badge {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgb(216 166 60 / 0.4);
+  border-radius: 999px;
+  background: rgb(216 166 60 / 0.1);
+  color: var(--color-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.scene-editor-panel [role="alert"] {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgb(216 166 60 / 0.45);
+  border-radius: var(--radius-sm);
+  background: rgb(216 166 60 / 0.08);
+}
+
+.scene-editor-panel [role="alert"] h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.scene-editor-panel [role="alert"] ul {
+  margin-bottom: 0;
+}
+
+.scene-editor-form {
+  margin-top: 1.5rem;
+}
+
+.editor-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.editor-field label {
+  font-weight: 700;
+}
+
+.editor-field textarea {
+  width: 100%;
+  min-height: 32rem;
+  resize: vertical;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  line-height: 1.65;
+}
+
+.editor-field textarea:focus {
+  outline: 2px solid rgb(216 166 60 / 0.35);
+  outline-offset: 2px;
+}
+
+.editor-field textarea[readonly] {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.editor-field .errorlist {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-accent-strong);
+}
+
+.editor-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.save-status,
+.archived-status {
+  color: var(--color-text-muted);
+}
+
+.save-status {
+  margin: 0;
+}
+
+.archived-status {
+  margin: 1.5rem 0 1rem;
+}
+
 @media (max-width: 74rem) {
   .app-shell {
     grid-template-columns: 15rem minmax(0, 1fr);
@@ -628,5 +749,14 @@ svg {
 
   .dashboard-card-wide {
     grid-column: auto;
+  }
+
+  .editor-save-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editor-save-row .button {
+    width: 100%;
   }
 }
