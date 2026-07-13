@@ -3,20 +3,118 @@
 {% block title %}Scenes — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Scenes</h1>
-  <p><a href="{% url 'scene-create' %}">Create a Scene</a></p>
-  {% if scenes %}
-    <ol>
-      {% for scene in scenes %}
-        <li>
-          <a href="{% url 'scene-editor' scene.id %}">{{ scene.title }}</a>
-          <span>— {{ scene.get_lifecycle_display }}</span>
-          <span>— updated <time datetime="{{ scene.updated_at|date:'c' }}">{{ scene.updated_at }}</time></span>
-        </li>
-      {% endfor %}
-    </ol>
-  {% else %}
-    <p>No Scenes yet.</p>
-  {% endif %}
-  <p><a href="{% url 'workspace-home' %}">Back to Workspace</a></p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Story library</p>
+          <h1>Scenes</h1>
+        </div>
+
+        <div class="action-row">
+          <a class="button button-primary" href="{% url 'scene-create' %}">
+            Create a scene
+          </a>
+        </div>
+      </header>
+
+      <main class="workspace-main">
+        <section class="scene-list-panel">
+          <div class="card-heading-row">
+            <div>
+              <p class="card-label">All scenes</p>
+              <h2>Continue writing your story.</h2>
+            </div>
+
+            <a class="side-link" href="{% url 'scene-search' %}">
+              Search scenes
+            </a>
+          </div>
+
+          {% if scenes %}
+            <div class="scene-list">
+              {% for scene in scenes %}
+                <a
+                  class="scene-list-item"
+                  href="{% url 'scene-editor' scene_id=scene.id %}"
+                >
+                  <span class="scene-list-copy">
+                    <span class="scene-list-title">{{ scene.title }}</span>
+                    <span class="scene-list-meta">
+                      {{ scene.get_lifecycle_display }}
+                      · Updated {{ scene.updated_at|date:"M j, Y" }}
+                    </span>
+                  </span>
+
+                  <span class="scene-list-action" aria-hidden="true">Open</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="scene-empty-state">
+              <p class="card-value">No scenes yet.</p>
+              <p class="empty-state">
+                Create your first scene to begin building your story.
+              </p>
+              <a class="button button-primary" href="{% url 'scene-create' %}">
+                Create your first scene
+              </a>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Scene details">
+      <section class="side-panel">
+        <p class="card-label">Scene library</p>
+        <p class="status-value">{{ scenes|length }} available</p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'workspace-home' %}">
+          Workspace overview
+        </a>
+        <a class="side-link" href="{% url 'scene-search' %}">
+          Search scenes
+        </a>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Lifecycle</p>
+        <p class="side-copy">
+          Active and archived scenes appear here. Trashed scenes stay hidden.
+        </p>
+      </section>
+    </aside>
+  </div>
 {% endblock %}
