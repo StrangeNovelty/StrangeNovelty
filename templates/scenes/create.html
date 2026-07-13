@@ -3,16 +3,103 @@
 {% block title %}Create Scene — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Create Scene</h1>
-  {% include "scenes/_form_errors.html" %}
-  <form method="post">
-    {% csrf_token %}
-    <p>
-      <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
-      {{ form.title }}
-      {{ form.title.errors }}
-    </p>
-    <button type="submit">Create Scene</button>
-  </form>
-  <p><a href="{% url 'scene-list' %}">Cancel</a></p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Scene library</p>
+          <h1>Create a scene</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-list' %}">
+          Cancel
+        </a>
+      </header>
+
+      <main class="workspace-main">
+        <section class="scene-create-panel" aria-labelledby="scene-create-heading">
+          <div class="scene-create-intro">
+            <p class="card-label">New scene</p>
+            <h2 id="scene-create-heading">Give your scene a working title.</h2>
+            <p class="form-support">
+              You can begin writing as soon as the scene is created.
+            </p>
+          </div>
+
+          {% include "scenes/_form_errors.html" %}
+
+          <form class="scene-create-form" method="post">
+            {% csrf_token %}
+            <div class="form-field">
+              <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+              {{ form.title }}
+              {{ form.title.errors }}
+            </div>
+
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">
+                Create scene
+              </button>
+              <a class="button button-secondary" href="{% url 'scene-list' %}">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </section>
+      </main>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Scene creation details">
+      <section class="side-panel">
+        <p class="card-label">What happens next</p>
+        <p class="status-value">Start with a blank page</p>
+        <p class="side-copy">
+          Your new scene opens in the editor with an empty first revision.
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'workspace-home' %}">
+          Workspace overview
+        </a>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Private by default</p>
+        <p class="side-copy">
+          Scene titles and writing stay inside your authorized workspace.
+        </p>
+      </section>
+    </aside>
+  </div>
 {% endblock %}

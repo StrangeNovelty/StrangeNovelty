@@ -144,6 +144,20 @@ def test_templates_are_server_rendered_accessible_and_externally_tracker_free() 
     assert "force save" not in combined.casefold()
 
 
+def test_scene_create_template_uses_application_shell_and_preserves_form_contract() -> None:
+    template = (Path(__file__).parents[1] / "templates/scenes/create.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'class="app-shell"' in template
+    assert 'aria-label="Primary navigation"' in template
+    assert 'class="nav-link nav-link-active"' in template
+    assert '<form class="scene-create-form" method="post">' in template
+    assert "{% csrf_token %}" in template
+    assert "{{ form.title }}" in template
+    assert "{{ form.title.errors }}" in template
+    assert "scenes/_form_errors.html" in template
+
+
 def test_progressive_key_generation_has_no_correctness_or_storage_dependency() -> None:
     script = (Path(__file__).parents[1] / "src/scenes/static/scenes/editor.js").read_text(
         encoding="utf-8"
