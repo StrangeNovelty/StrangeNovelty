@@ -237,6 +237,7 @@ svg {
 
 .workspace-header h1 {
   margin-top: 0.2rem;
+  overflow-wrap: anywhere;
   font-size: clamp(1.5rem, 2vw, 2rem);
 }
 
@@ -365,6 +366,10 @@ svg {
   color: var(--color-text-muted);
 }
 
+.card-support {
+  overflow-wrap: anywhere;
+}
+
 .card-heading-row {
   display: flex;
   align-items: flex-start;
@@ -398,6 +403,8 @@ svg {
 }
 
 .recent-scene-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 650;
 }
 
@@ -899,6 +906,11 @@ svg {
 
   .dashboard-card-wide {
     grid-column: auto;
+  }
+
+  .recent-scene {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .editor-save-row {

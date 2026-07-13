@@ -58,6 +58,11 @@ def test_normalized_email_login_and_private_landing(client: Client) -> None:
     landing = client.get(reverse("workspace-home"))
     assert landing.status_code == 200
     assert b"Synthetic Workspace" in landing.content
+    assert landing.content.count(b"<main") == 1
+    assert reverse("scene-create").encode() in landing.content
+    assert b"No active scenes yet." in landing.content
+    assert b'method="post" action="/search/"' in landing.content
+    assert b'name="query"' in landing.content
     assert "no-store" in landing.headers["Cache-Control"]
 
 
@@ -89,7 +94,13 @@ def test_workspace_dashboard_renders_real_scene_data(client: Client) -> None:
     assert response.context["revision_count"] == 2
     assert list(response.context["recent_scenes"]) == [active]
     assert response.context["latest_revision"] is not None
+    assert response.content.count(b"<main") == 1
+    assert b'class="nav-link nav-link-active"' in response.content
     assert b"Active Dashboard Scene" in response.content
+    assert b"Archived Dashboard Scene" in response.content
+    assert reverse("scene-editor", kwargs={"scene_id": active.id}).encode() in response.content
+    assert reverse("scene-create").encode() in response.content
+    assert b'method="post" action="/search/"' in response.content
     assert b"1 archived" in response.content
     assert b"2" in response.content
 
