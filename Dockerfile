@@ -11,6 +11,7 @@ COPY pyproject.toml uv.lock README.md ./
 COPY manage.py ./
 COPY src ./src
 COPY templates ./templates
+COPY static ./static
 COPY docs/operations ./docs/operations
 RUN uv sync --frozen --no-default-groups --group production \
     && .venv/bin/python manage.py collectstatic --noinput \

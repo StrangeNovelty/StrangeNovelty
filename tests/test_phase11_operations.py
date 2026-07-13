@@ -37,6 +37,29 @@ def test_dockerignore_excludes_sensitive_and_generated_material() -> None:
     assert "latest" not in (ROOT / "Dockerfile").read_text().casefold()
 
 
+def test_docker_build_copies_application_static_before_collectstatic() -> None:
+    instructions = (ROOT / "Dockerfile").read_text().splitlines()
+    parsed_instructions = [instruction.split() for instruction in instructions]
+    static_copy = next(
+        index
+        for index, parts in enumerate(parsed_instructions)
+        if parts and parts[0].casefold() == "copy" and parts[-2:] == ["static", "./static"]
+    )
+    collectstatic = next(
+        index
+        for index, instruction in enumerate(instructions)
+        if "manage.py collectstatic" in instruction
+    )
+    runtime_stage = next(
+        index
+        for index, parts in enumerate(parsed_instructions)
+        if parts
+        and parts[0].casefold() == "from"
+        and [part.casefold() for part in parts[-2:]] == ["as", "runtime"]
+    )
+    assert static_copy < collectstatic < runtime_stage
+
+
 @override_settings(MAINTENANCE_MODE=False, SERVICE_ROLE="web")
 def test_liveness_is_process_only_and_readiness_is_bounded() -> None:
     client = Client()
