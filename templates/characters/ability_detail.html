@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ability.name }} — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header character-header">
+        <div>
+          <p class="eyebrow">
+            <a href="{% url 'character-detail' character.id %}">{{ character.name }}</a>
+            · Ability progression
+          </p>
+          <h1>{{ ability.name }}</h1>
+          {% if ability.category %}<p class="character-header-aliases">{{ ability.category }}</p>{% endif %}
+        </div>
+        <div class="ability-header-actions">
+          <a class="button button-secondary" href="{% url 'character-detail' character.id %}">
+            Character dossier
+          </a>
+          <a class="text-button danger-link" href="{% url 'ability-delete' character.id ability.id %}">
+            Delete Ability
+          </a>
+        </div>
+      </header>
+
+      <div class="workspace-main ability-workspace">
+        <section class="ability-overview" aria-label="Ability overview">
+          <div>
+            <p class="card-label">Mastery</p>
+            <p class="ability-summary-value">{{ ability.get_mastery_display }}</p>
+          </div>
+          <div>
+            <p class="card-label">Status</p>
+            <p class="ability-summary-value">{{ ability.get_status_display }}</p>
+          </div>
+          <div>
+            <p class="card-label">Current stage</p>
+            <p class="ability-summary-value">
+              {% if current_stage %}{{ current_stage.name }}{% else %}Not set{% endif %}
+            </p>
+          </div>
+        </section>
+
+        {% include "characters/_form_errors.html" %}
+        <form class="character-dossier-form" method="post">
+          {% csrf_token %}
+          <section class="dossier-section" aria-labelledby="ability-current-heading">
+            <div class="dossier-section-heading">
+              <div>
+                <p class="card-label">Current Ability</p>
+                <h2 id="ability-current-heading">Capability, limits, and consequence</h2>
+              </div>
+            </div>
+            <div class="dossier-field-grid dossier-two-column">
+              {% for field in form %}
+                <div class="form-field character-form-field{% if field.name == 'description' or field.name == 'notes' %} dossier-full-width{% endif %}">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                  {{ field.errors }}
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+          <div class="dossier-save-bar">
+            <p class="save-status">Updated {{ ability.updated_at|date:"M j, Y, g:i a" }}</p>
+            <button class="button button-primary" type="submit">Save Ability</button>
+          </div>
+        </form>
+
+        <section class="dossier-section progression-section" aria-labelledby="stages-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Progression stages</p>
+              <h2 id="stages-heading">How the Ability changes</h2>
+            </div>
+            <a class="button button-secondary" href="{% url 'ability-stage-create' character.id ability.id %}">
+              Add stage
+            </a>
+          </div>
+          {% if stages %}
+            <ol class="ability-stage-list">
+              {% for stage in stages %}
+                <li class="ability-stage ability-stage-{{ stage.state }}{% if stage.state == 'current' %} ability-stage-current{% endif %}">
+                  <div class="ability-record-heading">
+                    <div>
+                      <p class="ability-record-kicker">Stage {{ stage.order }} · {{ stage.get_state_display }}</p>
+                      <h3>{{ stage.name }}</h3>
+                    </div>
+                    {% if stage.state == "current" %}<span class="current-stage-marker">Current now</span>{% endif %}
+                  </div>
+                  {% if stage.description %}<p class="ability-prose">{{ stage.description }}</p>{% endif %}
+                  <div class="ability-detail-grid">
+                    <div>
+                      <p class="card-label">Requirements or catalyst</p>
+                      <p>{% if stage.requirements %}{{ stage.requirements }}{% else %}Not recorded.{% endif %}</p>
+                    </div>
+                    <div>
+                      <p class="card-label">Limitations or costs</p>
+                      <p>{% if stage.costs %}{{ stage.costs }}{% else %}Not recorded.{% endif %}</p>
+                    </div>
+                  </div>
+                  <div class="ability-record-actions">
+                    <a class="side-link" href="{% url 'ability-stage-edit' character.id ability.id stage.id %}">Edit stage</a>
+                    <form method="post" action="{% url 'ability-stage-delete' character.id ability.id stage.id %}">
+                      {% csrf_token %}
+                      <button class="text-button" type="submit">Delete stage</button>
+                    </form>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <div class="ability-empty-state">
+              <p class="card-value">No progression stages yet.</p>
+              <p class="empty-state">Map where the Ability began, where it stands, or where it could go.</p>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="dossier-section progression-section" aria-labelledby="events-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Development history</p>
+              <h2 id="events-heading">Breakthroughs, failures, and turning points</h2>
+            </div>
+            <a class="button button-secondary" href="{% url 'ability-event-create' character.id ability.id %}">
+              Add event
+            </a>
+          </div>
+          {% if events %}
+            <ol class="ability-event-list">
+              {% for event in events %}
+                <li class="ability-event">
+                  <div class="ability-event-marker" aria-hidden="true"></div>
+                  <div class="ability-event-content">
+                    <div class="ability-record-heading">
+                      <div>
+                        <p class="ability-record-kicker">
+                          {{ event.get_event_type_display }}
+                          {% if event.event_date %} · {{ event.event_date|date:"M j, Y" }}{% endif %}
+                          {% if event.story_time %} · {{ event.story_time }}{% endif %}
+                        </p>
+                        <h3>{{ event.title }}</h3>
+                      </div>
+                    </div>
+                    {% if event.description %}<p class="ability-prose">{{ event.description }}</p>{% endif %}
+                    {% if event.scene %}
+                      <p class="ability-scene-link">
+                        Scene:
+                        <a href="{% url 'scene-editor' event.scene.id %}">{{ event.scene.title }}</a>
+                        {% if event.scene.lifecycle == "archived" %}<span>Archived · read-only</span>{% endif %}
+                      </p>
+                    {% endif %}
+                    <div class="ability-record-actions">
+                      <a class="side-link" href="{% url 'ability-event-edit' character.id ability.id event.id %}">Edit event</a>
+                      <form method="post" action="{% url 'ability-event-delete' character.id ability.id event.id %}">
+                        {% csrf_token %}
+                        <button class="text-button" type="submit">Delete event</button>
+                      </form>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <div class="ability-empty-state">
+              <p class="card-value">No progression events yet.</p>
+              <p class="empty-state">Record the moments that made this Ability stronger, stranger, or harder to use.</p>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="dossier-section prediction-section" aria-labelledby="predictions-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Private speculation</p>
+              <h2 id="predictions-heading">Possible future development</h2>
+              <p class="speculation-notice">Predictions are possibilities, not established story canon.</p>
+            </div>
+            <a class="button button-secondary" href="{% url 'ability-prediction-create' character.id ability.id %}">
+              Add prediction
+            </a>
+          </div>
+          {% if predictions %}
+            <div class="prediction-list">
+              {% for prediction in predictions %}
+                <article class="prediction-card">
+                  <div class="ability-record-heading">
+                    <div>
+                      <p class="ability-record-kicker">Speculation · {{ prediction.get_status_display }}</p>
+                      <h3>{{ prediction.title }}</h3>
+                    </div>
+                    <span class="prediction-label">Not canon</span>
+                  </div>
+                  <p class="ability-prose">{{ prediction.prediction }}</p>
+                  {% if prediction.rationale %}
+                    <div class="prediction-rationale">
+                      <p class="card-label">Rationale</p>
+                      <p>{{ prediction.rationale }}</p>
+                    </div>
+                  {% endif %}
+                  {% if prediction.notes %}<p class="ability-prose">{{ prediction.notes }}</p>{% endif %}
+                  <div class="ability-record-actions">
+                    <a class="side-link" href="{% url 'ability-prediction-edit' character.id ability.id prediction.id %}">Edit prediction</a>
+                    <form method="post" action="{% url 'ability-prediction-delete' character.id ability.id prediction.id %}">
+                      {% csrf_token %}
+                      <button class="text-button" type="submit">Delete prediction</button>
+                    </form>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="ability-empty-state">
+              <p class="card-value">No predictions yet.</p>
+              <p class="empty-state">Keep future possibilities separate from the Ability’s established history.</p>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Ability details">
+      <section class="side-panel">
+        <p class="card-label">Current Ability</p>
+        <p class="status-value">{{ ability.get_mastery_display }}</p>
+        <p class="side-copy">{{ ability.get_status_display }}</p>
+      </section>
+      <section class="side-panel">
+        <p class="card-label">Progression records</p>
+        <p class="side-copy">{{ stages|length }} stages · {{ events|length }} events</p>
+        <p class="side-copy">{{ predictions|length }} private predictions</p>
+      </section>
+      <section class="side-panel prediction-side-panel">
+        <p class="card-label">Creative authority</p>
+        <p class="side-copy">History describes established development. Predictions remain speculative until the author resolves them.</p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

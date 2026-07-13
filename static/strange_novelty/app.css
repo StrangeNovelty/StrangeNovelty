@@ -1335,6 +1335,332 @@ svg {
   text-transform: uppercase;
 }
 
+.ability-summary-strip,
+.ability-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-border);
+  box-shadow: var(--shadow-panel);
+}
+
+.ability-summary-strip > div,
+.ability-overview > div {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+}
+
+.ability-summary-value {
+  margin: 0.45rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 700;
+}
+
+.ability-card-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.ability-card,
+.ability-stage,
+.prediction-card {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.ability-card-heading,
+.ability-record-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ability-card h3,
+.ability-record-heading h3 {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.3rem;
+}
+
+.ability-card h3 a {
+  text-decoration: none;
+}
+
+.ability-card h3 a:hover,
+.ability-card h3 a:focus-visible {
+  color: var(--color-accent-strong);
+}
+
+.ability-card-category,
+.ability-record-kicker {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ability-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.ability-badge,
+.current-stage-marker,
+.prediction-label {
+  max-width: 100%;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgb(216 166 60 / 0.35);
+  border-radius: 999px;
+  color: var(--color-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ability-status-dormant,
+.ability-status-lost,
+.ability-status-sealed {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.ability-status-unstable {
+  border-color: rgb(201 112 95 / 0.65);
+  color: #e4a291;
+}
+
+.ability-current-stage {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--color-accent);
+  background: rgb(216 166 60 / 0.07);
+  overflow-wrap: anywhere;
+}
+
+.ability-current-stage span {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ability-card-body,
+.ability-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ability-card-body p,
+.ability-detail-grid p,
+.prediction-rationale p {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.ability-empty-state {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.015);
+}
+
+.ability-empty-state .button {
+  margin-top: 1rem;
+}
+
+.ability-workspace,
+.ability-form-workspace {
+  align-content: start;
+}
+
+.ability-form-panel {
+  width: min(100%, 58rem);
+}
+
+.ability-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.danger-link,
+.button-danger {
+  color: #e4a291;
+}
+
+.button-danger {
+  border-color: rgb(201 112 95 / 0.55);
+  background: rgb(201 112 95 / 0.12);
+}
+
+.button-danger:hover,
+.button-danger:focus-visible {
+  border-color: #e4a291;
+  background: rgb(201 112 95 / 0.2);
+}
+
+.ability-delete-panel .form-actions {
+  margin-top: 1.5rem;
+}
+
+.ability-stage-list,
+.ability-event-list {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ability-stage-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.ability-stage-current {
+  border-color: rgb(216 166 60 / 0.65);
+  background:
+    linear-gradient(135deg, rgb(216 166 60 / 0.11), transparent 48%),
+    var(--color-surface-raised);
+  box-shadow: inset 4px 0 0 var(--color-accent);
+}
+
+.ability-stage-rejected {
+  opacity: 0.72;
+}
+
+.current-stage-marker {
+  flex: 0 0 auto;
+  background: rgb(216 166 60 / 0.12);
+}
+
+.ability-prose {
+  margin: 0.9rem 0 0;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.ability-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.ability-record-actions .side-link,
+.ability-record-actions .text-button {
+  margin-top: 0;
+}
+
+.ability-event-list {
+  display: grid;
+  gap: 0;
+}
+
+.ability-event {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.ability-event-marker {
+  position: relative;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 1.35rem;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.ability-event-content {
+  min-width: 0;
+  padding: 1.1rem 0 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ability-scene-link {
+  margin: 0.85rem 0 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.ability-scene-link span {
+  margin-left: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.prediction-section,
+.prediction-form-panel,
+.prediction-side-panel {
+  border-color: rgb(143 118 173 / 0.5);
+  background:
+    linear-gradient(135deg, rgb(143 118 173 / 0.1), transparent 48%),
+    var(--color-surface);
+}
+
+.speculation-notice {
+  margin: 0.75rem 0 0;
+  color: #c5acd9;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.prediction-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.prediction-card {
+  border-color: rgb(143 118 173 / 0.45);
+  background: rgb(143 118 173 / 0.07);
+}
+
+.prediction-label {
+  flex: 0 0 auto;
+  border-color: rgb(143 118 173 / 0.6);
+  color: #c5acd9;
+}
+
+.prediction-rationale {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-left: 2px solid rgb(143 118 173 / 0.65);
+  background: rgb(143 118 173 / 0.08);
+}
+
+.scene-ability-events .side-copy {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 74rem) {
   .app-shell {
     grid-template-columns: 15rem minmax(0, 1fr);
@@ -1437,7 +1763,15 @@ svg {
 
   .character-card-list,
   .dossier-field-grid,
-  .dossier-two-column {
+  .dossier-two-column,
+  .ability-card-body,
+  .ability-detail-grid,
+  .prediction-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ability-summary-strip,
+  .ability-overview {
     grid-template-columns: 1fr;
   }
 
@@ -1466,9 +1800,16 @@ svg {
   }
 
   .character-card-heading,
-  .dossier-section-heading {
+  .dossier-section-heading,
+  .ability-card-heading,
+  .ability-record-heading,
+  .ability-header-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .ability-badge-row {
+    justify-content: flex-start;
   }
 }
 

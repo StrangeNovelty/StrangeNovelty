@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ heading }} — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">{{ character.name }} · {{ ability.name }}</p>
+          <h1>{{ heading }}</h1>
+        </div>
+        <a class="button button-secondary" href="{% url 'ability-detail' character.id ability.id %}">
+          Back to Ability
+        </a>
+      </header>
+
+      <div class="workspace-main ability-form-workspace">
+        <section class="character-create-panel ability-form-panel{% if speculative %} prediction-form-panel{% endif %}" aria-labelledby="ability-record-heading">
+          <div>
+            <p class="card-label">{{ eyebrow }}</p>
+            <h2 id="ability-record-heading">{{ heading }}</h2>
+            <p class="form-support">{{ support }}</p>
+            {% if speculative %}
+              <p class="speculation-notice">Speculation — this record is not established story canon.</p>
+            {% endif %}
+          </div>
+          {% include "characters/_form_errors.html" %}
+          <form class="character-create-form" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="form-field character-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">{{ submit_label }}</button>
+              <a class="button button-secondary" href="{% url 'ability-detail' character.id ability.id %}">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Ability context">
+      <section class="side-panel">
+        <p class="card-label">Ability</p>
+        <p class="status-value">{{ ability.name }}</p>
+        <p class="side-copy">{{ character.name }}</p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

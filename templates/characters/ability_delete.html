@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ ability.name }} — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">{{ character.name }} · Ability</p>
+          <h1>Delete {{ ability.name }}?</h1>
+        </div>
+      </header>
+      <div class="workspace-main ability-form-workspace">
+        <section class="character-create-panel ability-delete-panel" aria-labelledby="ability-delete-heading">
+          <p class="card-label">Permanent removal</p>
+          <h2 id="ability-delete-heading">This also removes its progression records.</h2>
+          <p class="form-support">
+            Stages, events, and predictions contained by this Ability will be deleted. The Character and linked Scenes are not changed.
+          </p>
+          <form class="form-actions" method="post">
+            {% csrf_token %}
+            <button class="button button-danger" type="submit">Delete Ability</button>
+            <a class="button button-secondary" href="{% url 'ability-detail' character.id ability.id %}">
+              Keep Ability
+            </a>
+          </form>
+        </section>
+      </div>
+    </section>
+    <aside class="sidebar sidebar-right" aria-label="Deletion context">
+      <section class="side-panel">
+        <p class="card-label">Character</p>
+        <a class="side-link" href="{% url 'character-detail' character.id %}">{{ character.name }}</a>
+      </section>
+    </aside>
+  </div>
+{% endblock %}
