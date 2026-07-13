@@ -1,0 +1,6 @@
+{% if form.non_field_errors %}
+  <section role="alert" aria-labelledby="character-form-errors">
+    <h2 id="character-form-errors">Please review this Character.</h2>
+    {{ form.non_field_errors }}
+  </section>
+{% endif %}

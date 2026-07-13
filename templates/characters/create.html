@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Create Character — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">New dossier</p>
+          <h1>Create a Character</h1>
+        </div>
+        <a class="button button-secondary" href="{% url 'character-list' %}">Cancel</a>
+      </header>
+      <div class="workspace-main">
+        <section class="character-create-panel" aria-labelledby="character-create-heading">
+          <div>
+            <p class="card-label">First impression</p>
+            <h2 id="character-create-heading">Give this Character a place in the story.</h2>
+            <p class="form-support">Start with the essentials. The full dossier comes next.</p>
+          </div>
+          {% include "characters/_form_errors.html" %}
+          <form class="character-create-form" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="form-field character-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Create Character</button>
+              <a class="button button-secondary" href="{% url 'character-list' %}">Cancel</a>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Character creation details">
+      <section class="side-panel">
+        <p class="card-label">What happens next</p>
+        <p class="status-value">Open the dossier</p>
+        <p class="side-copy">Add appearance, personality, goals, conflicts, and voice notes.</p>
+      </section>
+      <section class="side-panel">
+        <p class="card-label">Aliases</p>
+        <p class="side-copy">Use one line for each nickname, title, or other name.</p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

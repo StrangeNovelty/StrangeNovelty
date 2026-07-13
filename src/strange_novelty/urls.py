@@ -31,6 +31,14 @@ from ai_assistance.views import (
     request_ai_suggestion,
     review_ai_suggestion,
 )
+from characters.views import (
+    character_create,
+    character_detail,
+    character_list,
+    character_scene_link,
+    character_scene_unlink,
+    scene_characters_update,
+)
 from operations.health import liveness, readiness
 from scenes.search_views import scene_search
 from scenes.views import scene_create, scene_editor, scene_list, scene_save
@@ -84,6 +92,11 @@ urlpatterns = [
     path("scenes/new/", scene_create, name="scene-create"),
     path("scenes/<uuid:scene_id>/", scene_editor, name="scene-editor"),
     path("scenes/<uuid:scene_id>/save/", scene_save, name="scene-save"),
+    path(
+        "scenes/<uuid:scene_id>/characters/",
+        scene_characters_update,
+        name="scene-characters-update",
+    ),
     path("scenes/<uuid:scene_id>/ai/request/", request_ai_suggestion, name="ai-request"),
     path("ai/requests/<uuid:request_id>/", ai_request_status, name="ai-request-status"),
     path("ai/requests/<uuid:request_id>/cancel/", cancel_ai_request_view, name="ai-request-cancel"),
@@ -104,6 +117,23 @@ urlpatterns = [
         name="ai-suggestion-expire",
     ),
     path("search/", scene_search, name="scene-search"),
+    path("characters/", character_list, name="character-list"),
+    path("characters/new/", character_create, name="character-create"),
+    path(
+        "characters/<uuid:character_id>/",
+        character_detail,
+        name="character-detail",
+    ),
+    path(
+        "characters/<uuid:character_id>/scenes/",
+        character_scene_link,
+        name="character-scene-link",
+    ),
+    path(
+        "characters/<uuid:character_id>/scenes/<uuid:scene_id>/unlink/",
+        character_scene_unlink,
+        name="character-scene-unlink",
+    ),
     path("admin/", admin.site.urls),
     path("health/live/", liveness, name="health-live"),
     path("health/ready/", readiness, name="health-ready"),

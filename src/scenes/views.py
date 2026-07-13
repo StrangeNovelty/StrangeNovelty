@@ -9,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from accounts.models import Account
+from characters.forms import SceneCharacterSelectorForm
 from scenes.content import MAX_CONTENT_CHARACTERS
 from scenes.exceptions import (
     DomainIntegrityFailure,
@@ -144,10 +145,21 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "save_intent": "explicit_save",
         }
     )
+    workspace = _request_workspace(request)
+    character_selector_form = SceneCharacterSelectorForm(
+        workspace=workspace,
+        initial={"characters": scene.characters.all()},
+    )
     return render(
         request,
         "scenes/editor.html",
-        {"scene": scene, "current_revision": current, "form": form},
+        {
+            "scene": scene,
+            "current_revision": current,
+            "form": form,
+            "character_selector_form": character_selector_form,
+            "scene_characters": scene.characters.order_by("name"),
+        },
     )
 
 
