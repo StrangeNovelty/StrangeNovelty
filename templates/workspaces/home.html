@@ -37,18 +37,19 @@
           <h1>{{ workspace.name }}</h1>
         </div>
 
-        <form class="header-search" method="get" action="{% url 'scene-search' %}">
+        <form class="header-search" method="post" action="{% url 'scene-search' %}">
+          {% csrf_token %}
           <label class="visually-hidden" for="workspace-search">Search scenes</label>
           <input
             id="workspace-search"
-            name="q"
+            name="query"
             type="search"
             placeholder="Search your story"
           >
         </form>
       </header>
 
-      <main class="workspace-main">
+      <div class="workspace-main">
         <section class="welcome-panel">
           <p class="eyebrow">Welcome back</p>
           <h2>Your story is ready when you are.</h2>
@@ -57,7 +58,10 @@
           </p>
 
           <div class="action-row">
-            <a class="button button-primary" href="{% url 'scene-list' %}">
+            <a class="button button-primary" href="{% url 'scene-create' %}">
+              Create a scene
+            </a>
+            <a class="button button-secondary" href="{% url 'scene-list' %}">
               Open scenes
             </a>
             <a class="button button-secondary" href="{% url 'scene-search' %}">
@@ -117,7 +121,7 @@
             {% endif %}
           </article>
         </section>
-      </main>
+      </div>
     </section>
 
     <aside class="sidebar sidebar-right" aria-label="Workspace details">

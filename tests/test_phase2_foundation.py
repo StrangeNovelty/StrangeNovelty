@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -135,6 +136,33 @@ def test_workspace_views_are_private_and_non_cacheable() -> None:
     assert "no-store" in response.headers["Cache-Control"]
     assert b"Synthetic Workspace" in response.content
     assert str(workspace.id).encode() not in response.content
+
+
+def test_workspace_template_preserves_shell_navigation_and_search_contract() -> None:
+    template = (Path(__file__).parents[1] / "templates/workspaces/home.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'class="app-shell"' in template
+    assert 'class="nav-link nav-link-active"' in template
+    assert '<form method="post" action="{% url \'logout\' %}">' in template
+    assert '<form class="header-search" method="post"' in template
+    assert "{% csrf_token %}" in template
+    assert 'name="query"' in template
+    assert "{% url 'scene-list' %}" in template
+    assert "{% url 'scene-create' %}" in template
+    assert "{% url 'scene-search' %}" in template
+    assert "{% url 'scene-editor' scene_id=scene.id %}" in template
+    assert '<main class="workspace-main' not in template
+
+
+def test_workspace_dashboard_text_wraps_at_narrow_widths() -> None:
+    stylesheet = (Path(__file__).parents[1] / "static/strange_novelty/app.css").read_text(
+        encoding="utf-8"
+    )
+    assert ".workspace-header h1 {" in stylesheet
+    assert ".recent-scene-title {\n  min-width: 0;\n  overflow-wrap: anywhere;" in stylesheet
+    assert ".card-support {\n  overflow-wrap: anywhere;" in stylesheet
+    assert ".recent-scene {\n    align-items: flex-start;" in stylesheet
 
 
 def test_root_redirects_by_authentication_state() -> None:
