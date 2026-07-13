@@ -16,6 +16,7 @@
         <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
         <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
         <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
       <div class="sidebar-account">
@@ -166,6 +167,112 @@
           </div>
         </form>
 
+        <section class="connection-summary-strip" aria-label="Cast connections">
+          <div>
+            <p class="card-label">Relationships</p>
+            <p class="ability-summary-value">{{ relationship_count }}</p>
+          </div>
+          <div>
+            <p class="card-label">Groups</p>
+            <p class="ability-summary-value">{{ group_count }}</p>
+          </div>
+        </section>
+
+        <section class="dossier-section character-relationships" aria-labelledby="character-relationships-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Relationships</p>
+              <h2 id="character-relationships-heading">Who is connected to {{ character.name }}</h2>
+            </div>
+            <a class="button button-secondary" href="{% url 'character-relationship-create' character.id %}">
+              Add Relationship
+            </a>
+          </div>
+          {% if relationship_cards %}
+            <div class="relationship-card-list">
+              {% for card in relationship_cards %}
+                <article class="relationship-card">
+                  <div class="relationship-card-heading">
+                    <div>
+                      <p class="relationship-kicker">Connected Character</p>
+                      <h3>
+                        <a href="{% url 'character-detail' card.other.id %}">{{ card.other.name }}</a>
+                      </h3>
+                      {% if card.relationship.short_label %}
+                        <p class="relationship-label">{{ card.relationship.short_label }}</p>
+                      {% endif %}
+                    </div>
+                    <div class="relationship-badge-row" aria-label="Relationship classification">
+                      <span class="relationship-badge relationship-badge-type">
+                        {{ card.relationship.get_relationship_type_display }}
+                      </span>
+                      <span class="relationship-badge relationship-status-{{ card.relationship.status }}">
+                        {{ card.relationship.get_status_display }}
+                      </span>
+                      <span class="relationship-badge relationship-knowledge-{{ card.relationship.knowledge_state }}">
+                        {{ card.relationship.get_knowledge_state_display }}
+                      </span>
+                    </div>
+                  </div>
+                  {% if card.relationship.summary %}
+                    <p class="relationship-prose">{{ card.relationship.summary }}</p>
+                  {% else %}
+                    <p class="empty-state">No shared dynamic recorded yet.</p>
+                  {% endif %}
+                  <div class="relationship-perspective">
+                    <p class="card-label">{{ character.name }}’s perspective</p>
+                    <p>{% if card.perspective %}{{ card.perspective }}{% else %}Not recorded.{% endif %}</p>
+                  </div>
+                  <div class="relationship-card-footer">
+                    <span>Updated {{ card.relationship.updated_at|date:"M j, Y" }}</span>
+                    <a class="side-link" href="{% url 'character-relationship-edit' character.id card.relationship.id %}">
+                      Edit relationship
+                    </a>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="ability-empty-state">
+              <p class="card-value">No relationships recorded yet.</p>
+              <p class="empty-state">Connect this Character to the person who knows, needs, loves, fears, or opposes them.</p>
+              <a class="button button-primary" href="{% url 'character-relationship-create' character.id %}">
+                Add the first Relationship
+              </a>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="dossier-section character-groups" aria-labelledby="character-groups-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Groups</p>
+              <h2 id="character-groups-heading">Where {{ character.name }} belongs</h2>
+            </div>
+            <a class="button button-secondary" href="{% url 'character-group-list' %}">Browse Groups</a>
+          </div>
+          {% if memberships %}
+            <div class="character-group-list">
+              {% for membership in memberships %}
+                <a class="character-group-row" href="{% url 'character-group-detail' membership.group.id %}">
+                  <span>
+                    <span class="character-name">{{ membership.group.name }}</span>
+                    <span class="character-role">
+                      {{ membership.group.get_group_type_display }}
+                      {% if membership.role %} · {{ membership.role }}{% endif %}
+                    </span>
+                  </span>
+                  <span class="membership-status membership-status-{{ membership.status }}">
+                    {{ membership.get_status_display }}
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty-state">This Character does not belong to a Group yet.</p>
+          {% endif %}
+        </section>
+
         <section class="dossier-section character-abilities" aria-labelledby="character-abilities-heading">
           <div class="dossier-section-heading">
             <div>
@@ -302,10 +409,10 @@
         <p class="side-copy">Follow a linked Scene directly into the editor.</p>
       </section>
       <section class="side-panel">
-        <p class="card-label">Future dossier layers</p>
+        <p class="card-label">Cast connections</p>
         <p class="side-copy">
-          Relationships, progression, artwork, and assisted development can build on this
-          focused record later.
+          {{ relationship_count }} relationship{{ relationship_count|pluralize }} ·
+          {{ group_count }} Group{{ group_count|pluralize }}
         </p>
       </section>
     </aside>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Create Character — Strange Novelty{% endblock %}
+{% block title %}{{ heading }} — Strange Novelty{% endblock %}
 
 {% block content %}
   <div class="app-shell">
@@ -32,17 +32,21 @@
     <section class="workspace-area">
       <header class="workspace-header">
         <div>
-          <p class="eyebrow">New dossier</p>
-          <h1>Create a Character</h1>
+          <p class="eyebrow">{{ character.name }} · Connected cast</p>
+          <h1>{{ heading }}</h1>
         </div>
-        <a class="button button-secondary" href="{% url 'character-list' %}">Cancel</a>
+        <a class="button button-secondary" href="{% url 'character-detail' character.id %}">
+          Back to dossier
+        </a>
       </header>
-      <div class="workspace-main">
-        <section class="character-create-panel" aria-labelledby="character-create-heading">
+      <div class="workspace-main relationship-form-workspace">
+        <section class="character-create-panel relationship-form-panel" aria-labelledby="relationship-form-heading">
           <div>
-            <p class="card-label">First impression</p>
-            <h2 id="character-create-heading">Give this Character a place in the story.</h2>
-            <p class="form-support">Start with the essentials. The full dossier comes next.</p>
+            <p class="card-label">Character relationship</p>
+            <h2 id="relationship-form-heading">Two sides of one connection</h2>
+            <p class="form-support">
+              The relationship is shared, while each Character can understand it differently.
+            </p>
           </div>
           {% include "characters/_form_errors.html" %}
           <form class="character-create-form" method="post">
@@ -56,23 +60,26 @@
               </div>
             {% endfor %}
             <div class="form-actions">
-              <button class="button button-primary" type="submit">Create Character</button>
-              <a class="button button-secondary" href="{% url 'character-list' %}">Cancel</a>
+              <button class="button button-primary" type="submit">{{ submit_label }}</button>
+              <a class="button button-secondary" href="{% url 'character-detail' character.id %}">
+                Cancel
+              </a>
+              {% if relationship %}
+                <a class="text-button danger-link" href="{% url 'character-relationship-delete' character.id relationship.id %}">
+                  Delete relationship
+                </a>
+              {% endif %}
             </div>
           </form>
         </section>
       </div>
     </section>
 
-    <aside class="sidebar sidebar-right" aria-label="Character creation details">
+    <aside class="sidebar sidebar-right" aria-label="Relationship context">
       <section class="side-panel">
-        <p class="card-label">What happens next</p>
-        <p class="status-value">Open the dossier</p>
-        <p class="side-copy">Add appearance, personality, goals, conflicts, and voice notes.</p>
-      </section>
-      <section class="side-panel">
-        <p class="card-label">Aliases</p>
-        <p class="side-copy">Use one line for each nickname, title, or other name.</p>
+        <p class="card-label">Current Character</p>
+        <p class="status-value">{{ character.name }}</p>
+        <p class="side-copy">Perspective labels follow this dossier.</p>
       </section>
     </aside>
   </div>

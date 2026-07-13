@@ -3,7 +3,16 @@ from typing import cast
 from django import forms
 from django.db.models import Q, QuerySet
 
-from characters.models import Ability, AbilityEvent, AbilityPrediction, AbilityStage, Character
+from characters.models import (
+    Ability,
+    AbilityEvent,
+    AbilityPrediction,
+    AbilityStage,
+    Character,
+    CharacterGroup,
+    CharacterRelationship,
+    GroupMembership,
+)
 from scenes.models import Scene
 from workspaces.models import Workspace
 
@@ -111,6 +120,168 @@ class SceneCharacterSelectorForm(forms.Form):
     ) -> None:
         super().__init__(*args, **kwargs)
         self.fields["characters"].queryset = Character.objects.filter(workspace=workspace)
+
+
+class CharacterRelationshipForm(forms.Form):
+    other_character = forms.ModelChoiceField(
+        queryset=Character.objects.none(),
+        label="Other Character",
+        empty_label="Choose a Character",
+    )
+    relationship_type = forms.ChoiceField(
+        choices=CharacterRelationship.RelationshipType.choices,
+        label="Relationship type",
+    )
+    short_label = forms.CharField(
+        max_length=160,
+        required=False,
+        label="Short label",
+        help_text="A compact description such as estranged sisters or reluctant allies.",
+    )
+    summary = forms.CharField(
+        required=False,
+        label="Summary or dynamic",
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+    current_perspective = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+    other_perspective = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+    status = forms.ChoiceField(
+        choices=CharacterRelationship.Status.choices,
+        help_text="How this connection currently stands, separate from its type.",
+    )
+    knowledge_state = forms.ChoiceField(
+        choices=CharacterRelationship.KnowledgeState.choices,
+        label="Visibility or knowledge state",
+        help_text="Who knows or recognizes that this relationship exists.",
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+
+    def __init__(
+        self,
+        *args: object,
+        workspace: Workspace,
+        current_character: Character,
+        relationship: CharacterRelationship | None = None,
+        **kwargs: object,
+    ) -> None:
+        initial = dict(cast(dict[str, object], kwargs.pop("initial", {})))
+        if relationship is not None:
+            current_is_source = relationship.source_id == current_character.id
+            initial.update(
+                {
+                    "other_character": (
+                        relationship.target if current_is_source else relationship.source
+                    ),
+                    "relationship_type": relationship.relationship_type,
+                    "short_label": relationship.short_label,
+                    "summary": relationship.summary,
+                    "current_perspective": (
+                        relationship.source_perspective
+                        if current_is_source
+                        else relationship.target_perspective
+                    ),
+                    "other_perspective": (
+                        relationship.target_perspective
+                        if current_is_source
+                        else relationship.source_perspective
+                    ),
+                    "status": relationship.status,
+                    "knowledge_state": relationship.knowledge_state,
+                    "notes": relationship.notes,
+                }
+            )
+        else:
+            initial.setdefault("status", CharacterRelationship.Status.ACTIVE)
+            initial.setdefault("knowledge_state", CharacterRelationship.KnowledgeState.PRIVATE)
+        super().__init__(*args, initial=initial, **kwargs)
+        self.fields["other_character"].queryset = Character.objects.filter(
+            workspace=workspace
+        ).exclude(id=current_character.id)
+        self.fields["current_perspective"].label = f"{current_character.name}’s perspective"
+        self.fields["other_perspective"].label = "Other Character’s perspective"
+
+
+class CharacterGroupForm(forms.ModelForm):
+    class Meta:
+        model = CharacterGroup
+        fields = (
+            "name",
+            "group_type",
+            "status",
+            "tagline",
+            "description",
+            "purpose",
+            "notes",
+        )
+        labels = {
+            "group_type": "Group type",
+            "tagline": "Tagline or short summary",
+            "purpose": "Goals or purpose",
+            "notes": "Group notes",
+        }
+        help_texts = {
+            "group_type": "The broad shape of this connection in the cast.",
+            "status": "Whether the Group currently operates in the story.",
+        }
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 5}),
+            "purpose": forms.Textarea(attrs={"rows": 5}),
+            "notes": forms.Textarea(attrs={"rows": 5}),
+        }
+
+    def clean_name(self) -> str:
+        name = cast(str, self.cleaned_data["name"]).strip()
+        if not name:
+            raise forms.ValidationError("Group name is required.")
+        return name
+
+
+class CharacterGroupSearchForm(forms.Form):
+    query = forms.CharField(max_length=200, strip=True, label="Search Groups")
+
+
+class GroupMembershipForm(forms.ModelForm):
+    class Meta:
+        model = GroupMembership
+        fields = (
+            "character",
+            "role",
+            "status",
+            "rank_label",
+            "joined_story_time",
+            "left_story_time",
+            "notes",
+        )
+        labels = {
+            "rank_label": "Rank or order label",
+            "joined_story_time": "Joined story-time label",
+            "left_story_time": "Left story-time label",
+            "notes": "Membership notes",
+        }
+        help_texts = {
+            "status": "The Character’s standing here, separate from the Group’s status.",
+        }
+        widgets = {
+            "notes": forms.Textarea(attrs={"rows": 5}),
+        }
+
+    def __init__(
+        self,
+        *args: object,
+        workspace: Workspace,
+        **kwargs: object,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["character"].queryset = Character.objects.filter(workspace=workspace)
 
 
 class AbilityForm(forms.ModelForm):

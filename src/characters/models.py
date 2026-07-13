@@ -3,7 +3,7 @@ from typing import cast
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 
 from scenes.models import Scene
 from workspaces.models import Workspace
@@ -88,6 +88,285 @@ class CharacterScene(models.Model):
             errors["character"] = "Character must belong to this Workspace."
         if self.scene_id and self.scene.workspace_id != self.workspace_id:
             errors["scene"] = "Scene must belong to this Workspace."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CharacterRelationship(models.Model):
+    class RelationshipType(models.TextChoices):
+        FAMILY = "family", "Family"
+        ALLY = "ally", "Ally"
+        FRIEND = "friend", "Friend"
+        RIVAL = "rival", "Rival"
+        ENEMY = "enemy", "Enemy"
+        ROMANTIC = "romantic", "Romantic"
+        MENTOR = "mentor", "Mentor"
+        STUDENT = "student", "Student"
+        EMPLOYER = "employer", "Employer"
+        SUBORDINATE = "subordinate", "Subordinate"
+        PROFESSIONAL = "professional", "Professional"
+        DEPENDENT = "dependent", "Dependent"
+        COMPLICATED = "complicated", "Complicated"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        STRAINED = "strained", "Strained"
+        BROKEN = "broken", "Broken"
+        HIDDEN = "hidden", "Hidden"
+        RESOLVED = "resolved", "Resolved"
+        HISTORICAL = "historical", "Historical"
+
+    class KnowledgeState(models.TextChoices):
+        PUBLIC = "public", "Public"
+        PRIVATE = "private", "Private"
+        SECRET = "secret", "Secret"
+        ONE_SIDED = "one_sided", "One-sided"
+        UNKNOWN = "unknown", "Unknown"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="character_relationships"
+    )
+    source = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="relationships_as_source"
+    )
+    target = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="relationships_as_target"
+    )
+    relationship_type = models.CharField(max_length=20, choices=RelationshipType.choices)
+    short_label = models.CharField(max_length=160, blank=True)
+    summary = models.TextField(blank=True)
+    source_perspective = models.TextField(blank=True)
+    target_perspective = models.TextField(blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    knowledge_state = models.CharField(
+        max_length=16,
+        choices=KnowledgeState.choices,
+        default=KnowledgeState.PRIVATE,
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(source_id__lt=F("target_id")),
+                name="relationship_pair_canonical",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    relationship_type__in=(
+                        "family",
+                        "ally",
+                        "friend",
+                        "rival",
+                        "enemy",
+                        "romantic",
+                        "mentor",
+                        "student",
+                        "employer",
+                        "subordinate",
+                        "professional",
+                        "dependent",
+                        "complicated",
+                        "other",
+                    )
+                ),
+                name="relationship_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=(
+                        "active",
+                        "strained",
+                        "broken",
+                        "hidden",
+                        "resolved",
+                        "historical",
+                    )
+                ),
+                name="relationship_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    knowledge_state__in=(
+                        "public",
+                        "private",
+                        "secret",
+                        "one_sided",
+                        "unknown",
+                    )
+                ),
+                name="relationship_knowledge_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("source", "target"),
+                name="unique_character_relationship_pair",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=("workspace", "source"), name="relationship_ws_source_idx"),
+            models.Index(fields=("workspace", "target"), name="relationship_ws_target_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.source} — {self.target}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors: dict[str, str] = {}
+        if self.workspace_id and self.source_id and self.source.workspace_id != self.workspace_id:
+            errors["source"] = "Source Character must belong to this Workspace."
+        if self.workspace_id and self.target_id and self.target.workspace_id != self.workspace_id:
+            errors["target"] = "Target Character must belong to this Workspace."
+        if self.source_id and self.target_id and self.source_id >= self.target_id:
+            errors["target"] = "Relationship pair must use canonical Character order."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CharacterGroup(models.Model):
+    class GroupType(models.TextChoices):
+        FAMILY = "family", "Family"
+        TEAM = "team", "Team"
+        FACTION = "faction", "Faction"
+        ORGANIZATION = "organization", "Organization"
+        CREW = "crew", "Crew"
+        HOUSEHOLD = "household", "Household"
+        ORDER = "order", "Order"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+        DISSOLVED = "dissolved", "Dissolved"
+        HISTORICAL = "historical", "Historical"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="character_groups"
+    )
+    name = models.CharField(max_length=200)
+    group_type = models.CharField(max_length=20, choices=GroupType.choices)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    tagline = models.CharField(max_length=240, blank=True)
+    description = models.TextField(blank=True)
+    purpose = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("name", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(name__regex=r"\S"), name="character_group_name_nonspace"
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    group_type__in=(
+                        "family",
+                        "team",
+                        "faction",
+                        "organization",
+                        "crew",
+                        "household",
+                        "order",
+                        "other",
+                    )
+                ),
+                name="character_group_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=("active", "inactive", "dissolved", "historical")),
+                name="character_group_status_valid",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=("workspace", "name"), name="character_group_ws_name_idx"),
+            models.Index(
+                fields=("workspace", "-updated_at"), name="character_group_ws_updated_idx"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return cast(str, self.name)
+
+    def clean(self) -> None:
+        super().clean()
+        if not isinstance(self.name, str) or self.name != self.name.strip() or not self.name:
+            raise ValidationError({"name": "Group name must be present and trimmed."})
+
+
+class GroupMembership(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        FORMER = "former", "Former"
+        HIDDEN = "hidden", "Hidden"
+        HONORARY = "honorary", "Honorary"
+        DECEASED = "deceased", "Deceased"
+        UNKNOWN = "unknown", "Unknown"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="group_memberships"
+    )
+    character = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="group_memberships"
+    )
+    group = models.ForeignKey(CharacterGroup, on_delete=models.CASCADE, related_name="memberships")
+    role = models.CharField(max_length=160, blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    rank_label = models.CharField(max_length=120, blank=True)
+    joined_story_time = models.CharField(max_length=120, blank=True)
+    left_story_time = models.CharField(max_length=120, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("character__name", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=(
+                        "active",
+                        "former",
+                        "hidden",
+                        "honorary",
+                        "deceased",
+                        "unknown",
+                    )
+                ),
+                name="group_membership_status_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("character", "group"),
+                name="unique_character_group_membership",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=("workspace", "character"), name="membership_ws_char_idx"),
+            models.Index(fields=("workspace", "group"), name="membership_ws_group_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.character} in {self.group}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors: dict[str, str] = {}
+        if (
+            self.workspace_id
+            and self.character_id
+            and self.character.workspace_id != self.workspace_id
+        ):
+            errors["character"] = "Membership Character must belong to this Workspace."
+        if self.workspace_id and self.group_id and self.group.workspace_id != self.workspace_id:
+            errors["group"] = "Membership Group must belong to this Workspace."
         if errors:
             raise ValidationError(errors)
 

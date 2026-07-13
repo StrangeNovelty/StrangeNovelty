@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from characters.search import search_characters
+from characters.search import search_character_groups, search_characters
 from scenes.search import search_scenes
 from scenes.search_forms import SceneSearchForm
 from workspaces.services import resolve_owner_workspace
@@ -18,6 +18,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
     form = SceneSearchForm(request.POST or None)
     scene_results = []
     character_results = []
+    group_results = []
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -31,6 +32,11 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             workspace_id=workspace.id,
             query_text=form.cleaned_data["query"],
         )
+        group_results = search_character_groups(
+            actor=request.user,
+            workspace_id=workspace.id,
+            query_text=form.cleaned_data["query"],
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -40,7 +46,8 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "results": scene_results,
             "scene_results": scene_results,
             "character_results": character_results,
-            "result_count": len(scene_results) + len(character_results),
+            "group_results": group_results,
+            "result_count": len(scene_results) + len(character_results) + len(group_results),
             "searched": searched,
         },
         status=status,

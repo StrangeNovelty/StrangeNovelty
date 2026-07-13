@@ -136,6 +136,14 @@ Ability Events form the established development history. They may record both an
 
 These records use ordinary creation and modification timestamps in the first workflow rather than an immutable revision system. They are contained by the Character's Ability, use explicit author-initiated hard deletion for now, and do not introduce a generalized powers model, entity graph, or numeric ranking system. Future revision or lifecycle behavior requires a deliberate model change.
 
+#### Character relationships and groups
+
+The initial connected-cast workflow uses three explicit typed records owned by one Workspace: Character Relationship, Character Group, and Group Membership. A Character Relationship stores one canonical, identifier-ordered pair of distinct Characters, a shared bounded type, status and knowledge state, and separate perspective text for each endpoint. The canonical pair has a database uniqueness constraint, while the application presents the same authoritative record from both Character dossiers. It does not create reverse copies or infer additional bonds.
+
+A Character Group records an author-named family, team, faction, organization, crew, household, order, or other bounded group type, with its current status, description, purpose, notes, and ordinary timestamps. Group Membership joins a Character and Group in the same Workspace and records the Character's role, membership status, optional rank or order label, story-time join and leave labels, and notes. One Character may belong to several Groups, but a database constraint permits only one membership for a given Character and Group.
+
+These records use ordinary creation and modification timestamps for the first workflow. Relationship and membership deletion is explicit hard deletion. Deleting a Group requires explicit confirmation and removes only its contained memberships; it does not delete Characters. This workflow remains a bounded cast model rather than a universal entity graph, and future relationship histories, family-specific semantics, political structures, or visual graph behavior require deliberate model changes.
+
 ### Location
 
 A Location represents a place. It supports identity, Workspace ownership, primary name, optional aliases, short description, optional longer notes, explicit association with relevant Worlds, contextual state, provenance, timestamps, and archive, deprecation, and recovery status.

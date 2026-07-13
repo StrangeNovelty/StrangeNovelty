@@ -1104,6 +1104,212 @@ svg {
   margin-top: 1.25rem;
 }
 
+.character-connection-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.connection-signal,
+.relationship-badge,
+.membership-status {
+  max-width: 100%;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.connection-signal-unconnected,
+.relationship-badge-type {
+  border-color: rgb(216 166 60 / 0.4);
+  color: var(--color-accent-strong);
+}
+
+.connection-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.connection-summary-strip > div {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+}
+
+.connection-summary-strip > div + div {
+  border-left: 1px solid var(--color-border);
+}
+
+.connection-summary-value {
+  margin: 0.35rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.relationship-card-list,
+.group-card-list,
+.membership-card-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.group-card-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.relationship-card,
+.group-card,
+.membership-card {
+  min-width: 0;
+  padding: 1.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+a.group-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.group-card:hover,
+a.group-card:focus-visible {
+  border-color: rgb(216 166 60 / 0.5);
+}
+
+.relationship-card-heading,
+.group-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.relationship-card-heading h3,
+.group-card-heading h3 {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+}
+
+.relationship-card-heading h3 a,
+.group-card-heading h3 a {
+  text-decoration: none;
+}
+
+.relationship-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.relationship-kicker,
+.group-card-type {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.relationship-prose,
+.group-card-summary,
+.membership-detail-grid p {
+  margin: 0.8rem 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.relationship-perspective {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-accent);
+  background: rgb(216 166 60 / 0.06);
+}
+
+.relationship-perspective p:last-child {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.relationship-card-footer,
+.group-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.membership-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.membership-status-hidden,
+.relationship-status-hidden,
+.relationship-knowledge-secret {
+  border-color: rgb(160 123 197 / 0.55);
+  color: #c9a8eb;
+}
+
+.membership-status-former,
+.membership-status-deceased,
+.relationship-status-broken,
+.relationship-status-historical {
+  color: var(--color-text-muted);
+}
+
+.character-group-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.character-group-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.character-group-row:hover,
+.character-group-row:focus-visible {
+  border-color: rgb(216 166 60 / 0.5);
+}
+
+.character-group-row > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.connection-counts,
+.relationship-card-footer {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
 .character-card {
   display: grid;
   gap: 0.7rem;
@@ -1684,7 +1890,7 @@ svg {
   }
 
   .primary-nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
   }
 
   .nav-link {
@@ -1762,8 +1968,11 @@ svg {
   }
 
   .character-card-list,
+  .group-card-list,
   .dossier-field-grid,
   .dossier-two-column,
+  .connection-summary-strip,
+  .membership-detail-grid,
   .ability-card-body,
   .ability-detail-grid,
   .prediction-list {
@@ -1800,11 +2009,29 @@ svg {
   }
 
   .character-card-heading,
+  .relationship-card-heading,
+  .group-card-heading,
   .dossier-section-heading,
   .ability-card-heading,
   .ability-record-heading,
   .ability-header-actions {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .connection-summary-strip > div + div {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+
+  .relationship-badge-row {
+    justify-content: flex-start;
+  }
+
+  .relationship-card-footer,
+  .group-card-footer,
+  .character-group-row {
+    align-items: flex-start;
     flex-direction: column;
   }
 

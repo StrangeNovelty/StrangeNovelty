@@ -2,7 +2,7 @@ import uuid
 from typing import cast
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Prefetch
+from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -16,12 +16,25 @@ from characters.forms import (
     AbilityStageForm,
     CharacterCreateForm,
     CharacterForm,
+    CharacterGroupForm,
+    CharacterGroupSearchForm,
     CharacterListSearchForm,
+    CharacterRelationshipForm,
     CharacterSceneLinkForm,
+    GroupMembershipForm,
     SceneCharacterSelectorForm,
 )
-from characters.models import Ability, AbilityEvent, AbilityPrediction, AbilityStage, Character
-from characters.search import search_characters
+from characters.models import (
+    Ability,
+    AbilityEvent,
+    AbilityPrediction,
+    AbilityStage,
+    Character,
+    CharacterGroup,
+    CharacterRelationship,
+    GroupMembership,
+)
+from characters.search import search_character_groups, search_characters
 from characters.services import (
     CharacterDomainError,
     CharacterInaccessible,
@@ -30,10 +43,16 @@ from characters.services import (
     create_ability_prediction,
     create_ability_stage,
     create_character,
+    create_character_group,
+    create_character_relationship,
+    create_group_membership,
     delete_ability,
     delete_ability_event,
     delete_ability_prediction,
     delete_ability_stage,
+    delete_character_group,
+    delete_character_relationship,
+    delete_group_membership,
     link_character_scene,
     sync_scene_characters,
     unlink_character_scene,
@@ -42,6 +61,9 @@ from characters.services import (
     update_ability_prediction,
     update_ability_stage,
     update_character,
+    update_character_group,
+    update_character_relationship,
+    update_group_membership,
 )
 from scenes.models import Scene
 from workspaces.models import Workspace
@@ -87,6 +109,33 @@ def _detail_context(
         )
         .order_by("name", "id")
     )
+    relationships = list(
+        CharacterRelationship.objects.filter(workspace=workspace)
+        .filter(Q(source=character) | Q(target=character))
+        .select_related("source", "target")
+        .order_by("-updated_at", "id")
+    )
+    relationship_cards = [
+        {
+            "relationship": relationship,
+            "other": (
+                relationship.target
+                if relationship.source_id == character.id
+                else relationship.source
+            ),
+            "perspective": (
+                relationship.source_perspective
+                if relationship.source_id == character.id
+                else relationship.target_perspective
+            ),
+        }
+        for relationship in relationships
+    ]
+    memberships = list(
+        GroupMembership.objects.filter(workspace=workspace, character=character)
+        .select_related("group")
+        .order_by("group__name", "id")
+    )
     return {
         "character": character,
         "form": form,
@@ -98,7 +147,40 @@ def _detail_context(
             ability.status == Ability.Status.ACTIVE for ability in abilities
         ),
         "current_stage_count": sum(bool(ability.current_stages) for ability in abilities),
+        "relationship_cards": relationship_cards,
+        "relationship_count": len(relationship_cards),
+        "memberships": memberships,
+        "group_count": len(memberships),
     }
+
+
+def _decorate_connection_counts(
+    workspace: Workspace,
+    characters: list[Character],
+) -> None:
+    character_ids = {character.id for character in characters}
+    relationship_counts = dict.fromkeys(character_ids, 0)
+    for source_id, target_id in CharacterRelationship.objects.filter(
+        workspace=workspace
+    ).values_list("source_id", "target_id"):
+        if source_id in relationship_counts:
+            relationship_counts[source_id] += 1
+        if target_id in relationship_counts:
+            relationship_counts[target_id] += 1
+    membership_counts = {
+        row["character_id"]: row["count"]
+        for row in GroupMembership.objects.filter(
+            workspace=workspace, character_id__in=character_ids
+        )
+        .values("character_id")
+        .annotate(count=Count("id"))
+    }
+    for character in characters:
+        relationship_count = relationship_counts[character.id]
+        group_count = membership_counts.get(character.id, 0)
+        character.relationship_count_display = relationship_count
+        character.group_count_display = group_count
+        character.is_unconnected = relationship_count == 0 and group_count == 0
 
 
 def _authorized_ability(
@@ -155,6 +237,7 @@ def character_list(request: HttpRequest) -> HttpResponse:
         ]
     else:
         characters = list(Character.objects.filter(workspace=workspace).order_by("-updated_at"))
+    _decorate_connection_counts(workspace, characters)
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -666,6 +749,420 @@ def ability_prediction_delete(
     except CharacterDomainError as exc:
         raise Http404("Ability prediction is unavailable.") from exc
     return _see_other(_ability_url(character_id, ability_id))
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_relationship_create(
+    request: HttpRequest,
+    character_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    form = CharacterRelationshipForm(
+        request.POST or None,
+        workspace=workspace,
+        current_character=character,
+    )
+    if request.method == "POST" and form.is_valid():
+        try:
+            create_character_relationship(
+                actor=request.user,
+                workspace_id=workspace.id,
+                character_id=character.id,
+                values=form.cleaned_data,
+            )
+        except CharacterInaccessible as exc:
+            raise Http404("Relationship Character is unavailable.") from exc
+        except CharacterDomainError:
+            form.add_error(
+                None,
+                "This Character pair already has a relationship or could not be linked.",
+            )
+        else:
+            return _see_other(reverse("character-detail", kwargs={"character_id": character.id}))
+    return _render_relationship_form(
+        request,
+        character=character,
+        form=form,
+        heading="Add a relationship",
+        submit_label="Add relationship",
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_relationship_edit(
+    request: HttpRequest,
+    character_id: uuid.UUID,
+    relationship_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    relationship = _authorized_relationship(workspace, character, relationship_id)
+    form = CharacterRelationshipForm(
+        request.POST or None,
+        workspace=workspace,
+        current_character=character,
+        relationship=relationship,
+    )
+    if request.method == "POST" and form.is_valid():
+        try:
+            update_character_relationship(
+                actor=request.user,
+                workspace_id=workspace.id,
+                character_id=character.id,
+                relationship_id=relationship.id,
+                values=form.cleaned_data,
+            )
+        except CharacterInaccessible as exc:
+            raise Http404("Character relationship is unavailable.") from exc
+        except CharacterDomainError:
+            form.add_error(
+                None,
+                "This Character pair already has a relationship or could not be updated.",
+            )
+        else:
+            return _see_other(reverse("character-detail", kwargs={"character_id": character.id}))
+    return _render_relationship_form(
+        request,
+        character=character,
+        form=form,
+        heading="Edit relationship",
+        submit_label="Save relationship",
+        relationship=relationship,
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_relationship_delete_view(
+    request: HttpRequest,
+    character_id: uuid.UUID,
+    relationship_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    relationship = _authorized_relationship(workspace, character, relationship_id)
+    other = relationship.target if relationship.source_id == character.id else relationship.source
+    if request.method == "POST":
+        try:
+            delete_character_relationship(
+                actor=request.user,
+                workspace_id=workspace.id,
+                character_id=character.id,
+                relationship_id=relationship.id,
+            )
+        except CharacterDomainError as exc:
+            raise Http404("Character relationship is unavailable.") from exc
+        return _see_other(reverse("character-detail", kwargs={"character_id": character.id}))
+    return render(
+        request,
+        "characters/relationship_delete.html",
+        {"character": character, "relationship": relationship, "other": other},
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_group_list(request: HttpRequest) -> HttpResponse:
+    workspace = _request_workspace(request)
+    form = CharacterGroupSearchForm(request.POST or None)
+    searched = request.method == "POST"
+    if searched and form.is_valid():
+        groups = [
+            result.group
+            for result in search_character_groups(
+                actor=request.user,
+                workspace_id=workspace.id,
+                query_text=form.cleaned_data["query"],
+                limit=50,
+            )
+        ]
+    else:
+        groups = list(
+            CharacterGroup.objects.filter(workspace=workspace)
+            .annotate(member_count=Count("memberships"))
+            .order_by("-updated_at", "id")
+        )
+    if searched:
+        group_ids = [group.id for group in groups]
+        counts = {
+            row["group_id"]: row["count"]
+            for row in GroupMembership.objects.filter(workspace=workspace, group_id__in=group_ids)
+            .values("group_id")
+            .annotate(count=Count("id"))
+        }
+        for group in groups:
+            group.member_count = counts.get(group.id, 0)
+    return render(
+        request,
+        "characters/group_list.html",
+        {"groups": groups, "form": form, "searched": searched},
+        status=422 if searched and not form.is_valid() else 200,
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_group_create(request: HttpRequest) -> HttpResponse:
+    workspace = _request_workspace(request)
+    form = CharacterGroupForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            group = create_character_group(
+                actor=request.user,
+                workspace_id=workspace.id,
+                values=form.cleaned_data,
+            )
+        except CharacterDomainError:
+            form.add_error(None, "The Group could not be created.")
+        else:
+            return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
+    return render(
+        request,
+        "characters/group_form.html",
+        {"form": form, "creating": True},
+        status=422 if request.method == "POST" else 200,
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_group_detail(request: HttpRequest, group_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    group = _authorized_group(workspace, group_id)
+    form = CharacterGroupForm(request.POST or None, instance=group)
+    if request.method == "POST" and form.is_valid():
+        try:
+            group = update_character_group(
+                actor=request.user,
+                workspace_id=workspace.id,
+                group_id=group.id,
+                values=form.cleaned_data,
+            )
+        except CharacterInaccessible as exc:
+            raise Http404("Character Group is unavailable.") from exc
+        except CharacterDomainError:
+            form.add_error(None, "The Group could not be saved.")
+        else:
+            return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
+    memberships = group.memberships.select_related("character").order_by("character__name", "id")
+    return render(
+        request,
+        "characters/group_detail.html",
+        {"group": group, "form": form, "memberships": memberships},
+        status=422 if request.method == "POST" else 200,
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_group_delete_view(request: HttpRequest, group_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    group = _authorized_group(workspace, group_id)
+    if request.method == "POST":
+        try:
+            delete_character_group(
+                actor=request.user,
+                workspace_id=workspace.id,
+                group_id=group.id,
+            )
+        except CharacterDomainError as exc:
+            raise Http404("Character Group is unavailable.") from exc
+        return _see_other(reverse("character-group-list"))
+    return render(
+        request,
+        "characters/group_delete.html",
+        {"group": group, "membership_count": group.memberships.count()},
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def group_membership_create(request: HttpRequest, group_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    group = _authorized_group(workspace, group_id)
+    form = GroupMembershipForm(request.POST or None, workspace=workspace)
+    if request.method == "POST" and form.is_valid():
+        try:
+            create_group_membership(
+                actor=request.user,
+                workspace_id=workspace.id,
+                group_id=group.id,
+                values=form.cleaned_data,
+            )
+        except CharacterInaccessible as exc:
+            raise Http404("Group or Character is unavailable.") from exc
+        except CharacterDomainError:
+            form.add_error(None, "This Character is already a member or could not be added.")
+        else:
+            return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
+    return _render_membership_form(
+        request,
+        group=group,
+        form=form,
+        heading="Add a Group member",
+        submit_label="Add member",
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def group_membership_edit(
+    request: HttpRequest,
+    group_id: uuid.UUID,
+    membership_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    group = _authorized_group(workspace, group_id)
+    membership = _authorized_membership(workspace, group, membership_id)
+    form = GroupMembershipForm(request.POST or None, workspace=workspace, instance=membership)
+    if request.method == "POST" and form.is_valid():
+        try:
+            update_group_membership(
+                actor=request.user,
+                workspace_id=workspace.id,
+                group_id=group.id,
+                membership_id=membership.id,
+                values=form.cleaned_data,
+            )
+        except CharacterInaccessible as exc:
+            raise Http404("Group membership is unavailable.") from exc
+        except CharacterDomainError:
+            form.add_error(None, "This Character is already a member or could not be updated.")
+        else:
+            return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
+    return _render_membership_form(
+        request,
+        group=group,
+        form=form,
+        heading="Edit Group membership",
+        submit_label="Save membership",
+        membership=membership,
+    )
+
+
+@never_cache
+@login_required
+@require_POST
+def group_membership_delete(
+    request: HttpRequest,
+    group_id: uuid.UUID,
+    membership_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    try:
+        delete_group_membership(
+            actor=request.user,
+            workspace_id=workspace.id,
+            group_id=group_id,
+            membership_id=membership_id,
+        )
+    except CharacterDomainError as exc:
+        raise Http404("Group membership is unavailable.") from exc
+    return _see_other(reverse("character-group-detail", kwargs={"group_id": group_id}))
+
+
+def _authorized_relationship(
+    workspace: Workspace,
+    character: Character,
+    relationship_id: uuid.UUID,
+) -> CharacterRelationship:
+    try:
+        return cast(
+            CharacterRelationship,
+            CharacterRelationship.objects.select_related("source", "target").get(
+                Q(source=character) | Q(target=character),
+                id=relationship_id,
+                workspace=workspace,
+            ),
+        )
+    except CharacterRelationship.DoesNotExist as exc:
+        raise Http404("Character relationship is unavailable.") from exc
+
+
+def _authorized_group(workspace: Workspace, group_id: uuid.UUID) -> CharacterGroup:
+    try:
+        return cast(
+            CharacterGroup,
+            CharacterGroup.objects.get(id=group_id, workspace=workspace),
+        )
+    except CharacterGroup.DoesNotExist as exc:
+        raise Http404("Character Group is unavailable.") from exc
+
+
+def _authorized_membership(
+    workspace: Workspace,
+    group: CharacterGroup,
+    membership_id: uuid.UUID,
+) -> GroupMembership:
+    try:
+        return cast(
+            GroupMembership,
+            GroupMembership.objects.select_related("character").get(
+                id=membership_id,
+                workspace=workspace,
+                group=group,
+            ),
+        )
+    except GroupMembership.DoesNotExist as exc:
+        raise Http404("Group membership is unavailable.") from exc
+
+
+def _render_relationship_form(
+    request: HttpRequest,
+    *,
+    character: Character,
+    form: CharacterRelationshipForm,
+    heading: str,
+    submit_label: str,
+    relationship: CharacterRelationship | None = None,
+) -> HttpResponse:
+    return render(
+        request,
+        "characters/relationship_form.html",
+        {
+            "character": character,
+            "form": form,
+            "heading": heading,
+            "submit_label": submit_label,
+            "relationship": relationship,
+        },
+        status=422 if request.method == "POST" else 200,
+    )
+
+
+def _render_membership_form(
+    request: HttpRequest,
+    *,
+    group: CharacterGroup,
+    form: GroupMembershipForm,
+    heading: str,
+    submit_label: str,
+    membership: GroupMembership | None = None,
+) -> HttpResponse:
+    return render(
+        request,
+        "characters/membership_form.html",
+        {
+            "group": group,
+            "form": form,
+            "heading": heading,
+            "submit_label": submit_label,
+            "membership": membership,
+        },
+        status=422 if request.method == "POST" else 200,
+    )
 
 
 def _authorized_stage(

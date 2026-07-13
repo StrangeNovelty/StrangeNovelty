@@ -46,9 +46,19 @@ from characters.views import (
     ability_stage_edit,
     character_create,
     character_detail,
+    character_group_create,
+    character_group_delete_view,
+    character_group_detail,
+    character_group_list,
     character_list,
+    character_relationship_create,
+    character_relationship_delete_view,
+    character_relationship_edit,
     character_scene_link,
     character_scene_unlink,
+    group_membership_create,
+    group_membership_delete,
+    group_membership_edit,
     scene_characters_update,
 )
 from operations.health import liveness, readiness
@@ -131,6 +141,33 @@ urlpatterns = [
     path("search/", scene_search, name="scene-search"),
     path("characters/", character_list, name="character-list"),
     path("characters/new/", character_create, name="character-create"),
+    path("groups/", character_group_list, name="character-group-list"),
+    path("groups/new/", character_group_create, name="character-group-create"),
+    path(
+        "groups/<uuid:group_id>/",
+        character_group_detail,
+        name="character-group-detail",
+    ),
+    path(
+        "groups/<uuid:group_id>/delete/",
+        character_group_delete_view,
+        name="character-group-delete",
+    ),
+    path(
+        "groups/<uuid:group_id>/members/new/",
+        group_membership_create,
+        name="group-membership-create",
+    ),
+    path(
+        "groups/<uuid:group_id>/members/<uuid:membership_id>/",
+        group_membership_edit,
+        name="group-membership-edit",
+    ),
+    path(
+        "groups/<uuid:group_id>/members/<uuid:membership_id>/delete/",
+        group_membership_delete,
+        name="group-membership-delete",
+    ),
     path(
         "characters/<uuid:character_id>/",
         character_detail,
@@ -140,6 +177,21 @@ urlpatterns = [
         "characters/<uuid:character_id>/scenes/",
         character_scene_link,
         name="character-scene-link",
+    ),
+    path(
+        "characters/<uuid:character_id>/relationships/new/",
+        character_relationship_create,
+        name="character-relationship-create",
+    ),
+    path(
+        "characters/<uuid:character_id>/relationships/<uuid:relationship_id>/",
+        character_relationship_edit,
+        name="character-relationship-edit",
+    ),
+    path(
+        "characters/<uuid:character_id>/relationships/<uuid:relationship_id>/delete/",
+        character_relationship_delete_view,
+        name="character-relationship-delete",
     ),
     path(
         "characters/<uuid:character_id>/scenes/<uuid:scene_id>/unlink/",

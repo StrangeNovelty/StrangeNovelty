@@ -17,6 +17,7 @@
         <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
         <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link nav-link-active" href="{% url 'scene-search' %}">
           Search
         </a>
@@ -49,9 +50,9 @@
         <section class="scene-search-panel" aria-labelledby="scene-search-heading">
           <div>
             <p class="card-label">Find your writing</p>
-            <h2 id="scene-search-heading">Find Scenes and Characters.</h2>
+            <h2 id="scene-search-heading">Find Scenes, Characters, and Groups.</h2>
             <p class="form-support">
-              Search current Scene revisions and Character dossiers from one place.
+              Search current Scene revisions, Character dossiers, and cast Groups from one place.
             </p>
           </div>
 
@@ -84,7 +85,7 @@
                 <p class="card-label">Search results</p>
                 <h2 id="search-results-heading">Matches across your story</h2>
               </div>
-              {% if scene_results or character_results %}
+              {% if scene_results or character_results or group_results %}
                 <p class="search-result-count">
                   {{ result_count }} found
                 </p>
@@ -135,11 +136,30 @@
               </ol>
             {% endif %}
 
-            {% if not scene_results and not character_results %}
+            {% if group_results %}
+              <h3 class="search-result-group-heading">Groups</h3>
+              <ol class="search-result-list">
+                {% for result in group_results %}
+                  <li>
+                    <a class="search-result" href="{% url 'character-group-detail' result.group.id %}">
+                      <span class="search-result-heading">
+                        <span class="search-result-title">{{ result.group.name }}</span>
+                        <span class="lifecycle-badge">
+                          {{ result.group.get_group_type_display }} · {{ result.group.get_status_display }}
+                        </span>
+                      </span>
+                      <span class="search-result-snippet">{{ result.snippet }}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ol>
+            {% endif %}
+
+            {% if not scene_results and not character_results and not group_results %}
               <div class="search-empty-state">
                 <p class="card-value">No matches found.</p>
                 <p class="empty-state" role="status">
-                  No matching Scenes or Characters were found. Recently changed Scenes may still be indexing.
+                  No matching Scenes, Characters, or Groups were found. Recently changed Scenes may still be indexing.
                 </p>
               </div>
             {% endif %}
@@ -153,7 +173,7 @@
         <p class="card-label">Search scope</p>
         <p class="status-value">Current revisions</p>
         <p class="side-copy">
-          Search checks indexed Scene titles and current content, plus Character dossiers.
+          Search checks indexed Scene titles and current content, Character dossiers, and Groups.
         </p>
       </section>
 
@@ -168,6 +188,7 @@
         <p class="card-label">Quick links</p>
         <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
         <a class="side-link" href="{% url 'character-list' %}">All Characters</a>
+        <a class="side-link" href="{% url 'character-group-list' %}">All Groups</a>
         <a class="side-link" href="{% url 'workspace-home' %}">
           Workspace overview
         </a>

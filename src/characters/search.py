@@ -5,7 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 
 from accounts.models import Account
-from characters.models import Character
+from characters.models import Character, CharacterGroup
 from workspaces.services import get_authorized_workspace
 
 SEARCH_FIELDS = (
@@ -21,10 +21,25 @@ SEARCH_FIELDS = (
     "notes",
 )
 
+GROUP_SEARCH_FIELDS = (
+    "name",
+    "group_type",
+    "tagline",
+    "description",
+    "purpose",
+    "notes",
+)
+
 
 @dataclass(frozen=True, slots=True)
 class CharacterSearchResult:
     character: Character
+    snippet: str
+
+
+@dataclass(frozen=True, slots=True)
+class CharacterGroupSearchResult:
+    group: CharacterGroup
     snippet: str
 
 
@@ -62,3 +77,39 @@ def _character_excerpt(character: Character, query_text: str) -> str:
             value = value.replace("\n", " ").strip()
             return value[:237] + "…" if len(value) > 240 else value
     return character.summary[:240]
+
+
+def search_character_groups(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    query_text: str,
+    limit: int = 20,
+) -> list[CharacterGroupSearchResult]:
+    workspace = get_authorized_workspace(actor, workspace_id)
+    query_text = query_text.strip()
+    if not query_text:
+        return []
+    if len(query_text) > 200 or limit < 1 or limit > 50:
+        raise ValueError("Group search request is invalid.")
+    query = Q()
+    for field in GROUP_SEARCH_FIELDS:
+        query |= Q(**{f"{field}__icontains": query_text})
+    groups = CharacterGroup.objects.filter(workspace=workspace).filter(query)[:limit]
+    return [
+        CharacterGroupSearchResult(
+            group=group,
+            snippet=_group_excerpt(group, query_text),
+        )
+        for group in groups
+    ]
+
+
+def _group_excerpt(group: CharacterGroup, query_text: str) -> str:
+    token = query_text.casefold()
+    for field in GROUP_SEARCH_FIELDS:
+        value = str(getattr(group, field, ""))
+        if token in value.casefold():
+            value = value.replace("\n", " ").strip()
+            return value[:237] + "…" if len(value) > 240 else value
+    return group.tagline[:240]

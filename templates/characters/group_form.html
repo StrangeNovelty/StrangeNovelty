@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Create Group — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story workspace</p></div></div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a><a class="nav-link" href="{% url 'scene-list' %}">Scenes</a><a class="nav-link" href="{% url 'character-list' %}">Characters</a><a class="nav-link nav-link-active" href="{% url 'character-group-list' %}">Groups</a><a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+    </aside>
+    <section class="workspace-area">
+      <header class="workspace-header"><div><p class="eyebrow">New cast structure</p><h1>Create a Group</h1></div><a class="button button-secondary" href="{% url 'character-group-list' %}">Cancel</a></header>
+      <div class="workspace-main relationship-form-workspace">
+        <section class="character-create-panel group-form-panel" aria-labelledby="group-form-heading">
+          <div><p class="card-label">Shared belonging</p><h2 id="group-form-heading">What brings these Characters together?</h2><p class="form-support">Name, type, and status establish the Group. Its members come next.</p></div>
+          {% include "characters/_form_errors.html" %}
+          <form class="character-create-form" method="post">
+            {% csrf_token %}
+            {% for field in form %}<div class="form-field character-form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}</div>{% endfor %}
+            <div class="form-actions"><button class="button button-primary" type="submit">Create Group</button><a class="button button-secondary" href="{% url 'character-group-list' %}">Cancel</a></div>
+          </form>
+        </section>
+      </div>
+    </section>
+    <aside class="sidebar sidebar-right" aria-label="Group guidance"><section class="side-panel"><p class="card-label">Start small</p><p class="status-value">One shared purpose</p><p class="side-copy">Membership roles can stay as nuanced as the story requires.</p></section></aside>
+  </div>
+{% endblock %}

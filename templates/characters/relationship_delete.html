@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Delete relationship — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story workspace</p></div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+    </aside>
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div><p class="eyebrow">Explicit confirmation</p><h1>Delete this relationship?</h1></div>
+      </header>
+      <div class="workspace-main relationship-form-workspace">
+        <section class="character-create-panel ability-delete-panel" aria-labelledby="relationship-delete-heading">
+          <p class="card-label">{{ relationship.get_relationship_type_display }}</p>
+          <h2 id="relationship-delete-heading">{{ character.name }} and {{ other.name }}</h2>
+          <p class="form-support">
+            This removes the shared relationship from both Character dossiers. Neither Character is deleted.
+          </p>
+          <form class="form-actions" method="post">
+            {% csrf_token %}
+            <button class="button button-danger" type="submit">Delete relationship</button>
+            <a class="button button-secondary" href="{% url 'character-detail' character.id %}">Keep relationship</a>
+          </form>
+        </section>
+      </div>
+    </section>
+    <aside class="sidebar sidebar-right" aria-label="Relationship details">
+      <section class="side-panel"><p class="card-label">Other Character</p><p class="status-value">{{ other.name }}</p></section>
+    </aside>
+  </div>
+{% endblock %}

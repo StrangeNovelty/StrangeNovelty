@@ -19,6 +19,7 @@
         <a class="nav-link nav-link-active" href="{% url 'character-list' %}">
           Characters
         </a>
+        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
 
@@ -38,9 +39,12 @@
           <p class="eyebrow">Story people</p>
           <h1>Characters</h1>
         </div>
-        <a class="button button-primary" href="{% url 'character-create' %}">
-          Create Character
-        </a>
+        <div class="ability-header-actions">
+          <a class="button button-secondary" href="{% url 'character-group-list' %}">Groups</a>
+          <a class="button button-primary" href="{% url 'character-create' %}">
+            Create Character
+          </a>
+        </div>
       </header>
 
       <div class="workspace-main character-library">
@@ -97,6 +101,11 @@
                   <span class="character-summary">
                     {% if character.summary %}{{ character.summary|truncatechars:220 }}{% else %}No summary yet.{% endif %}
                   </span>
+                  <span class="connection-counts">
+                    {{ character.relationship_count_display }} relationship{{ character.relationship_count_display|pluralize }}
+                    · {{ character.group_count_display }} Group{{ character.group_count_display|pluralize }}
+                    {% if character.is_unconnected %} · Unconnected{% endif %}
+                  </span>
                   <span class="character-updated">Updated {{ character.updated_at|date:"M j, Y" }}</span>
                 </a>
               {% endfor %}
@@ -130,6 +139,7 @@
       <section class="side-panel">
         <p class="card-label">Quick links</p>
         <a class="side-link" href="{% url 'character-create' %}">Create Character</a>
+        <a class="side-link" href="{% url 'character-group-list' %}">Browse Groups</a>
         <a class="side-link" href="{% url 'scene-list' %}">Browse Scenes</a>
         <a class="side-link" href="{% url 'scene-search' %}">Search the story</a>
       </section>
