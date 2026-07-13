@@ -3,6 +3,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
+from characters.models import Character
 from scenes.models import Scene, SceneRevision
 from security_events.middleware import request_correlation_id
 from security_events.services import SecurityEventSpec, record_security_event
@@ -48,6 +49,8 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "revision_count": 0,
         "recent_scenes": (),
         "latest_revision": None,
+        "character_count": 0,
+        "recent_characters": (),
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -70,6 +73,10 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 .select_related("scene")
                 .order_by("-created_at", "-id")
                 .first(),
+                "character_count": Character.objects.filter(workspace=workspace).count(),
+                "recent_characters": Character.objects.filter(workspace=workspace).order_by(
+                    "-updated_at", "id"
+                )[:4],
             }
         )
 

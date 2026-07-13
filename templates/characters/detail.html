@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ character.name }} — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header character-header">
+        <div>
+          <p class="eyebrow">Character dossier</p>
+          <h1>{{ character.name }}</h1>
+          {% if character.aliases_display %}
+            <p class="character-header-aliases">Also known as {{ character.aliases_display }}</p>
+          {% endif %}
+        </div>
+        <a class="button button-secondary" href="{% url 'character-list' %}">All Characters</a>
+      </header>
+
+      <div class="workspace-main character-dossier-workspace">
+        {% include "characters/_form_errors.html" %}
+        <form class="character-dossier-form" method="post">
+          {% csrf_token %}
+          <section class="dossier-section dossier-identity" aria-labelledby="identity-heading">
+            <div class="dossier-section-heading">
+              <div>
+                <p class="card-label">Identity</p>
+                <h2 id="identity-heading">Who they are on the page</h2>
+              </div>
+              <span class="lifecycle-badge">
+                {% if character.status %}{{ character.status }}{% else %}Status not set{% endif %}
+              </span>
+            </div>
+            <div class="dossier-field-grid">
+              <div class="form-field character-form-field dossier-name">
+                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                {{ form.name }}{{ form.name.errors }}
+              </div>
+              <div class="form-field character-form-field">
+                <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+                {{ form.role }}
+                <p class="field-help">{{ form.role.help_text }}</p>
+                {{ form.role.errors }}
+              </div>
+              <div class="form-field character-form-field">
+                <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                {{ form.status }}
+                <p class="field-help">{{ form.status.help_text }}</p>
+                {{ form.status.errors }}
+              </div>
+              <div class="form-field character-form-field dossier-aliases">
+                <label for="{{ form.aliases.id_for_label }}">{{ form.aliases.label }}</label>
+                {{ form.aliases }}
+                <p class="field-help">{{ form.aliases.help_text }}</p>
+                {{ form.aliases.errors }}
+              </div>
+              <div class="form-field character-form-field dossier-full-width">
+                <label for="{{ form.summary.id_for_label }}">{{ form.summary.label }}</label>
+                {{ form.summary }}{{ form.summary.errors }}
+              </div>
+            </div>
+          </section>
+
+          <section class="dossier-section" aria-labelledby="presence-heading">
+            <div class="dossier-section-heading">
+              <div>
+                <p class="card-label">Presence</p>
+                <h2 id="presence-heading">How they enter a room</h2>
+              </div>
+            </div>
+            <div class="dossier-field-grid dossier-two-column">
+              <div class="form-field character-form-field">
+                <label for="{{ form.appearance.id_for_label }}">{{ form.appearance.label }}</label>
+                {{ form.appearance }}{{ form.appearance.errors }}
+              </div>
+              <div class="form-field character-form-field">
+                <label for="{{ form.personality.id_for_label }}">{{ form.personality.label }}</label>
+                {{ form.personality }}{{ form.personality.errors }}
+              </div>
+            </div>
+          </section>
+
+          <section class="dossier-section" aria-labelledby="pressure-heading">
+            <div class="dossier-section-heading">
+              <div>
+                <p class="card-label">Desire and pressure</p>
+                <h2 id="pressure-heading">What moves them—and what resists</h2>
+              </div>
+            </div>
+            <div class="dossier-field-grid dossier-two-column">
+              <div class="form-field character-form-field">
+                <label for="{{ form.goals.id_for_label }}">{{ form.goals.label }}</label>
+                {{ form.goals }}{{ form.goals.errors }}
+              </div>
+              <div class="form-field character-form-field">
+                <label for="{{ form.internal_conflict.id_for_label }}">{{ form.internal_conflict.label }}</label>
+                {{ form.internal_conflict }}{{ form.internal_conflict.errors }}
+              </div>
+              <div class="form-field character-form-field dossier-full-width">
+                <label for="{{ form.external_conflict.id_for_label }}">{{ form.external_conflict.label }}</label>
+                {{ form.external_conflict }}{{ form.external_conflict.errors }}
+              </div>
+            </div>
+          </section>
+
+          <section class="dossier-section" aria-labelledby="voice-heading">
+            <div class="dossier-section-heading">
+              <div>
+                <p class="card-label">On the page</p>
+                <h2 id="voice-heading">Voice and working notes</h2>
+              </div>
+            </div>
+            <div class="dossier-field-grid dossier-two-column">
+              <div class="form-field character-form-field">
+                <label for="{{ form.voice_notes.id_for_label }}">{{ form.voice_notes.label }}</label>
+                {{ form.voice_notes }}{{ form.voice_notes.errors }}
+              </div>
+              <div class="form-field character-form-field">
+                <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                {{ form.notes }}{{ form.notes.errors }}
+              </div>
+            </div>
+          </section>
+
+          <div class="dossier-save-bar">
+            <p class="save-status">Last updated {{ character.updated_at|date:"M j, Y, g:i a" }}</p>
+            <button class="button button-primary" type="submit">Save dossier</button>
+          </div>
+        </form>
+
+        <section class="dossier-section character-scenes" aria-labelledby="character-scenes-heading">
+          <div class="dossier-section-heading">
+            <div>
+              <p class="card-label">Scene appearances</p>
+              <h2 id="character-scenes-heading">Scenes involving {{ character.name }}</h2>
+            </div>
+          </div>
+          {% if scene_links %}
+            <div class="linked-scene-list">
+              {% for link in scene_links %}
+                <div class="linked-scene-row">
+                  <a href="{% url 'scene-editor' link.scene.id %}">
+                    <span class="scene-list-title">{{ link.scene.title }}</span>
+                    <span class="scene-list-meta">{{ link.scene.get_lifecycle_display }}</span>
+                  </a>
+                  {% if link.scene.lifecycle == "active" %}
+                    <form method="post" action="{% url 'character-scene-unlink' character.id link.scene.id %}">
+                      {% csrf_token %}
+                      <button class="text-button unlink-button" type="submit">Unlink</button>
+                    </form>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty-state">This Character is not linked to a Scene yet.</p>
+          {% endif %}
+
+          {% if scene_link_form.scene.field.queryset.exists %}
+            <form class="scene-link-form" method="post" action="{% url 'character-scene-link' character.id %}">
+              {% csrf_token %}
+              <label for="{{ scene_link_form.scene.id_for_label }}">Add a Scene</label>
+              {{ scene_link_form.scene }}
+              <button class="button button-secondary" type="submit">Link Scene</button>
+            </form>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Character details">
+      <section class="side-panel">
+        <p class="card-label">Story status</p>
+        <p class="status-value">
+          {% if character.status %}{{ character.status }}{% else %}Status not set{% endif %}
+        </p>
+        <p class="side-copy">
+          {% if character.role %}{{ character.role }}{% else %}Role not set{% endif %}
+        </p>
+      </section>
+      <section class="side-panel">
+        <p class="card-label">Scene appearances</p>
+        <p class="status-value">{{ scene_links|length }}</p>
+        <p class="side-copy">Follow a linked Scene directly into the editor.</p>
+      </section>
+      <section class="side-panel">
+        <p class="card-label">Future dossier layers</p>
+        <p class="side-copy">
+          Relationships, progression, artwork, and assisted development can build on this
+          focused record later.
+        </p>
+      </section>
+    </aside>
+  </div>
+{% endblock %}

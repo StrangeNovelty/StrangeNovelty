@@ -16,6 +16,7 @@
       <nav class="primary-nav">
         <a class="nav-link nav-link-active" href="{% url 'workspace-home' %}">Workspace</a>
         <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
 
@@ -64,6 +65,9 @@
             <a class="button button-secondary" href="{% url 'scene-list' %}">
               Open scenes
             </a>
+            <a class="button button-secondary" href="{% url 'character-list' %}">
+              Open Characters
+            </a>
             <a class="button button-secondary" href="{% url 'scene-search' %}">
               Search scenes
             </a>
@@ -77,6 +81,22 @@
             <p class="card-support">
               {{ archived_scene_count }} archived
             </p>
+          </article>
+
+          <article class="dashboard-card">
+            <p class="card-label">Characters</p>
+            <p class="metric-value">{{ character_count }}</p>
+            <p class="card-support">
+              {% if recent_characters %}
+                Recently updated:
+                <a href="{% url 'character-detail' recent_characters.0.id %}">
+                  {{ recent_characters.0.name }}
+                </a>
+              {% else %}
+                Your cast is waiting.
+              {% endif %}
+            </p>
+            <a class="side-link" href="{% url 'character-list' %}">Open Character library</a>
           </article>
 
           <article class="dashboard-card">
@@ -133,6 +153,7 @@
       <section class="side-panel">
         <p class="card-label">Quick links</p>
         <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'character-list' %}">All Characters</a>
         <a class="side-link" href="{% url 'scene-search' %}">Search</a>
       </section>
 

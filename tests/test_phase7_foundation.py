@@ -76,8 +76,10 @@ def test_search_template_uses_application_shell_and_preserves_form_contract() ->
     assert "{{ form.include_archived }}" in template
     assert "scenes/_form_errors.html" in template
     assert "{% if searched %}" in template
-    assert "{% if results %}" in template
+    assert "{% if scene_results %}" in template
+    assert "{% if character_results %}" in template
     assert "{% url 'scene-editor' result.scene.id %}" in template
+    assert "{% url 'character-detail' result.character.id %}" in template
     assert 'role="status"' in template
     assert '<main class="workspace-main' not in template
 

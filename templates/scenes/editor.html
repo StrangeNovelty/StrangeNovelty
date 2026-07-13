@@ -19,6 +19,7 @@
         <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
           Scenes
         </a>
+        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
 
@@ -101,6 +102,35 @@
         <p class="status-value">Revision {{ current_revision.revision_number }}</p>
         <p class="side-copy">Scene version {{ scene.version }}</p>
       </section>
+
+      {% if character_selector_form %}
+        <section class="side-panel">
+          <p class="card-label">Characters in this Scene</p>
+          {% if scene.lifecycle == "active" %}
+            <form class="scene-character-selector" method="post" action="{% url 'scene-characters-update' scene.id %}">
+              {% csrf_token %}
+              <label class="visually-hidden" for="{{ character_selector_form.characters.id_for_label }}">
+                {{ character_selector_form.characters.label }}
+              </label>
+              {{ character_selector_form.characters }}
+              <button class="button button-secondary" type="submit">Save Characters</button>
+            </form>
+          {% else %}
+            <p class="side-copy">Archived Scene relationships are read-only.</p>
+          {% endif %}
+          {% if scene_characters %}
+            <div class="scene-character-links">
+              {% for character in scene_characters %}
+                <a class="side-link" href="{% url 'character-detail' character.id %}">
+                  {{ character.name }}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="side-copy">No Characters linked yet.</p>
+          {% endif %}
+        </section>
+      {% endif %}
 
       {% if scene.lifecycle == "active" %}
         <section class="side-panel">

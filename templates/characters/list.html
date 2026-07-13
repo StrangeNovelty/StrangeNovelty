@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Characters — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">
+          Characters
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Story people</p>
+          <h1>Characters</h1>
+        </div>
+        <a class="button button-primary" href="{% url 'character-create' %}">
+          Create Character
+        </a>
+      </header>
+
+      <div class="workspace-main character-library">
+        <section class="character-search-card" aria-labelledby="character-search-heading">
+          <div>
+            <p class="card-label">Find a Character</p>
+            <h2 id="character-search-heading">Search names, roles, and dossier notes.</h2>
+          </div>
+          <form class="character-list-search" method="post">
+            {% csrf_token %}
+            <label class="visually-hidden" for="{{ form.query.id_for_label }}">
+              {{ form.query.label }}
+            </label>
+            {{ form.query }}
+            <button class="button button-secondary" type="submit">Search</button>
+          </form>
+          {{ form.query.errors }}
+          {% if searched %}
+            <a class="side-link" href="{% url 'character-list' %}">Clear search</a>
+          {% endif %}
+        </section>
+
+        <section class="character-list-panel" aria-labelledby="character-list-heading">
+          <div class="card-heading-row">
+            <div>
+              <p class="card-label">Character library</p>
+              <h2 id="character-list-heading">
+                {% if searched %}Matching Characters{% else %}Your cast{% endif %}
+              </h2>
+            </div>
+            {% if characters %}<p class="search-result-count">{{ characters|length }} shown</p>{% endif %}
+          </div>
+
+          {% if characters %}
+            <div class="character-card-list">
+              {% for character in characters %}
+                <a class="character-card" href="{% url 'character-detail' character.id %}">
+                  <span class="character-card-heading">
+                    <span>
+                      <span class="character-name">{{ character.name }}</span>
+                      {% if character.aliases_display %}
+                        <span class="character-aliases">
+                          {{ character.aliases_display|truncatechars:160 }}
+                        </span>
+                      {% endif %}
+                    </span>
+                    <span class="lifecycle-badge">
+                      {% if character.status %}{{ character.status }}{% else %}Status not set{% endif %}
+                    </span>
+                  </span>
+                  <span class="character-role">
+                    {% if character.role %}{{ character.role }}{% else %}Role not set{% endif %}
+                  </span>
+                  <span class="character-summary">
+                    {% if character.summary %}{{ character.summary|truncatechars:220 }}{% else %}No summary yet.{% endif %}
+                  </span>
+                  <span class="character-updated">Updated {{ character.updated_at|date:"M j, Y" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% elif searched %}
+            <div class="scene-empty-state">
+              <p class="card-value">No Characters matched.</p>
+              <p class="empty-state">Try another name, alias, role, or detail.</p>
+            </div>
+          {% else %}
+            <div class="scene-empty-state">
+              <p class="card-value">No Characters yet.</p>
+              <p class="empty-state">
+                Begin your cast with a protagonist, rival, confidant, or mystery.
+              </p>
+              <a class="button button-primary" href="{% url 'character-create' %}">
+                Create your first Character
+              </a>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Character library details">
+      <section class="side-panel">
+        <p class="card-label">Character dossiers</p>
+        <p class="status-value">A living cast</p>
+        <p class="side-copy">Capture what each person wants, hides, and brings to a Scene.</p>
+      </section>
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'character-create' %}">Create Character</a>
+        <a class="side-link" href="{% url 'scene-list' %}">Browse Scenes</a>
+        <a class="side-link" href="{% url 'scene-search' %}">Search the story</a>
+      </section>
+    </aside>
+  </div>
+{% endblock %}
