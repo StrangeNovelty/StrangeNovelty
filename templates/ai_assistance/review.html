@@ -3,39 +3,160 @@
 {% block title %}Review AI suggestion — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Review AI suggestion</h1>
-  <p role="status">Suggestion state: {{ suggestion.get_state_display }}.</p>
-  {% if stale %}
-    <p role="alert">The Scene changed after this suggestion was requested. Direct application is blocked. Copy useful text into the current editor or request a new suggestion.</p>
-  {% endif %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
 
-  <h2>Current authoritative Scene text</h2>
-  <textarea rows="18" readonly>{{ suggestion.scene.current_revision.content }}</textarea>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
 
-  <h2>Original AI output</h2>
-  <textarea rows="18" readonly>{{ suggestion.original_output }}</textarea>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
 
-  {% if suggestion.state == "ready" %}
-    {% include "scenes/_form_errors.html" %}
-    <form method="post" action="{% url 'ai-suggestion-apply' suggestion.id %}">
-      {% csrf_token %}
-      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
-      <p>
-        <label for="{{ form.review_text.id_for_label }}">{{ form.review_text.label }}</label><br>
-        {{ form.review_text }}
-        {{ form.review_text.errors }}
-      </p>
-      <p>Editing this complete proposal records human editing or partial acceptance. It never changes the original AI output.</p>
-      <button type="submit" {% if stale %}disabled{% endif %}>Apply reviewed text</button>
-    </form>
-    <form method="post" action="{% url 'ai-suggestion-reject' suggestion.id %}">
-      {% csrf_token %}
-      <button type="submit">Reject suggestion</button>
-    </form>
-    <form method="post" action="{% url 'ai-suggestion-expire' suggestion.id %}">
-      {% csrf_token %}
-      <button type="submit">Expire suggestion</button>
-    </form>
-  {% endif %}
-  <p><a href="{% url 'scene-editor' suggestion.scene.id %}">Return to current Scene editor</a></p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">AI assistance</p>
+          <h1>Review AI suggestion</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-editor' suggestion.scene.id %}">
+          Back to scene
+        </a>
+      </header>
+
+      <div class="workspace-main ai-workspace">
+        <section class="ai-panel" aria-labelledby="ai-review-heading">
+          <div class="ai-panel-heading">
+            <div>
+              <p class="card-label">Human review</p>
+              <h2 id="ai-review-heading">Compare before you decide.</h2>
+              <p class="ai-source-summary">
+                {{ suggestion.scene.title }} · Source Revision
+                {{ suggestion.source_revision.revision_number }}
+              </p>
+            </div>
+            <span class="lifecycle-badge" role="status">
+              {{ suggestion.get_state_display }}
+            </span>
+          </div>
+
+          <div class="ai-authority-note" role="note">
+            <p class="card-label">Authorial control</p>
+            <p>
+              This output is a private, non-authoritative suggestion. Applying reviewed
+              text creates an ordinary Scene Revision; it does not make the text Canon.
+            </p>
+          </div>
+
+          {% if stale %}
+            <div class="ai-stale-warning" role="alert">
+              <p class="card-label">Source changed</p>
+              <p>
+                The Scene changed after this suggestion was requested. Direct application
+                is blocked. Copy useful text into the current editor or request a new suggestion.
+              </p>
+            </div>
+          {% endif %}
+
+          <div class="ai-comparison-grid">
+            <section class="ai-text-panel" aria-labelledby="current-scene-heading">
+              <div>
+                <p class="card-label">Current authority</p>
+                <h3 id="current-scene-heading">Current authoritative Scene text</h3>
+              </div>
+              <label class="visually-hidden" for="current-scene-text">
+                Current authoritative Scene text
+              </label>
+              <textarea id="current-scene-text" rows="18" readonly>{{ suggestion.scene.current_revision.content }}</textarea>
+            </section>
+
+            <section class="ai-text-panel" aria-labelledby="original-output-heading">
+              <div>
+                <p class="card-label">Unchanged evidence</p>
+                <h3 id="original-output-heading">Original AI output</h3>
+              </div>
+              <label class="visually-hidden" for="original-ai-output">Original AI output</label>
+              <textarea id="original-ai-output" rows="18" readonly>{{ suggestion.original_output }}</textarea>
+            </section>
+          </div>
+
+          {% if suggestion.state == "ready" %}
+            {% include "scenes/_form_errors.html" %}
+            <form class="ai-apply-form" method="post" action="{% url 'ai-suggestion-apply' suggestion.id %}">
+              {% csrf_token %}
+              {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+              <div class="ai-form-field">
+                <label for="{{ form.review_text.id_for_label }}">
+                  {{ form.review_text.label }}
+                </label>
+                {{ form.review_text }}
+                {{ form.review_text.errors }}
+              </div>
+              <p class="form-support">
+                Editing this complete proposal records human editing or partial acceptance.
+                It never changes the original AI output.
+              </p>
+              <button class="button button-primary" type="submit" {% if stale %}disabled{% endif %}>
+                Apply reviewed text
+              </button>
+            </form>
+
+            <div class="ai-disposition-actions" aria-label="Suggestion disposition">
+              <form method="post" action="{% url 'ai-suggestion-reject' suggestion.id %}">
+                {% csrf_token %}
+                <button class="button button-secondary" type="submit">Reject suggestion</button>
+              </form>
+              <form method="post" action="{% url 'ai-suggestion-expire' suggestion.id %}">
+                {% csrf_token %}
+                <button class="button button-secondary" type="submit">Expire suggestion</button>
+              </form>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="AI suggestion details">
+      <section class="side-panel">
+        <p class="card-label">Scene</p>
+        <p class="status-value ai-scene-title">{{ suggestion.scene.title }}</p>
+        <p class="side-copy">Suggestion state: {{ suggestion.get_state_display }}</p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Source revision</p>
+        <p class="status-value">Revision {{ suggestion.source_revision.revision_number }}</p>
+        <p class="side-copy">
+          {% if stale %}The current Scene no longer matches this source.{% else %}The source still matches the current Scene.{% endif %}
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-editor' suggestion.scene.id %}">Current scene</a>
+        <a class="side-link" href="{% url 'ai-request' suggestion.scene.id %}">New suggestion</a>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+      </section>
+    </aside>
+  </div>
 {% endblock %}

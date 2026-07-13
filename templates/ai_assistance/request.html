@@ -3,19 +3,121 @@
 {% block title %}Request AI suggestion — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Request a Scene suggestion</h1>
-  <p>This sends only the selected current Scene Revision to the configured adapter. Output is non-authoritative and requires human review.</p>
-  <p>Source Revision {{ source_revision.revision_number }}; Scene version {{ scene.version }}.</p>
-  {% include "scenes/_form_errors.html" %}
-  <form method="post">
-    {% csrf_token %}
-    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
-    <p>
-      <label for="{{ form.instruction.id_for_label }}">{{ form.instruction.label }}</label><br>
-      {{ form.instruction }}
-      {{ form.instruction.errors }}
-    </p>
-    <button type="submit">Queue private suggestion</button>
-  </form>
-  <p><a href="{% url 'scene-editor' scene.id %}">Return to Scene</a></p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
+          Scenes
+        </a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">AI assistance</p>
+          <h1>Request a Scene suggestion</h1>
+        </div>
+
+        <a class="button button-secondary" href="{% url 'scene-editor' scene.id %}">
+          Back to scene
+        </a>
+      </header>
+
+      <div class="workspace-main ai-workspace">
+        <section class="ai-panel" aria-labelledby="ai-request-heading">
+          <div class="ai-panel-heading">
+            <div>
+              <p class="card-label">Private suggestion</p>
+              <h2 id="ai-request-heading">Describe the review you want.</h2>
+              <p class="form-support">
+                Only the selected current Scene Revision is sent to the configured adapter.
+              </p>
+              <p class="ai-source-summary">
+                Source: {{ scene.title }} · Revision {{ source_revision.revision_number }}
+                · Scene version {{ scene.version }}
+              </p>
+            </div>
+            <span class="lifecycle-badge">Human review required</span>
+          </div>
+
+          <div class="ai-authority-note" role="note">
+            <p class="card-label">Authorial control</p>
+            <p>
+              Output remains a non-authoritative suggestion until you explicitly review
+              and apply it. Applying a suggestion does not make it Canon.
+            </p>
+          </div>
+
+          {% include "scenes/_form_errors.html" %}
+
+          <form class="ai-request-form" method="post">
+            {% csrf_token %}
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+            <div class="ai-form-field">
+              <label for="{{ form.instruction.id_for_label }}">
+                {{ form.instruction.label }}
+              </label>
+              {{ form.instruction }}
+              {{ form.instruction.errors }}
+            </div>
+
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">
+                Queue private suggestion
+              </button>
+              <a class="button button-secondary" href="{% url 'scene-editor' scene.id %}">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="AI request details">
+      <section class="side-panel">
+        <p class="card-label">Source scene</p>
+        <p class="status-value ai-scene-title">{{ scene.title }}</p>
+        <p class="side-copy">
+          Revision {{ source_revision.revision_number }} · Scene version {{ scene.version }}
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Context boundary</p>
+        <p class="status-value">This revision only</p>
+        <p class="side-copy">
+          No other Workspace content is included in this request.
+        </p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-editor' scene.id %}">Current scene</a>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'workspace-home' %}">Workspace overview</a>
+      </section>
+    </aside>
+  </div>
 {% endblock %}
