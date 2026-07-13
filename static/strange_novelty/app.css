@@ -352,6 +352,61 @@ svg {
   grid-column: 1 / -1;
 }
 
+.metric-value {
+  margin-top: 0.55rem;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 750;
+  line-height: 1;
+}
+
+.card-support,
+.empty-state {
+  margin-top: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+.card-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card-heading-row .side-link {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.recent-scene-list {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.recent-scene {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.recent-scene:hover .recent-scene-title,
+.recent-scene:focus-visible .recent-scene-title {
+  color: var(--color-accent-strong);
+}
+
+.recent-scene-title {
+  font-weight: 650;
+}
+
+.recent-scene-meta {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .card-value,
 .status-value {
   margin-top: 0.55rem;

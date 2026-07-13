@@ -68,20 +68,53 @@
 
         <section class="dashboard-grid" aria-label="Workspace overview">
           <article class="dashboard-card">
-            <p class="card-label">Scenes</p>
-            <p class="card-value">Ready to review</p>
+            <p class="card-label">Active scenes</p>
+            <p class="metric-value">{{ active_scene_count }}</p>
+            <p class="card-support">
+              {{ archived_scene_count }} archived
+            </p>
           </article>
 
           <article class="dashboard-card">
-            <p class="card-label">Recent activity</p>
-            <p class="card-value">Your latest revisions will appear here.</p>
+            <p class="card-label">Revisions</p>
+            <p class="metric-value">{{ revision_count }}</p>
+            {% if latest_revision %}
+              <p class="card-support">
+                Latest: {{ latest_revision.scene.title }}
+              </p>
+            {% else %}
+              <p class="card-support">No revisions yet</p>
+            {% endif %}
           </article>
 
           <article class="dashboard-card dashboard-card-wide">
-            <p class="card-label">Writing focus</p>
-            <p class="card-value">
-              Use this space to keep the next important story task visible.
-            </p>
+            <div class="card-heading-row">
+              <div>
+                <p class="card-label">Recently updated scenes</p>
+                <p class="card-value">Continue where you left off.</p>
+              </div>
+              <a class="side-link" href="{% url 'scene-list' %}">View all</a>
+            </div>
+
+            {% if recent_scenes %}
+              <div class="recent-scene-list">
+                {% for scene in recent_scenes %}
+                  <a
+                    class="recent-scene"
+                    href="{% url 'scene-editor' scene_id=scene.id %}"
+                  >
+                    <span class="recent-scene-title">{{ scene.title }}</span>
+                    <span class="recent-scene-meta">
+                      Updated {{ scene.updated_at|date:"M j, Y" }}
+                    </span>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="empty-state">
+                No active scenes yet. Create your first scene to begin.
+              </p>
+            {% endif %}
           </article>
         </section>
       </main>
