@@ -22,18 +22,27 @@ Classification: **Staging release successful with authenticated smoke-test excep
 - AI is disabled.
 - Unauthenticated smoke tests passed.
 - Authenticated smoke tests are deferred because no approved staging credential-retrieval
-  path exists.
-- One existing owner account appears suitable for the synthetic checks, but the schema does
-  not prove that it is a synthetic account.
+  path existed during this release.
+- The existing bootstrap-linked staging owner account and its approved fixtures were
+  formally designated as synthetic after the release. This does not retroactively complete
+  the deferred authenticated checks.
 - Credential discovery changed no accounts, credentials, Railway state, Git state, or
   production resources.
 - Production remains untouched.
 
-### Follow-Up
+### Follow-Up Resolution
 
 **Document staging synthetic-account credential custody and recovery.**
 
-The approved procedure must identify an external password-manager location, named account
-ownership and custody, WebAuthn or recovery-code custody, rotation and recovery steps, and a
-bounded audit trail. Credentials must never be stored in Railway variables, repository files,
-shell history, logs, or release reports.
+The approved policy is documented in
+`docs/operations/staging-synthetic-account-runbook.md`. Beverly Toole is the accountable
+owner and primary custodian; no backup custodian is assigned. Beverly's existing password
+manager is authoritative. The policy requires primary and separately controlled backup
+WebAuthn factors, separately restricted recovery codes, 90-day and event-driven password
+rotation, 12-month audit retention, and request-shell-only AI smoke testing without invoking
+a provider.
+
+Password loss stops the workflow and requires a separately reviewed staging-only reset
+procedure. Credentials and private authentication or fixture material remain prohibited from
+Railway variables, repository files, shell history, logs, screenshots, HAR files, tickets,
+chat, and release reports.

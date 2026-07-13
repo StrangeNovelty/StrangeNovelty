@@ -20,25 +20,28 @@ manifest, collected output, and public HTTP response.
 
 Unauthenticated smoke tests passed. Authenticated Workspace, Scene, Search, AI-shell,
 private-cache, and logout smoke tests remain deferred because there is no approved staging
-credential-retrieval path. One existing owner account appears suitable for synthetic staging
-checks, but the schema does not prove that the account is synthetic.
+credential-retrieval path at the time of this release. The historical exception remains even
+though a custody policy was approved afterward; those authenticated checks were not rerun as
+part of the completed release.
 
 Credential discovery was read-only. It changed no accounts, credentials, Railway state, Git
 state, or production resources. Production remains untouched.
 
-## Follow-Up
+## Synthetic Account Policy Follow-Up
 
-### Document staging synthetic-account credential custody and recovery
+The existing bootstrap-linked staging owner account is now formally designated as the
+staging synthetic owner account, and its Workspace and approved fixtures are test-only
+synthetic data. Beverly Toole is the accountable owner and primary custodian. No backup
+custodian is assigned.
 
-Define and approve an operational procedure that includes:
+The operational procedure is documented in
+`docs/operations/staging-synthetic-account-runbook.md`. It requires Beverly's existing
+password manager, primary and separately controlled backup WebAuthn factors, recovery codes
+in a separate restricted item, 90-day password rotation, immediate event-driven rotation,
+and 12-month audit retention. Routine AI smoke testing stops at the AI request shell and may
+not invoke a provider.
 
-- an approved external password-manager location;
-- named ownership and custody for the staging account;
-- named custody for its WebAuthn factor or recovery codes;
-- password, MFA, rotation, and recovery procedures;
-- a bounded audit trail for access, rotation, and recovery; and
-- an explicit prohibition on storing credentials in Railway variables, repository files,
-  shell history, logs, or release reports.
-
-Do not resume authenticated staging smoke tests until this custody and recovery procedure is
-approved and the existing account is confirmed as the dedicated synthetic staging account.
+Authenticated smoke testing may resume only after the runbook's operational preflight is
+satisfied, including custody of both factors and the separate recovery item. Password loss
+still requires a separately reviewed staging-only reset procedure; manual database edits are
+prohibited.

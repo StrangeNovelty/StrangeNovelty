@@ -28,9 +28,16 @@ TLS terminates at the platform reverse proxy, which must overwrite the forwarded
 5. Run `release-migrate.sh` once with the migration role and credential.
 6. Start the web role with `start-web.sh`; migrations are never run by web startup.
 7. Check `/health/live/` and `/health/ready/` using bounded platform probes.
-8. Run synthetic login, Workspace, Scene-list, and private cache-header smoke checks.
-9. Start the worker role with `start-worker.sh`, verify `check_worker_readiness`, and execute a one-shot empty-queue check in a controlled environment.
-10. Disable maintenance only after checks pass; monitor bounded alerts and logs.
+8. Start the worker role with `start-worker.sh`, verify `check_worker_readiness`, and execute
+   a one-shot empty-queue check in a controlled environment.
+9. Disable maintenance only after migration, web, and worker checks pass. Confirm web
+   readiness and worker readiness again.
+10. For staging, run the authenticated checks under
+   `docs/operations/staging-synthetic-account-runbook.md`: password-manager autofill,
+   primary WebAuthn, Workspace, existing synthetic Scene, Search, AI request shell without
+   provider invocation, private cache headers, logout, and post-logout denial. Record only
+   bounded pass/fail evidence and never credential or fixture content.
+11. Monitor bounded alerts and logs.
 
 ## Process Roles
 
@@ -45,4 +52,4 @@ Pause workers and re-enable maintenance. Confirm the previous image supports the
 
 ## Post-Release
 
-Record release identity, migration result, checks, backup status, readiness, smoke-test classifications, rollback availability, and observed alerts without private content. Review dependency/license changes and release notes.
+Record release identity, migration result, checks, backup status, readiness, smoke-test classifications, rollback availability, and observed alerts without private content. Retain authenticated smoke-test audit evidence for 12 months under the staging synthetic-account runbook. Review dependency/license changes and release notes.
