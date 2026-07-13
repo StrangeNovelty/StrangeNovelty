@@ -62,17 +62,11 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "archived_scene_count": workspace_scenes.filter(
                     lifecycle=Scene.Lifecycle.ARCHIVED
                 ).count(),
-                "revision_count": SceneRevision.objects.filter(
-                    workspace=workspace
-                ).count(),
-                "recent_scenes": workspace_scenes.filter(
-                    lifecycle=Scene.Lifecycle.ACTIVE
-                )
+                "revision_count": SceneRevision.objects.filter(workspace=workspace).count(),
+                "recent_scenes": workspace_scenes.filter(lifecycle=Scene.Lifecycle.ACTIVE)
                 .select_related("current_revision")
                 .order_by("-updated_at", "id")[:4],
-                "latest_revision": SceneRevision.objects.filter(
-                    workspace=workspace
-                )
+                "latest_revision": SceneRevision.objects.filter(workspace=workspace)
                 .select_related("scene")
                 .order_by("-created_at", "-id")
                 .first(),

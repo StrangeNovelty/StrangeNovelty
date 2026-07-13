@@ -179,12 +179,42 @@ def test_private_post_search_is_csrf_protected_escaped_and_no_store() -> None:
     client.force_login(account)
     response = client.post(reverse("scene-search"), {"query": "needle"})
     assert response.status_code == 200
+    assert b'class="app-shell"' in response.content
+    assert b'class="search-result"' in response.content
+    assert reverse("scene-editor", kwargs={"scene_id": Scene.objects.get().id}).encode() in (
+        response.content
+    )
     assert b"&lt;b&gt;Synthetic&lt;/b&gt;" in response.content
     assert "no-store" in response.headers["Cache-Control"]
     assert "?" not in response.request["PATH_INFO"]
     csrf_client = Client(enforce_csrf_checks=True)
     csrf_client.force_login(account)
     assert csrf_client.post(reverse("scene-search"), {"query": "needle"}).status_code == 403
+
+
+def test_search_page_renders_shell_validation_and_no_results() -> None:
+    account, _ = _owner()
+    client = Client()
+    client.force_login(account)
+
+    initial = client.get(reverse("scene-search"))
+    assert initial.status_code == 200
+    assert b'class="app-shell"' in initial.content
+    assert b'class="scene-search-form"' in initial.content
+    assert initial.content.count(b"<main") == 1
+    assert b'<label for="id_query">' in initial.content
+    assert b'<label for="id_include_archived">' in initial.content
+    assert b"Matching scenes" not in initial.content
+
+    invalid = client.post(reverse("scene-search"), {"query": ""})
+    assert invalid.status_code == 422
+    assert b'role="alert"' in invalid.content
+    assert b"This field is required." in invalid.content
+
+    empty = client.post(reverse("scene-search"), {"query": "missing"})
+    assert empty.status_code == 200
+    assert b"No matches found." in empty.content
+    assert b'role="status"' in empty.content
 
 
 def test_commands_are_bounded_and_reset_only_derived_rows() -> None:
