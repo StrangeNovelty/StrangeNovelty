@@ -5,6 +5,7 @@ from typing import cast
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils import timezone
 
@@ -15,7 +16,10 @@ from characters.models import (
     AbilityPrediction,
     AbilityStage,
     Character,
+    CharacterGroup,
+    CharacterRelationship,
     CharacterScene,
+    GroupMembership,
 )
 from scenes.models import Scene
 from workspaces.models import Workspace
@@ -522,3 +526,295 @@ def _touch_ability(ability: Ability) -> None:
 
 def _touch_character(character_id: uuid.UUID) -> None:
     Character.objects.filter(id=character_id).update(updated_at=timezone.now())
+
+
+def create_character_relationship(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    character_id: uuid.UUID,
+    values: dict[str, object],
+) -> CharacterRelationship:
+    workspace = _authorized_workspace(actor, workspace_id)
+    relationship_values = dict(values)
+    other_value = relationship_values.pop("other_character", None)
+    current_perspective = relationship_values.pop("current_perspective", "")
+    other_perspective = relationship_values.pop("other_perspective", "")
+    try:
+        with transaction.atomic():
+            current = Character.objects.select_for_update().get(
+                id=character_id, workspace=workspace
+            )
+            other = _locked_relationship_character(workspace, other_value)
+            source, target = _canonical_character_pair(current, other)
+            relationship = CharacterRelationship(
+                workspace=workspace,
+                source=source,
+                target=target,
+                source_perspective=(
+                    current_perspective if source.id == current.id else other_perspective
+                ),
+                target_perspective=(
+                    other_perspective if source.id == current.id else current_perspective
+                ),
+                **relationship_values,
+            )
+            relationship.full_clean()
+            relationship.save()
+            _touch_characters(workspace, (current.id, other.id))
+            return relationship
+    except Character.DoesNotExist as exc:
+        raise CharacterInaccessible("Relationship Character is unavailable.") from exc
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Character relationship could not be created.") from exc
+
+
+def update_character_relationship(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    character_id: uuid.UUID,
+    relationship_id: uuid.UUID,
+    values: dict[str, object],
+) -> CharacterRelationship:
+    workspace = _authorized_workspace(actor, workspace_id)
+    relationship_values = dict(values)
+    other_value = relationship_values.pop("other_character", None)
+    current_perspective = relationship_values.pop("current_perspective", "")
+    other_perspective = relationship_values.pop("other_perspective", "")
+    try:
+        with transaction.atomic():
+            current = Character.objects.select_for_update().get(
+                id=character_id, workspace=workspace
+            )
+            relationship = CharacterRelationship.objects.select_for_update().get(
+                Q(source=current) | Q(target=current),
+                id=relationship_id,
+                workspace=workspace,
+            )
+            previous_character_ids = (relationship.source_id, relationship.target_id)
+            other = _locked_relationship_character(workspace, other_value)
+            source, target = _canonical_character_pair(current, other)
+            relationship.source = source
+            relationship.target = target
+            relationship.source_perspective = (
+                current_perspective if source.id == current.id else other_perspective
+            )
+            relationship.target_perspective = (
+                other_perspective if source.id == current.id else current_perspective
+            )
+            for field, value in relationship_values.items():
+                setattr(relationship, field, value)
+            relationship.full_clean()
+            relationship.save()
+            _touch_characters(
+                workspace,
+                (*previous_character_ids, current.id, other.id),
+            )
+            return relationship
+    except (Character.DoesNotExist, CharacterRelationship.DoesNotExist) as exc:
+        raise CharacterInaccessible("Character relationship is unavailable.") from exc
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Character relationship could not be updated.") from exc
+
+
+def delete_character_relationship(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    character_id: uuid.UUID,
+    relationship_id: uuid.UUID,
+) -> None:
+    workspace = _authorized_workspace(actor, workspace_id)
+    try:
+        with transaction.atomic():
+            relationship = CharacterRelationship.objects.select_for_update().get(
+                Q(source_id=character_id) | Q(target_id=character_id),
+                id=relationship_id,
+                workspace=workspace,
+            )
+            character_ids = (relationship.source_id, relationship.target_id)
+            relationship.delete()
+            _touch_characters(workspace, character_ids)
+    except CharacterRelationship.DoesNotExist as exc:
+        raise CharacterInaccessible("Character relationship is unavailable.") from exc
+
+
+def create_character_group(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    values: dict[str, object],
+) -> CharacterGroup:
+    workspace = _authorized_workspace(actor, workspace_id)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup(workspace=workspace, **values)
+            group.full_clean()
+            group.save()
+            return group
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Character Group could not be created.") from exc
+
+
+def update_character_group(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    group_id: uuid.UUID,
+    values: dict[str, object],
+) -> CharacterGroup:
+    workspace = _authorized_workspace(actor, workspace_id)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup.objects.select_for_update().get(id=group_id, workspace=workspace)
+            for field, value in values.items():
+                setattr(group, field, value)
+            group.full_clean()
+            group.save()
+            return group
+    except CharacterGroup.DoesNotExist as exc:
+        raise CharacterInaccessible("Character Group is unavailable.") from exc
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Character Group could not be updated.") from exc
+
+
+def delete_character_group(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    group_id: uuid.UUID,
+) -> None:
+    workspace = _authorized_workspace(actor, workspace_id)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup.objects.select_for_update().get(id=group_id, workspace=workspace)
+            character_ids = tuple(group.memberships.values_list("character_id", flat=True))
+            group.delete()
+            _touch_characters(workspace, character_ids)
+    except CharacterGroup.DoesNotExist as exc:
+        raise CharacterInaccessible("Character Group is unavailable.") from exc
+
+
+def create_group_membership(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    group_id: uuid.UUID,
+    values: dict[str, object],
+) -> GroupMembership:
+    workspace = _authorized_workspace(actor, workspace_id)
+    membership_values = dict(values)
+    character_value = membership_values.pop("character", None)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup.objects.select_for_update().get(id=group_id, workspace=workspace)
+            character = _locked_relationship_character(workspace, character_value)
+            membership = GroupMembership(
+                workspace=workspace,
+                group=group,
+                character=character,
+                **membership_values,
+            )
+            membership.full_clean()
+            membership.save()
+            _touch_group(group)
+            _touch_characters(workspace, (character.id,))
+            return membership
+    except (CharacterGroup.DoesNotExist, Character.DoesNotExist) as exc:
+        raise CharacterInaccessible("Group or Character is unavailable.") from exc
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Group membership could not be created.") from exc
+
+
+def update_group_membership(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    group_id: uuid.UUID,
+    membership_id: uuid.UUID,
+    values: dict[str, object],
+) -> GroupMembership:
+    workspace = _authorized_workspace(actor, workspace_id)
+    membership_values = dict(values)
+    character_value = membership_values.pop("character", None)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup.objects.select_for_update().get(id=group_id, workspace=workspace)
+            membership = GroupMembership.objects.select_for_update().get(
+                id=membership_id,
+                workspace=workspace,
+                group=group,
+            )
+            previous_character_id = membership.character_id
+            character = _locked_relationship_character(workspace, character_value)
+            membership.character = character
+            for field, value in membership_values.items():
+                setattr(membership, field, value)
+            membership.full_clean()
+            membership.save()
+            _touch_group(group)
+            _touch_characters(workspace, (previous_character_id, character.id))
+            return membership
+    except (
+        CharacterGroup.DoesNotExist,
+        GroupMembership.DoesNotExist,
+        Character.DoesNotExist,
+    ) as exc:
+        raise CharacterInaccessible("Group membership is unavailable.") from exc
+    except (IntegrityError, ValidationError) as exc:
+        raise CharacterDomainError("Group membership could not be updated.") from exc
+
+
+def delete_group_membership(
+    *,
+    actor: Account | AnonymousUser,
+    workspace_id: uuid.UUID,
+    group_id: uuid.UUID,
+    membership_id: uuid.UUID,
+) -> None:
+    workspace = _authorized_workspace(actor, workspace_id)
+    try:
+        with transaction.atomic():
+            group = CharacterGroup.objects.select_for_update().get(id=group_id, workspace=workspace)
+            membership = GroupMembership.objects.get(
+                id=membership_id,
+                workspace=workspace,
+                group=group,
+            )
+            character_id = membership.character_id
+            membership.delete()
+            _touch_group(group)
+            _touch_characters(workspace, (character_id,))
+    except (CharacterGroup.DoesNotExist, GroupMembership.DoesNotExist) as exc:
+        raise CharacterInaccessible("Group membership is unavailable.") from exc
+
+
+def _locked_relationship_character(workspace: Workspace, value: object) -> Character:
+    if not isinstance(value, Character):
+        raise Character.DoesNotExist
+    return cast(
+        Character,
+        Character.objects.select_for_update().get(id=value.id, workspace=workspace),
+    )
+
+
+def _canonical_character_pair(
+    first: Character,
+    second: Character,
+) -> tuple[Character, Character]:
+    if first.id == second.id:
+        raise ValidationError("A Character cannot have a relationship with themselves.")
+    return (first, second) if first.id < second.id else (second, first)
+
+
+def _touch_characters(workspace: Workspace, character_ids: Iterable[uuid.UUID]) -> None:
+    Character.objects.filter(workspace=workspace, id__in=set(character_ids)).update(
+        updated_at=timezone.now()
+    )
+
+
+def _touch_group(group: CharacterGroup) -> None:
+    CharacterGroup.objects.filter(id=group.id, workspace=group.workspace_id).update(
+        updated_at=timezone.now()
+    )

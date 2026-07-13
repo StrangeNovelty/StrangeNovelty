@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Groups — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story workspace</p></div>
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link nav-link-active" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p><p class="account-name">{{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Sign out</button></form>
+      </div>
+    </aside>
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div><p class="eyebrow">Connected cast</p><h1>Groups</h1></div>
+        <a class="button button-primary" href="{% url 'character-group-create' %}">Create Group</a>
+      </header>
+      <div class="workspace-main character-library">
+        <section class="character-search-card" aria-labelledby="group-search-heading">
+          <div><p class="card-label">Find a Group</p><h2 id="group-search-heading">Search names, types, purpose, and notes.</h2></div>
+          <form class="character-list-search" method="post">
+            {% csrf_token %}
+            <label class="visually-hidden" for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+            {{ form.query }}
+            <button class="button button-secondary" type="submit">Search</button>
+          </form>
+          {{ form.query.errors }}
+          {% if searched %}<a class="side-link" href="{% url 'character-group-list' %}">Clear search</a>{% endif %}
+        </section>
+        <section class="character-list-panel" aria-labelledby="group-list-heading">
+          <div class="card-heading-row">
+            <div><p class="card-label">Group library</p><h2 id="group-list-heading">{% if searched %}Matching Groups{% else %}Cast connections{% endif %}</h2></div>
+            {% if groups %}<p class="search-result-count">{{ groups|length }} shown</p>{% endif %}
+          </div>
+          {% if groups %}
+            <div class="group-card-list">
+              {% for group in groups %}
+                <a class="group-card" href="{% url 'character-group-detail' group.id %}">
+                  <span class="group-card-heading">
+                    <span><span class="character-name">{{ group.name }}</span><span class="character-role">{{ group.get_group_type_display }}</span></span>
+                    <span class="lifecycle-badge">{{ group.get_status_display }}</span>
+                  </span>
+                  <span class="character-summary">{% if group.tagline %}{{ group.tagline }}{% elif group.description %}{{ group.description|truncatechars:220 }}{% else %}No Group summary yet.{% endif %}</span>
+                  <span class="connection-counts">{{ group.member_count }} member{{ group.member_count|pluralize }} · Updated {{ group.updated_at|date:"M j, Y" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% elif searched %}
+            <div class="scene-empty-state"><p class="card-value">No Groups matched.</p><p class="empty-state">Try another name, type, purpose, or detail.</p></div>
+          {% else %}
+            <div class="scene-empty-state">
+              <p class="card-value">No Groups yet.</p>
+              <p class="empty-state">Gather a family, team, faction, crew, or organization around a shared purpose.</p>
+              <a class="button button-primary" href="{% url 'character-group-create' %}">Create your first Group</a>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+    <aside class="sidebar sidebar-right" aria-label="Group library details">
+      <section class="side-panel"><p class="card-label">Cast structure</p><p class="status-value">Belonging and purpose</p><p class="side-copy">Track who gathers together and what holds them there.</p></section>
+      <section class="side-panel"><p class="card-label">Quick links</p><a class="side-link" href="{% url 'character-list' %}">All Characters</a><a class="side-link" href="{% url 'character-group-create' %}">Create Group</a></section>
+    </aside>
+  </div>
+{% endblock %}
