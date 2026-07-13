@@ -3,13 +3,108 @@
 {% block title %}Workspace — Strange Novelty{% endblock %}
 
 {% block content %}
-  <h1>Workspace ready</h1>
-  <p>{{ workspace.name }}</p>
-  <p><a href="{% url 'scene-list' %}">Open Scenes</a></p>
-  <p><a href="{% url 'scene-search' %}">Search Scenes</a></p>
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SN</div>
+        <div>
+          <p class="brand-title">Strange Novelty</p>
+          <p class="brand-subtitle">Story workspace</p>
+        </div>
+      </div>
 
-  <form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Sign out</button>
-  </form>
+      <nav class="primary-nav">
+        <a class="nav-link nav-link-active" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+
+      <div class="sidebar-account">
+        <p class="account-label">Signed in as</p>
+        <p class="account-name">{{ request.user.email }}</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-button" type="submit">Sign out</button>
+        </form>
+      </div>
+    </aside>
+
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">Current workspace</p>
+          <h1>{{ workspace.name }}</h1>
+        </div>
+
+        <form class="header-search" method="get" action="{% url 'scene-search' %}">
+          <label class="visually-hidden" for="workspace-search">Search scenes</label>
+          <input
+            id="workspace-search"
+            name="q"
+            type="search"
+            placeholder="Search your story"
+          >
+        </form>
+      </header>
+
+      <main class="workspace-main">
+        <section class="welcome-panel">
+          <p class="eyebrow">Welcome back</p>
+          <h2>Your story is ready when you are.</h2>
+          <p class="welcome-copy">
+            Continue writing, review recent scenes, or explore your project.
+          </p>
+
+          <div class="action-row">
+            <a class="button button-primary" href="{% url 'scene-list' %}">
+              Open scenes
+            </a>
+            <a class="button button-secondary" href="{% url 'scene-search' %}">
+              Search scenes
+            </a>
+          </div>
+        </section>
+
+        <section class="dashboard-grid" aria-label="Workspace overview">
+          <article class="dashboard-card">
+            <p class="card-label">Scenes</p>
+            <p class="card-value">Ready to review</p>
+          </article>
+
+          <article class="dashboard-card">
+            <p class="card-label">Recent activity</p>
+            <p class="card-value">Your latest revisions will appear here.</p>
+          </article>
+
+          <article class="dashboard-card dashboard-card-wide">
+            <p class="card-label">Writing focus</p>
+            <p class="card-value">
+              Use this space to keep the next important story task visible.
+            </p>
+          </article>
+        </section>
+      </main>
+    </section>
+
+    <aside class="sidebar sidebar-right" aria-label="Workspace details">
+      <section class="side-panel">
+        <p class="card-label">Project status</p>
+        <p class="status-value">Workspace ready</p>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Quick links</p>
+        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
+        <a class="side-link" href="{% url 'scene-search' %}">Search</a>
+      </section>
+
+      <section class="side-panel">
+        <p class="card-label">Coming next</p>
+        <p class="side-copy">
+          Recent scenes, project notes, and writing progress.
+        </p>
+      </section>
+    </aside>
+  </div>
 {% endblock %}
