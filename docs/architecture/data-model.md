@@ -114,9 +114,17 @@ A Chapter organizes Scenes within a Book. It supports identity, Workspace owners
 
 ### Scene
 
-A Scene is the primary drafting unit. It belongs to one Chapter and supports identity, Workspace ownership, a parent Chapter identifier, title or label, current content or current-revision reference, optional summary or notes, explicit order, content state, provenance, timestamps, concurrency version, and archive and recovery status.
+A Scene is the primary drafting unit. It may remain unassigned or belong directly to a Work and optionally to that Work's Volume, Arc, or Chapter. It supports identity, Workspace ownership, nullable structure references, title or label, current content or current-revision reference, optional summary or notes, explicit library and structure order, content state, provenance, timestamps, concurrency version, and archive and recovery status.
 
 A Scene may link to supported Scenes, Characters, and Locations. Moving it preserves identity and revision history. Version 1 does not assume that a Scene's draft state determines the truth status of every fact in its prose.
+
+### Initial flexible story-structure workflow
+
+The initial implemented hierarchy uses explicit Workspace-owned Work, Volume, Arc, Chapter, and Scene records. Work is the inclusive top-level creative project for serials, novels, novellas, short stories, screenplays, stage plays, comics, and other author-defined forms. Volume, Arc, and Chapter provide typed optional levels rather than a universal tree. A Work may therefore contain Scenes directly, Chapters and Scenes without a Volume or Arc, or the complete Work → Volume → Arc → Chapter → Scene path.
+
+Volume, Arc, and Chapter siblings use explicit sparse non-negative order values within their Work. A Scene retains its existing Workspace-wide library order and may additionally store one nullable Work, Volume, Arc, and Chapter placement plus an order within that exact structure context. Existing unassigned Scenes remain valid with every placement field null. Service validation requires all selected parents to share the Scene's Workspace and Work, and requires a selected Arc or Chapter's own parent references to agree with the Scene placement.
+
+Structure records and Scene placement use ordinary creation and modification timestamps. Parent deletion is protective: a Work, Volume, Arc, or Chapter cannot be deleted while contained structure or Scenes still refer to it. The author must explicitly reassign or remove those references first. Scene placement changes preserve Scene identity, revisions, search projection behavior, and editor routes while advancing the Scene concurrency version as a metadata mutation.
 
 ## Version 1 Structured Entities
 

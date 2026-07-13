@@ -15,6 +15,7 @@ from scenes.exceptions import (
     DomainIntegrityFailure,
     InvalidSceneOrdering,
     InvalidSceneTitle,
+    LifecycleDisallowsMutation,
     SceneDomainError,
 )
 from scenes.forms import SceneCreateForm, SceneSaveForm
@@ -30,6 +31,8 @@ from security_events.taxonomy import (
     SecurityServiceRole,
     SecurityTargetCategory,
 )
+from stories.forms import ScenePlacementForm
+from stories.services import StoryStructureError, update_scene_placement
 from workspaces.models import Workspace
 from workspaces.services import resolve_owner_workspace
 
@@ -65,7 +68,9 @@ def _authorized_scene(request: HttpRequest, scene_id: uuid.UUID) -> Scene:
     try:
         scene = cast(
             Scene,
-            Scene.objects.select_related("current_revision").get(id=scene_id, workspace=workspace),
+            Scene.objects.select_related(
+                "current_revision", "work", "volume", "arc", "chapter"
+            ).get(id=scene_id, workspace=workspace),
         )
     except Scene.DoesNotExist as exc:
         record_security_event(
@@ -102,7 +107,11 @@ def _authorized_scene(request: HttpRequest, scene_id: uuid.UUID) -> Scene:
 @login_required
 def scene_list(request: HttpRequest) -> HttpResponse:
     workspace = _request_workspace(request)
-    scenes = Scene.objects.filter(workspace=workspace).exclude(lifecycle=Scene.Lifecycle.TRASHED)
+    scenes = (
+        Scene.objects.filter(workspace=workspace)
+        .exclude(lifecycle=Scene.Lifecycle.TRASHED)
+        .select_related("work", "chapter")
+    )
     return render(request, "scenes/list.html", {"scenes": scenes})
 
 
@@ -150,6 +159,7 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
         workspace=workspace,
         initial={"characters": scene.characters.all()},
     )
+    placement_form = ScenePlacementForm(workspace=workspace, scene=scene)
     return render(
         request,
         "scenes/editor.html",
@@ -159,11 +169,65 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "form": form,
             "character_selector_form": character_selector_form,
             "scene_characters": scene.characters.order_by("name"),
+            "placement_form": placement_form,
             "ability_events": scene.ability_events.select_related(
                 "ability", "ability__character"
             ).order_by("-created_at", "-id"),
         },
     )
+
+
+@never_cache
+@login_required
+@require_POST
+def scene_placement_update(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
+    scene = _authorized_scene(request, scene_id)
+    if scene.lifecycle != Scene.Lifecycle.ACTIVE:
+        raise Http404("Scene is unavailable.")
+    workspace = _request_workspace(request)
+    form = ScenePlacementForm(request.POST, workspace=workspace, scene=scene)
+    if not form.is_valid():
+        current = scene.current_revision
+        if current is None:
+            raise Http404("Scene is unavailable.")
+        content_form = SceneSaveForm(
+            initial={
+                "content": current.content,
+                "expected_current_revision_id": current.id,
+                "expected_scene_version": scene.version,
+                "idempotency_key": uuid.uuid4().hex,
+                "save_intent": "explicit_save",
+            }
+        )
+        return render(
+            request,
+            "scenes/editor.html",
+            {
+                "scene": scene,
+                "current_revision": current,
+                "form": content_form,
+                "placement_form": form,
+                "character_selector_form": SceneCharacterSelectorForm(
+                    workspace=workspace,
+                    initial={"characters": scene.characters.all()},
+                ),
+                "scene_characters": scene.characters.order_by("name"),
+                "ability_events": scene.ability_events.select_related(
+                    "ability", "ability__character"
+                ).order_by("-created_at", "-id"),
+            },
+            status=422,
+        )
+    try:
+        update_scene_placement(
+            actor=request.user,
+            workspace_id=workspace.id,
+            scene_id=scene.id,
+            values=form.cleaned_data,
+        )
+    except (StoryStructureError, LifecycleDisallowsMutation) as exc:
+        raise Http404("Scene placement could not be updated.") from exc
+    return _see_other(reverse("scene-editor", kwargs={"scene_id": scene.id}))
 
 
 @never_cache

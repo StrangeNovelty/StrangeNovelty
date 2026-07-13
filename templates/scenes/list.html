@@ -15,6 +15,7 @@
 
       <nav class="primary-nav">
         <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'work-list' %}">Works</a>
         <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
           Scenes
         </a>
@@ -72,6 +73,11 @@
                     <span class="scene-list-title">{{ scene.title }}</span>
                     <span class="scene-list-meta">
                       {{ scene.get_lifecycle_display }}
+                      {% if scene.work %}
+                        · {{ scene.work.title }}{% if scene.chapter %} / {{ scene.chapter.title }}{% endif %}
+                      {% else %}
+                        · Unassigned
+                      {% endif %}
                       · Updated {{ scene.updated_at|date:"M j, Y" }}
                     </span>
                   </span>

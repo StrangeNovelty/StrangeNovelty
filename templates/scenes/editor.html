@@ -16,6 +16,7 @@
 
       <nav class="primary-nav">
         <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link" href="{% url 'work-list' %}">Works</a>
         <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
           Scenes
         </a>
@@ -102,6 +103,36 @@
         <p class="card-label">Current revision</p>
         <p class="status-value">Revision {{ current_revision.revision_number }}</p>
         <p class="side-copy">Scene version {{ scene.version }}</p>
+      </section>
+
+      <section class="side-panel story-placement-panel">
+        <p class="card-label">Story Placement</p>
+        {% if scene.lifecycle == "active" and placement_form %}
+          <form class="story-placement-form" method="post" action="{% url 'scene-placement-update' scene.id %}">
+            {% csrf_token %}
+            {% for field in placement_form %}
+              <div class="placement-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button class="button button-secondary" type="submit">Save Placement</button>
+          </form>
+        {% else %}
+          <p class="side-copy">Archived Scene placement is read-only.</p>
+        {% endif %}
+        {% if scene.work %}
+          <a class="side-link" href="{% url 'work-detail' scene.work.id %}">{{ scene.work.title }}</a>
+          {% if scene.chapter %}
+            <a class="side-link" href="{% url 'chapter-detail' scene.work.id scene.chapter.id %}">
+              {{ scene.chapter.title }}
+            </a>
+          {% endif %}
+        {% else %}
+          <p class="side-copy">This Scene is not assigned to a Work.</p>
+        {% endif %}
       </section>
 
       {% if character_selector_form %}

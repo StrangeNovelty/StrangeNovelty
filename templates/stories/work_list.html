@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Works — Strange Novelty{% endblock %}
+
+{% block content %}
+  <div class="app-shell">
+    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+      <div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story workspace</p></div></div>
+      <nav class="primary-nav">
+        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
+        <a class="nav-link nav-link-active" href="{% url 'work-list' %}">Works</a>
+        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
+        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
+        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
+      </nav>
+      <div class="sidebar-account"><p class="account-label">Signed in as</p><p class="account-name">{{ request.user.email }}</p><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Sign out</button></form></div>
+    </aside>
+    <section class="workspace-area">
+      <header class="workspace-header">
+        <div><p class="eyebrow">Story structure</p><h1>Works</h1></div>
+        <a class="button button-primary" href="{% url 'work-create' %}">Create Work</a>
+      </header>
+      <div class="workspace-main work-library">
+        <section class="character-search-card" aria-labelledby="work-search-heading">
+          <div><p class="card-label">Find a Work</p><h2 id="work-search-heading">Search titles, premises, descriptions, and genres.</h2></div>
+          <form class="character-list-search" method="post">
+            {% csrf_token %}
+            <label class="visually-hidden" for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+            {{ form.query }}
+            <button class="button button-secondary" type="submit">Search</button>
+          </form>
+          {{ form.query.errors }}
+          {% if searched %}<a class="side-link" href="{% url 'work-list' %}">Clear search</a>{% endif %}
+        </section>
+        <section class="character-list-panel" aria-labelledby="work-list-heading">
+          <div class="card-heading-row"><div><p class="card-label">Work library</p><h2 id="work-list-heading">{% if searched %}Matching Works{% else %}Your creative projects{% endif %}</h2></div>{% if works %}<p class="search-result-count">{{ works|length }} shown</p>{% endif %}</div>
+          {% if works %}
+            <div class="work-card-list">
+              {% for work in works %}
+                <a class="work-card" href="{% url 'work-detail' work.id %}">
+                  <span class="work-card-heading"><span><span class="work-title">{{ work.title }}</span>{% if work.subtitle %}<span class="work-subtitle">{{ work.subtitle }}</span>{% endif %}</span><span class="lifecycle-badge">{{ work.get_status_display }}</span></span>
+                  <span class="work-type">{{ work.get_work_type_display }}</span>
+                  <span class="work-premise">{% if work.premise %}{{ work.premise|truncatechars:240 }}{% else %}No premise recorded yet.{% endif %}</span>
+                  <span class="work-counts">{{ work.volume_count }} Volume{{ work.volume_count|pluralize }} · {{ work.arc_count }} Arc{{ work.arc_count|pluralize }} · {{ work.chapter_count }} Chapter{{ work.chapter_count|pluralize }} · {{ work.scene_count }} Scene{{ work.scene_count|pluralize }}</span>
+                  <span class="character-updated">Updated {{ work.updated_at|date:"M j, Y" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% elif searched %}
+            <div class="scene-empty-state"><p class="card-value">No Works matched.</p><p class="empty-state">Try another title, premise, description, or genre note.</p></div>
+          {% else %}
+            <div class="scene-empty-state"><p class="card-value">No Works yet.</p><p class="empty-state">Begin with a serial, novel, short story, script, comic, or another form that fits the idea.</p><a class="button button-primary" href="{% url 'work-create' %}">Create your first Work</a></div>
+          {% endif %}
+        </section>
+      </div>
+    </section>
+    <aside class="sidebar sidebar-right" aria-label="Work library details"><section class="side-panel"><p class="card-label">Flexible structure</p><p class="status-value">Use only what fits</p><p class="side-copy">Volumes, Arcs, and Chapters are optional. Scenes remain the writing unit.</p></section><section class="side-panel"><p class="card-label">Quick links</p><a class="side-link" href="{% url 'work-create' %}">Create Work</a><a class="side-link" href="{% url 'scene-list' %}">Unassigned Scenes</a></section></aside>
+  </div>
+{% endblock %}

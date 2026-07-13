@@ -14,6 +14,7 @@ from security_events.taxonomy import (
     SecurityServiceRole,
     SecurityTargetCategory,
 )
+from stories.models import Work
 from workspaces.services import resolve_owner_workspace
 
 
@@ -51,6 +52,8 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "latest_revision": None,
         "character_count": 0,
         "recent_characters": (),
+        "active_work_count": 0,
+        "recent_work": None,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -77,6 +80,19 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "recent_characters": Character.objects.filter(workspace=workspace).order_by(
                     "-updated_at", "id"
                 )[:4],
+                "active_work_count": Work.objects.filter(
+                    workspace=workspace,
+                    status__in=(
+                        Work.Status.IDEA,
+                        Work.Status.PLANNING,
+                        Work.Status.DRAFTING,
+                        Work.Status.REVISING,
+                    ),
+                ).count(),
+                "recent_work": Work.objects.filter(workspace=workspace)
+                .exclude(status=Work.Status.ARCHIVED)
+                .order_by("-updated_at", "id")
+                .first(),
             }
         )
 

@@ -1867,6 +1867,223 @@ a.group-card:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.work-card-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.work-card {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: inherit;
+  background: var(--color-surface-raised);
+  text-decoration: none;
+}
+
+.work-card:hover,
+.work-card:focus-visible {
+  border-color: rgb(216 166 60 / 0.5);
+}
+
+.work-card-heading,
+.chapter-card-heading,
+.structure-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.work-card-heading > span:first-child,
+.chapter-card-heading > span:first-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.work-title,
+.chapter-title,
+.structure-card h3 {
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.work-subtitle,
+.work-type,
+.work-counts,
+.chapter-label,
+.chapter-context,
+.structure-order,
+.scene-order-label {
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.work-premise,
+.structure-summary,
+.work-header-subtitle {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.structure-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.structure-summary-strip > div {
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  background: var(--color-surface);
+}
+
+.structure-summary-strip > div + div {
+  border-left: 1px solid var(--color-border);
+}
+
+.structure-summary-value {
+  margin: 0.4rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.65rem);
+  font-weight: 700;
+}
+
+.structure-card-list,
+.chapter-card-list,
+.structure-scene-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.15rem;
+}
+
+.structure-card,
+.chapter-card,
+.structure-scene-row {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  background: var(--color-surface-raised);
+}
+
+.chapter-card,
+.structure-scene-row {
+  text-decoration: none;
+}
+
+.chapter-card:hover,
+.chapter-card:focus-visible,
+.structure-scene-row:hover,
+.structure-scene-row:focus-visible {
+  border-color: rgb(216 166 60 / 0.5);
+}
+
+.structure-card h3 {
+  margin: 0.25rem 0 0;
+}
+
+.structure-card h3 a {
+  text-decoration: none;
+}
+
+.chapter-card {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.structure-scene-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.structure-scene-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scene-order-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.structure-empty-state {
+  margin: 1rem 0 0;
+  padding: 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+}
+
+.chapter-scene-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.chapter-scene-actions form {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.chapter-scene-actions input,
+.chapter-scene-actions select,
+.story-placement-form select,
+.story-placement-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+.story-placement-form,
+.placement-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.story-placement-form {
+  gap: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+.story-placement-form .button {
+  width: 100%;
+}
+
+.structure-form-workspace,
+.work-detail-workspace,
+.chapter-detail-workspace {
+  align-content: start;
+}
+
+.work-form-panel,
+.structure-form-panel {
+  width: min(100%, 58rem);
+}
+
 @media (max-width: 74rem) {
   .app-shell {
     grid-template-columns: 15rem minmax(0, 1fr);
@@ -1968,11 +2185,14 @@ a.group-card:focus-visible {
   }
 
   .character-card-list,
+  .work-card-list,
   .group-card-list,
   .dossier-field-grid,
   .dossier-two-column,
   .connection-summary-strip,
   .membership-detail-grid,
+  .structure-summary-strip,
+  .chapter-scene-actions,
   .ability-card-body,
   .ability-detail-grid,
   .prediction-list {
@@ -2009,6 +2229,9 @@ a.group-card:focus-visible {
   }
 
   .character-card-heading,
+  .work-card-heading,
+  .chapter-card-heading,
+  .structure-card-heading,
   .relationship-card-heading,
   .group-card-heading,
   .dossier-section-heading,
@@ -2024,13 +2247,19 @@ a.group-card:focus-visible {
     border-left: 0;
   }
 
+  .structure-summary-strip > div + div {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+
   .relationship-badge-row {
     justify-content: flex-start;
   }
 
   .relationship-card-footer,
   .group-card-footer,
-  .character-group-row {
+  .character-group-row,
+  .structure-scene-row {
     align-items: flex-start;
     flex-direction: column;
   }

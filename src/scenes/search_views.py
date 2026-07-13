@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from characters.search import search_character_groups, search_characters
 from scenes.search import search_scenes
 from scenes.search_forms import SceneSearchForm
+from stories.search import search_chapters, search_works
 from workspaces.services import resolve_owner_workspace
 
 
@@ -19,6 +20,8 @@ def scene_search(request: HttpRequest) -> HttpResponse:
     scene_results = []
     character_results = []
     group_results = []
+    work_results = []
+    chapter_results = []
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -37,6 +40,16 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             workspace_id=workspace.id,
             query_text=form.cleaned_data["query"],
         )
+        work_results = search_works(
+            actor=request.user,
+            workspace_id=workspace.id,
+            query_text=form.cleaned_data["query"],
+        )
+        chapter_results = search_chapters(
+            actor=request.user,
+            workspace_id=workspace.id,
+            query_text=form.cleaned_data["query"],
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -47,7 +60,15 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "scene_results": scene_results,
             "character_results": character_results,
             "group_results": group_results,
-            "result_count": len(scene_results) + len(character_results) + len(group_results),
+            "work_results": work_results,
+            "chapter_results": chapter_results,
+            "result_count": (
+                len(scene_results)
+                + len(character_results)
+                + len(group_results)
+                + len(work_results)
+                + len(chapter_results)
+            ),
             "searched": searched,
         },
         status=status,
