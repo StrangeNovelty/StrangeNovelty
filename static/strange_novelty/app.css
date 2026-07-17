@@ -2480,3 +2480,10 @@ a.group-card:focus-visible {
 .continuity-dossier { display: grid; gap: 1rem; }
 .continuity-dossier details { padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; }
 .table-scroll { overflow-x: auto; }
+.timeline-list { display: grid; gap: 1rem; list-style: none; padding: 0; }
+.timeline-entry { display: block; padding: 1rem; border-inline-start: .3rem solid #8f7657; background: var(--surface-raised, #17151e); overflow-wrap: anywhere; }
+.timeline-marker { float: right; font-variant-numeric: tabular-nums; color: var(--text-muted, #aaa); }
+.timeline-dossier { display: grid; gap: 1rem; }
+.timeline-dossier details, .timeline-panel { padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; overflow-wrap: anywhere; }
+.timeline-warning { border-inline-start: .3rem solid #b9784a; padding: 1rem; }
+@media (max-width: 720px) { .timeline-entry { padding: .8rem; } .timeline-marker { float: none; display: block; } }

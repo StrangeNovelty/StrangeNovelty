@@ -10,6 +10,7 @@ from decks.search import search_cards, search_draws
 from scenes.search import search_scenes
 from scenes.search_forms import SceneSearchForm
 from stories.search import search_chapters, search_works
+from timeline.search import search_timeline
 from workspaces.services import resolve_owner_workspace
 from worldbuilding.search import search_world
 
@@ -40,6 +41,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
     continuity_results = {
         key: [] for key in ("thread_results", "secret_results", "clue_results", "reveal_results")
     }
+    timeline_results = {"timeline_results": [], "timeline_event_results": []}
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -85,6 +87,9 @@ def scene_search(request: HttpRequest) -> HttpResponse:
         continuity_results = search_continuity(
             actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
         )
+        timeline_results = search_timeline(
+            actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -101,6 +106,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "card_results": card_results,
             "draw_results": draw_results,
             **continuity_results,
+            **timeline_results,
             "result_count": (
                 len(scene_results)
                 + len(character_results)
@@ -111,6 +117,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
                 + len(card_results)
                 + len(draw_results)
                 + sum(len(items) for items in continuity_results.values())
+                + sum(len(items) for items in timeline_results.values())
             ),
             "searched": searched,
         },

@@ -384,6 +384,17 @@ def record_connection_create(request: HttpRequest, kind: str, record_id: uuid.UU
 
 def _record_connections(kind: str, record: Model) -> list[dict[str, object]]:
     connections: list[dict[str, object]] = []
+    timeline_links = getattr(record, "timeline_links", None)
+    if timeline_links is not None:
+        for link in timeline_links.select_related("event"):
+            connections.append(
+                {
+                    "record": (
+                        f"Timeline · {link.event.display_date or 'Unknown'} · {link.event.title}"
+                    ),
+                    "role": link.role,
+                }
+            )
     for (record_kind, _), (model, record_field, target_field) in CONNECTION_MODELS.items():
         if record_kind != kind:
             continue

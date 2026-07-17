@@ -27,6 +27,7 @@ from continuity.models import (
     ThreadReveal,
 )
 from continuity.services import validate_continuity_record
+from timeline.models import TimelineEvent
 from workspaces.services import resolve_owner_workspace
 
 
@@ -84,6 +85,19 @@ def continuity_home(request):
                 ).count(),
                 "revealed_without_location": ThreadReveal.objects.filter(
                     thread__workspace=workspace, status="revealed", chapter=None, scene=None
+                ).count(),
+                "events_without_story_placement": TimelineEvent.objects.filter(workspace=workspace)
+                .annotate(placements=Count("eventchapterlink") + Count("eventscenelink"))
+                .filter(placements=0)
+                .count(),
+                "resolved_without_timeline": threads.filter(
+                    status="resolved", timeline_links=None
+                ).count(),
+                "exposed_secret_without_reveal_event": Secret.objects.filter(
+                    workspace=workspace, status="exposed", timeline_links=None
+                ).count(),
+                "knowledge_without_chronology": CharacterKnowledgeRecord.objects.filter(
+                    workspace=workspace, learned_story_time="", timeline_links=None
                 ).count(),
             },
         },

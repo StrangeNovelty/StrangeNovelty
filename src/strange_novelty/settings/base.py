@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "worldbuilding.apps.WorldbuildingConfig",
     "decks.apps.DecksConfig",
     "continuity.apps.ContinuityConfig",
+    "timeline.apps.TimelineConfig",
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",
