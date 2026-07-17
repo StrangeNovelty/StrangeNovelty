@@ -1,0 +1,1 @@
+{% extends "ai_assistance/base.html" %}{% block ai_title %}{{ heading }}{% endblock %}{% block ai_content %}<form method="post" class="native-form">{% csrf_token %}{{ form.as_p }}<button class="button button-primary">Save</button></form>{% endblock %}

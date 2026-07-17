@@ -35,9 +35,13 @@ DATABASES["default"].update(
 
 AI_ENABLED = parse_bool("AI_ENABLED", default=False)
 AI_ADAPTER = os.environ.get("AI_ADAPTER", "disabled").strip()
-if AI_ENABLED:
+AI_OPENROUTER_API_KEY = os.environ.get("AI_OPENROUTER_API_KEY", "").strip()
+AI_MODEL = os.environ.get("AI_MODEL", "").strip()
+if AI_ADAPTER not in {"disabled", "openrouter"}:
+    raise ImproperlyConfigured("Production AI adapter is unsupported.")
+if AI_ENABLED and (AI_ADAPTER != "openrouter" or not AI_OPENROUTER_API_KEY or not AI_MODEL):
     raise ImproperlyConfigured(
-        "Production AI cannot be enabled until a reviewed provider adapter is configured."
+        "Enabled production AI requires OpenRouter and complete configuration."
     )
 
 MAINTENANCE_MODE = parse_bool("MAINTENANCE_MODE", default=False)

@@ -11,10 +11,12 @@ ALLOWED_HOSTS = parse_csv("DJANGO_ALLOWED_HOSTS") or ["localhost", "127.0.0.1"]
 DATABASES = {"default": postgres_database(require_value("DATABASE_URL"), require_credentials=False)}
 AI_ENABLED = parse_bool("AI_ENABLED", default=False)
 AI_ADAPTER = os.environ.get("AI_ADAPTER", "disabled").strip()
+AI_OPENROUTER_API_KEY = os.environ.get("AI_OPENROUTER_API_KEY", "").strip()
+AI_MODEL = os.environ.get("AI_MODEL", "").strip()
 MAINTENANCE_MODE = parse_bool("MAINTENANCE_MODE", default=False)
 DECK_AUDIT_ROOT = os.environ.get("DECK_AUDIT_ROOT", "").strip()
 SERVICE_ROLE = "web"
-if AI_ADAPTER not in {"disabled", "local_fake"}:
+if AI_ADAPTER not in {"disabled", "local_fake", "openrouter"}:
     raise ValueError("Local AI_ADAPTER is unsupported.")
-if AI_ENABLED and AI_ADAPTER != "local_fake":
-    raise ValueError("Local AI requires the explicit local_fake adapter.")
+if AI_ENABLED and AI_ADAPTER == "openrouter" and (not AI_OPENROUTER_API_KEY or not AI_MODEL):
+    raise ValueError("OpenRouter AI requires an API key and model identifier.")

@@ -4,6 +4,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
+from ai_assistance.models import AICreativeSuggestion
 from characters.models import Character
 from continuity.models import PlotThread
 from decks.models import DeckCard, SavedDraw
@@ -68,6 +69,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "recent_draw": None,
         "continuity_open_count": 0,
         "timeline_unplaced_count": 0,
+        "ai_review_count": 0,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -131,6 +133,9 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 .annotate(placements=Count("eventchapterlink") + Count("eventscenelink"))
                 .filter(placements=0)
                 .count(),
+                "ai_review_count": AICreativeSuggestion.objects.filter(
+                    workspace=workspace, state__in=("ready", "editing")
+                ).count(),
             }
         )
         recent_world = []
