@@ -16,6 +16,7 @@ from security_events.taxonomy import (
 )
 from stories.models import Chapter, Work
 from workspaces.services import resolve_owner_workspace
+from worldbuilding.models import CodexEntry, Creature, Location
 
 
 @never_cache
@@ -55,6 +56,10 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "active_work_count": 0,
         "recent_work": None,
         "writing_chapter": None,
+        "world_location_count": 0,
+        "world_codex_count": 0,
+        "world_creature_count": 0,
+        "recent_world_record": None,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -101,7 +106,18 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 .select_related("work")
                 .order_by("-updated_at", "id")
                 .first(),
+                "world_location_count": Location.objects.filter(workspace=workspace).count(),
+                "world_codex_count": CodexEntry.objects.filter(workspace=workspace).count(),
+                "world_creature_count": Creature.objects.filter(workspace=workspace).count(),
             }
+        )
+        recent_world = []
+        for model in (Location, CodexEntry, Creature):
+            record = model.objects.filter(workspace=workspace).order_by("-updated_at", "id").first()
+            if record:
+                recent_world.append(record)
+        context["recent_world_record"] = max(
+            recent_world, key=lambda item: item.updated_at, default=None
         )
 
     return render(request, "workspaces/home.html", context)

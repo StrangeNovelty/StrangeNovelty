@@ -18,6 +18,7 @@
         <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
         <a class="nav-link nav-link-active" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'world-home' %}">World</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
       <div class="sidebar-account">
@@ -416,6 +417,7 @@
           {{ group_count }} Group{{ group_count|pluralize }}
         </p>
       </section>
+      <section class="side-panel"><p class="card-label">World Connections</p>{% for link in world_location_links %}<a class="side-link" href="{% url 'world-record-detail' 'locations' link.location.id %}">{{ link.location.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_item_links %}<a class="side-link" href="{% url 'world-record-detail' 'items' link.item.id %}">{{ link.item.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_creature_links %}<a class="side-link" href="{% url 'world-record-detail' 'creatures' link.creature.id %}">{{ link.creature.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_codex_links %}<a class="side-link" href="{% url 'world-record-detail' 'codex' link.codex.id %}">{{ link.codex.term }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}</section>
     </aside>
   </div>
 {% endblock %}

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from django.db.models import QuerySet
 
-from characters.models import Character
+from characters.models import Character, CharacterGroup
 from scenes.models import Scene
 from stories.models import Chapter
 
@@ -25,6 +25,10 @@ class ChapterWritingSummary:
     cast: tuple[Character, ...]
     has_intake_brief: bool
     has_outline: bool
+    locations: tuple[object, ...]
+    groups: tuple[CharacterGroup, ...]
+    items: tuple[object, ...]
+    creatures: tuple[object, ...]
 
 
 def summarize_chapter(chapter: Chapter) -> ChapterWritingSummary:
@@ -59,6 +63,29 @@ def summarize_chapter(chapter: Chapter) -> ChapterWritingSummary:
             chapter.character_focus,
         )
     )
+    from worldbuilding.models import Creature, Location, WorldItem
+
+    scene_ids = tuple(scene.id for scene in scenes)
+    locations = tuple(
+        Location.objects.filter(scenelocationlink_links__scene_id__in=scene_ids)
+        .distinct()
+        .order_by("name", "id")
+    )
+    groups = tuple(
+        CharacterGroup.objects.filter(scenegrouplink_links__scene_id__in=scene_ids)
+        .distinct()
+        .order_by("name", "id")
+    )
+    items = tuple(
+        WorldItem.objects.filter(sceneitemlink_links__scene_id__in=scene_ids)
+        .distinct()
+        .order_by("name", "id")
+    )
+    creatures = tuple(
+        Creature.objects.filter(scenecreaturelink_links__scene_id__in=scene_ids)
+        .distinct()
+        .order_by("name", "id")
+    )
     return ChapterWritingSummary(
         scenes=scene_summaries,
         scene_count=len(scene_summaries),
@@ -72,6 +99,10 @@ def summarize_chapter(chapter: Chapter) -> ChapterWritingSummary:
         cast=cast,
         has_intake_brief=has_intake,
         has_outline=bool(chapter.outline.strip()),
+        locations=locations,
+        groups=groups,
+        items=items,
+        creatures=creatures,
     )
 
 

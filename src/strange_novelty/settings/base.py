@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "scenes.apps.ScenesConfig",
     "characters.apps.CharactersConfig",
     "stories.apps.StoriesConfig",
+    "worldbuilding.apps.WorldbuildingConfig",
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",

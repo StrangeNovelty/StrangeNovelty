@@ -12,6 +12,7 @@ from characters.models import (
     CharacterGroup,
     CharacterRelationship,
     GroupMembership,
+    GroupRelationship,
 )
 from scenes.models import Scene
 from workspaces.models import Workspace
@@ -220,6 +221,18 @@ class CharacterGroupForm(forms.ModelForm):
             "tagline",
             "description",
             "purpose",
+            "alignment",
+            "public_goals",
+            "hidden_goals",
+            "resources",
+            "territory",
+            "leadership_notes",
+            "methods",
+            "reputation",
+            "allies",
+            "enemies",
+            "current_conflicts",
+            "history",
             "notes",
         )
         labels = {
@@ -235,6 +248,17 @@ class CharacterGroupForm(forms.ModelForm):
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
             "purpose": forms.Textarea(attrs={"rows": 5}),
+            "public_goals": forms.Textarea(attrs={"rows": 4}),
+            "hidden_goals": forms.Textarea(attrs={"rows": 4}),
+            "resources": forms.Textarea(attrs={"rows": 4}),
+            "territory": forms.Textarea(attrs={"rows": 4}),
+            "leadership_notes": forms.Textarea(attrs={"rows": 4}),
+            "methods": forms.Textarea(attrs={"rows": 4}),
+            "reputation": forms.Textarea(attrs={"rows": 4}),
+            "allies": forms.Textarea(attrs={"rows": 4}),
+            "enemies": forms.Textarea(attrs={"rows": 4}),
+            "current_conflicts": forms.Textarea(attrs={"rows": 4}),
+            "history": forms.Textarea(attrs={"rows": 5}),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 
@@ -243,6 +267,13 @@ class CharacterGroupForm(forms.ModelForm):
         if not name:
             raise forms.ValidationError("Group name is required.")
         return name
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["alignment"].required = False
+
+    def clean_alignment(self) -> str:
+        return cast(str, self.cleaned_data.get("alignment") or CharacterGroup.Alignment.UNKNOWN)
 
 
 class CharacterGroupSearchForm(forms.Form):
@@ -282,6 +313,23 @@ class GroupMembershipForm(forms.ModelForm):
     ) -> None:
         super().__init__(*args, **kwargs)
         self.fields["character"].queryset = Character.objects.filter(workspace=workspace)
+
+
+class GroupRelationshipForm(forms.Form):
+    other_group = forms.ModelChoiceField(queryset=CharacterGroup.objects.none())
+    relationship_type = forms.ChoiceField(choices=GroupRelationship.RelationshipType.choices)
+    summary = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+    current_perspective = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+    other_perspective = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+    notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+
+    def __init__(
+        self, *args: object, workspace: Workspace, group: CharacterGroup, **kwargs: object
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["other_group"].queryset = CharacterGroup.objects.filter(
+            workspace=workspace
+        ).exclude(id=group.id)
 
 
 class AbilityForm(forms.ModelForm):

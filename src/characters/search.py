@@ -27,6 +27,17 @@ GROUP_SEARCH_FIELDS = (
     "tagline",
     "description",
     "purpose",
+    "public_goals",
+    "hidden_goals",
+    "resources",
+    "territory",
+    "leadership_notes",
+    "methods",
+    "reputation",
+    "allies",
+    "enemies",
+    "current_conflicts",
+    "history",
     "notes",
 )
 
