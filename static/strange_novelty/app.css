@@ -2474,3 +2474,9 @@ a.group-card:focus-visible {
 .draw-card-controls { display: grid; gap: .55rem; }
 .draw-heading { max-width: 72rem; overflow-wrap: anywhere; }
 @media (max-width: 720px) { .draw-table, .draw-list { grid-template-columns: minmax(0, 1fr); } }
+.continuity-card-grid, .continuity-columns { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+.continuity-card { display: block; padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; background: var(--surface-raised, #17151e); overflow-wrap: anywhere; }
+.continuity-alert { border-color: #b9784a; box-shadow: inset .25rem 0 #b9784a; }
+.continuity-dossier { display: grid; gap: 1rem; }
+.continuity-dossier details { padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; }
+.table-scroll { overflow-x: auto; }

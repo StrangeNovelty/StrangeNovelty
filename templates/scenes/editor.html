@@ -217,5 +217,6 @@
       </section>
     </aside>
   </div>
+  <section class="continuity-panel"><h2>Continuity</h2>{% for link in scene.thread_links.all %}<a href="{% url 'continuity-thread-detail' link.thread_id %}">{{ link.role }} · {{ link.thread.title }}</a>{% endfor %}{% for clue in scene.thread_clues.all %}<a href="{% url 'continuity-thread-detail' clue.thread_id %}">Clue · {{ clue.title }}</a>{% endfor %}{% for reveal in scene.thread_reveals.all %}<a href="{% url 'continuity-thread-detail' reveal.thread_id %}">Reveal · {{ reveal.title }}</a>{% endfor %}{% if scene.status != 'archived' %}<a href="{% url 'continuity-thread-create' %}?work={{ scene.work_id }}&scene={{ scene.id }}">Create Thread from Scene</a>{% else %}<p>Archived Scene continuity is read-only.</p>{% endif %}</section>
   <script src="{% static 'scenes/editor.js' %}" defer></script>
 {% endblock %}

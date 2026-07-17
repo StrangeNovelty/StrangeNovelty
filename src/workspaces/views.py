@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
 from characters.models import Character
+from continuity.models import PlotThread
 from decks.models import DeckCard, SavedDraw
 from scenes.models import Scene, SceneRevision
 from security_events.middleware import request_correlation_id
@@ -63,6 +64,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "recent_world_record": None,
         "deck_review_remaining": 0,
         "recent_draw": None,
+        "continuity_open_count": 0,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -119,6 +121,9 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 .exclude(status=SavedDraw.Status.ARCHIVED)
                 .order_by("-updated_at")
                 .first(),
+                "continuity_open_count": PlotThread.objects.filter(workspace=workspace)
+                .exclude(status__in=("resolved", "abandoned", "superseded"))
+                .count(),
             }
         )
         recent_world = []

@@ -23,4 +23,5 @@
     </section>
     <aside class="sidebar sidebar-right" aria-label="Work details"><section class="side-panel"><p class="card-label">Recent Chapters</p>{% for chapter in recent_chapters %}<a class="side-link" href="{% url 'chapter-detail' work.id chapter.id %}">{{ chapter.title }}</a>{% empty %}<p class="side-copy">No Chapters yet.</p>{% endfor %}</section><section class="side-panel"><p class="card-label">Recent Scenes</p>{% for scene in recent_scenes %}<a class="side-link" href="{% url 'scene-editor' scene.id %}">{{ scene.title }}</a>{% empty %}<p class="side-copy">No placed Scenes yet.</p>{% endfor %}</section></aside>
   </div>
+  <section class="continuity-panel"><h2>Continuity</h2><p>{{ work.plot_threads.count }} Plot Threads · {{ work.secrets.count }} Secrets</p><a href="{% url 'continuity-thread-list' %}?work={{ work.id }}">Open Plot Threads</a></section>
 {% endblock %}

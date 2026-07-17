@@ -165,6 +165,7 @@
             <p class="card-label">Creative Draw</p>
             {% if recent_draw %}<p class="card-value">{{ recent_draw.title }}</p><p class="card-support">{{ recent_draw.get_status_display }} · updated {{ recent_draw.updated_at|date:"M j" }}</p><a class="side-link" href="{% url 'deck-draw-detail' recent_draw.id %}">Continue Draw</a>{% else %}<p class="card-support">No active Draw yet.</p><a class="side-link" href="{% url 'deck-draw-create' %}">Create a Draw</a>{% endif %}
           </article>
+          <article class="dashboard-card"><p class="card-label">Continuity</p><p class="metric-value">{{ continuity_open_count }}</p><p class="card-support">open Plot Threads</p><a class="side-link" href="{% url 'continuity-home' %}">Open Continuity</a></article>
 
           <article class="dashboard-card dashboard-card-wide">
             <div class="card-heading-row">
@@ -210,6 +211,7 @@
         <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
         <a class="side-link" href="{% url 'work-list' %}">All Works</a>
         <a class="side-link" href="{% url 'character-list' %}">All Characters</a>
+        <a class="side-link" href="{% url 'continuity-home' %}">Continuity</a>
         <a class="side-link" href="{% url 'scene-search' %}">Search</a>
       </section>
 

@@ -62,6 +62,19 @@ from characters.views import (
     group_relationship_create,
     scene_characters_update,
 )
+from continuity.views import (
+    child_create,
+    continuity_home,
+    knowledge_create,
+    secret_detail,
+    secret_transition,
+    thread_create,
+    thread_detail,
+    thread_edit,
+    thread_link_create,
+    thread_list,
+    thread_transition,
+)
 from decks.views import (
     active_toggle,
     card_library,
@@ -182,6 +195,39 @@ urlpatterns = [
     ),
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
+    path("continuity/", continuity_home, name="continuity-home"),
+    path("continuity/threads/", thread_list, name="continuity-thread-list"),
+    path("continuity/threads/new/", thread_create, name="continuity-thread-create"),
+    path("continuity/threads/<uuid:thread_id>/", thread_detail, name="continuity-thread-detail"),
+    path(
+        "continuity/threads/<uuid:thread_id>/edit/<str:section>/",
+        thread_edit,
+        name="continuity-thread-edit",
+    ),
+    path(
+        "continuity/threads/<uuid:thread_id>/transition/",
+        thread_transition,
+        name="continuity-thread-transition",
+    ),
+    path(
+        "continuity/threads/<uuid:thread_id>/<str:kind>/new/",
+        child_create,
+        name="continuity-child-create",
+    ),
+    path(
+        "continuity/threads/<uuid:thread_id>/links/<str:kind>/",
+        thread_link_create,
+        name="continuity-thread-link-create",
+    ),
+    path(
+        "continuity/knowledge/<str:kind>/new/", knowledge_create, name="continuity-knowledge-create"
+    ),
+    path("continuity/secrets/<uuid:secret_id>/", secret_detail, name="continuity-secret-detail"),
+    path(
+        "continuity/secrets/<uuid:secret_id>/transition/",
+        secret_transition,
+        name="continuity-secret-transition",
+    ),
     path("decks/", deck_home, name="deck-home"),
     path("decks/draws/", draw_list, name="deck-draw-list"),
     path("decks/draws/new/", draw_create, name="deck-draw-create"),
