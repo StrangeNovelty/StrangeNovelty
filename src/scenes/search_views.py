@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
+from ai_assistance.search import search_ai_workspace
 from characters.search import search_character_groups, search_characters
 from continuity.search import search_continuity
 from decks.search import search_cards, search_draws
@@ -42,6 +43,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
         key: [] for key in ("thread_results", "secret_results", "clue_results", "reveal_results")
     }
     timeline_results = {"timeline_results": [], "timeline_event_results": []}
+    ai_results = {"ai_chat_results": [], "ai_context_pack_results": [], "ai_suggestion_results": []}
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -90,6 +92,9 @@ def scene_search(request: HttpRequest) -> HttpResponse:
         timeline_results = search_timeline(
             actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
         )
+        ai_results = search_ai_workspace(
+            actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -107,6 +112,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "draw_results": draw_results,
             **continuity_results,
             **timeline_results,
+            **ai_results,
             "result_count": (
                 len(scene_results)
                 + len(character_results)
@@ -118,6 +124,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
                 + len(draw_results)
                 + sum(len(items) for items in continuity_results.values())
                 + sum(len(items) for items in timeline_results.values())
+                + sum(len(items) for items in ai_results.values())
             ),
             "searched": searched,
         },

@@ -2487,3 +2487,11 @@ a.group-card:focus-visible {
 .timeline-dossier details, .timeline-panel { padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; overflow-wrap: anywhere; }
 .timeline-warning { border-inline-start: .3rem solid #b9784a; padding: 1rem; }
 @media (max-width: 720px) { .timeline-entry { padding: .8rem; } .timeline-marker { float: none; display: block; } }
+.ai-tool-grid, .ai-studio-columns { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+.ai-tool-card, .provider-state, .chat-message { display: block; padding: 1rem; border: 1px solid var(--border, #393445); border-radius: .75rem; background: var(--surface-raised, #17151e); overflow-wrap: anywhere; }
+.provider-unavailable { border-inline-start: .3rem solid #b9784a; }
+.ai-context-preview, .chat-transcript pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 38rem; overflow: auto; }
+.chat-transcript { display: grid; gap: 1rem; list-style: none; padding: 0; }
+.chat-assistant { border-inline-start: .3rem solid #8f7657; }
+.compact-form { display: grid; gap: .45rem; margin-block: .8rem; }
+@media (max-width: 720px) { .ai-tool-grid, .ai-studio-columns, .ai-comparison-grid { grid-template-columns: minmax(0, 1fr); } }

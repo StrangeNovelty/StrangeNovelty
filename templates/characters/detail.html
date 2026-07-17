@@ -422,4 +422,4 @@
   </div>
   <section class="continuity-panel"><h2>Continuity</h2>{% for link in character.thread_links.all %}<a href="{% url 'continuity-thread-detail' link.thread_id %}">{{ link.role }} · {{ link.thread.title }}</a>{% endfor %}{% for knowledge in character.knowledge_records.all %}<p>{{ knowledge.knowledge_state }} · {{ knowledge.knowledge_statement|truncatechars:80 }}</p>{% endfor %}</section>
 <section class="timeline-panel"><h2>Character Timeline</h2>{% for link in character.timeline_links.all %}<a href="{% url 'timeline-event-detail' link.event_id %}">{{ link.event.display_date|default:"Unknown" }} · {{ link.role }} · {{ link.event.title }}</a>{% empty %}<p>No connected Timeline Events.</p>{% endfor %}<a href="{% url 'timeline-cross-reference' %}">Open appearance index and Cross-Reference</a></section>
-{% endblock %}
+<section class="ai-panel"><h2>Character Workshop</h2><a href="{% url 'ai-creative-request' %}?task=character_deepen">Deepen Character</a> · <a href="{% url 'ai-creative-request' %}?task=character_knowledge">What do they know?</a></section>{% endblock %}
