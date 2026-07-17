@@ -62,6 +62,31 @@ from characters.views import (
     group_relationship_create,
     scene_characters_update,
 )
+from decks.views import (
+    active_toggle,
+    card_library,
+    cue_symbol_update,
+    custom_card_create,
+    deck_detail,
+    deck_home,
+    favorite_toggle,
+    review_action,
+    review_card,
+    review_dashboard,
+    review_render,
+)
+from decks.views import (
+    card_detail as deck_card_detail,
+)
+from decks.views import (
+    guidance as deck_guidance,
+)
+from decks.views import (
+    journal_detail as deck_journal_detail,
+)
+from decks.views import (
+    spread_detail as deck_spread_detail,
+)
 from operations.health import liveness, readiness
 from scenes.search_views import scene_search
 from scenes.views import (
@@ -150,6 +175,23 @@ urlpatterns = [
     ),
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
+    path("decks/", deck_home, name="deck-home"),
+    path("decks/cards/", card_library, name="deck-card-library"),
+    path("decks/cards/new/", custom_card_create, name="deck-custom-card-create"),
+    path("decks/cards/<uuid:card_id>/", deck_card_detail, name="deck-card-detail"),
+    path("decks/cards/<uuid:card_id>/favorite/", favorite_toggle, name="deck-favorite-toggle"),
+    path("decks/cards/<uuid:card_id>/active/", active_toggle, name="deck-active-toggle"),
+    path("decks/review/", review_dashboard, name="deck-review-dashboard"),
+    path("decks/review/<uuid:card_id>/", review_card, name="deck-review-card"),
+    path("decks/review/<uuid:card_id>/action/", review_action, name="deck-review-action"),
+    path("decks/review/<uuid:card_id>/source/", review_render, name="deck-review-render"),
+    path(
+        "decks/review/cues/<uuid:cue_id>/symbol/", cue_symbol_update, name="deck-cue-symbol-update"
+    ),
+    path("decks/how-to-use/", deck_guidance, name="deck-guidance"),
+    path("decks/spreads/<uuid:spread_id>/", deck_spread_detail, name="deck-spread-detail"),
+    path("decks/journals/<uuid:journal_id>/", deck_journal_detail, name="deck-journal-detail"),
+    path("decks/<uuid:deck_id>/", deck_detail, name="deck-detail"),
     path("world/", world_home, name="world-home"),
     path("world/<str:kind>/", world_record_list, name="world-record-list"),
     path("world/<str:kind>/new/", world_record_create, name="world-record-create"),

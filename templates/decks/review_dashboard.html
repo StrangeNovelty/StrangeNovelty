@@ -1,0 +1,19 @@
+{% extends "decks/base.html" %}
+{% block deck_title %}Deck Review{% endblock %}
+{% block deck_content %}
+<section class="dashboard-grid"><article class="dashboard-card"><p class="card-label">Total</p><p class="metric-value">{{ total }}</p></article><article class="dashboard-card"><p class="card-label">Approved</p><p class="metric-value">{{ approved }}</p><p>{{ completion }}%</p></article><article class="dashboard-card"><p class="card-label">Pending</p><p class="metric-value">{{ pending }}</p></article><article class="dashboard-card"><p class="card-label">Needs correction</p><p class="metric-value">{{ needs_correction }}</p></article><article class="dashboard-card"><p class="card-label">Symbol review</p><p class="metric-value">{{ symbol_review }}</p></article><article class="dashboard-card"><p class="card-label">Excluded</p><p class="metric-value">{{ excluded }}</p></article></section>
+<form method="get" class="filter-panel">
+  <label for="review-status">Status</label><select id="review-status" name="status"><option value="">All</option>{% for value,label in statuses %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <label for="confidence">Confidence</label><select id="confidence" name="confidence"><option value="">All</option>{% for value,label in confidences %}<option value="{{ value }}" {% if filters.confidence == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <label for="review-deck">Deck</label><select id="review-deck" name="deck"><option value="">All</option>{% for deck in decks %}<option value="{{ deck.id }}" {% if filters.deck == deck.id|stringformat:'s' %}selected{% endif %}>{{ deck.name }}</option>{% endfor %}</select>
+  <label for="review-expansion">Expansion</label><select id="review-expansion" name="expansion"><option value="">All</option>{% for expansion in expansions %}<option value="{{ expansion.id }}" {% if filters.expansion == expansion.id|stringformat:'s' %}selected{% endif %}>{{ expansion.name }}</option>{% endfor %}</select>
+  <label for="review-category">Category</label><select id="review-category" name="category"><option value="">All</option>{% for category in categories %}<option value="{{ category.id }}" {% if filters.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>
+  <label for="review-role">Role</label><input id="review-role" name="role" value="{{ filters.role }}">
+  <label><input type="checkbox" name="missing" value="1" {% if filters.missing %}checked{% endif %}> Missing text</label>
+  <label><input type="checkbox" name="ambiguous" value="1" {% if filters.ambiguous %}checked{% endif %}> Ambiguous wording</label>
+  <label><input type="checkbox" name="symbol" value="1" {% if filters.symbol %}checked{% endif %}> Symbol review required</label>
+  <button class="button button-primary" type="submit">Filter queue</button>
+</form>
+<p><strong>{{ remaining }}</strong> cards remain for the current filters.</p>{% if queue_first %}<a class="button button-primary" href="{% url 'deck-review-card' queue_first.id %}?{{ request.GET.urlencode }}">Begin or continue review</a>{% endif %}
+<h2>Progress by Deck</h2><ul>{% for deck in by_deck %}<li>{{ deck.name }} — {{ deck.approved_count }} / {{ deck.card_count }} approved</li>{% endfor %}</ul>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "decks/base.html" %}
+{% block deck_title %}Card Library{% endblock %}
+{% block deck_content %}
+<form method="get" class="filter-panel">
+  <label for="card-query">Search</label><input id="card-query" name="query" value="{{ filters.query }}">
+  <label for="deck-filter">Deck</label><select id="deck-filter" name="deck"><option value="">All</option>{% for deck in decks %}<option value="{{ deck.id }}" {% if filters.deck == deck.id|stringformat:'s' %}selected{% endif %}>{{ deck.name }}</option>{% endfor %}</select>
+  <label for="expansion-filter">Expansion</label><select id="expansion-filter" name="expansion"><option value="">All</option>{% for expansion in expansions %}<option value="{{ expansion.id }}" {% if filters.expansion == expansion.id|stringformat:'s' %}selected{% endif %}>{{ expansion.deck.name }} · {{ expansion.name }}</option>{% endfor %}</select>
+  <label for="category-filter">Category</label><select id="category-filter" name="category"><option value="">All</option>{% for category in categories %}<option value="{{ category.id }}" {% if filters.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.deck.name }} · {{ category.name }}</option>{% endfor %}</select>
+  <label for="role-filter">Role</label><input id="role-filter" name="role" value="{{ filters.role }}">
+  <label for="tag-filter">Tag</label><input id="tag-filter" name="tag" value="{{ filters.tag }}">
+  <label for="symbol-filter">Semantic symbol</label><input id="symbol-filter" name="symbol_label" value="{{ filters.symbol_label }}">
+  <label for="suit-filter">Suit</label><input id="suit-filter" name="suit" value="{{ filters.suit }}">
+  <label for="color-filter">Mechanical color</label><input id="color-filter" name="mechanical_color" value="{{ filters.mechanical_color }}">
+  <label for="confidence-filter">Confidence</label><select id="confidence-filter" name="confidence"><option value="">All</option>{% for value,label in confidences %}<option value="{{ value }}" {% if filters.confidence == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <label for="status-filter">Review status</label><select id="status-filter" name="status"><option value="">Approved by default</option>{% for value,label in statuses %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <label for="active-filter">Active state</label><select id="active-filter" name="active"><option value="">All</option><option value="true" {% if filters.active == 'true' %}selected{% endif %}>Active</option><option value="false" {% if filters.active == 'false' %}selected{% endif %}>Inactive</option></select>
+  <label><input type="checkbox" name="favorite" value="1" {% if filters.favorite %}checked{% endif %}> Favorites only</label>
+  <label><input type="checkbox" name="include_unapproved" value="1" {% if filters.include_unapproved %}checked{% endif %}> Include pending and other states</label>
+  <button class="button button-primary" type="submit">Apply filters</button>
+</form>
+<div class="action-row"><a class="button button-secondary" href="{% url 'deck-custom-card-create' %}">Create custom card</a></div>
+<div class="deck-card-grid">{% for card in cards %}<article class="native-card"><p class="eyebrow">{{ card.deck.name }}{% if card.expansion %} · {{ card.expansion.name }}{% endif %}</p><h2><a href="{% url 'deck-card-detail' card.id %}">{{ card.title|default:"Untitled card" }}</a></h2><p>{{ card.prompt|truncatechars:280 }}</p><p class="status-chip">{{ card.get_review_status_display }} · {{ card.get_extraction_confidence_display }}</p></article>{% empty %}<div class="empty-state"><h2>No cards match</h2><p>Approved active cards are shown by default. Include pending cards to review imported content.</p></div>{% endfor %}</div>
+{% endblock %}

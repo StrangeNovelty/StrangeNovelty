@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from characters.search import search_character_groups, search_characters
+from decks.search import search_cards
 from scenes.search import search_scenes
 from scenes.search_forms import SceneSearchForm
 from stories.search import search_chapters, search_works
@@ -33,6 +34,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "creature_results",
         )
     }
+    card_results = []
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -64,6 +66,12 @@ def scene_search(request: HttpRequest) -> HttpResponse:
         world_results = search_world(
             actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
         )
+        card_results = search_cards(
+            actor=request.user,
+            workspace_id=workspace.id,
+            query_text=form.cleaned_data["query"],
+            include_pending=request.POST.get("include_pending_cards") == "1",
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -77,6 +85,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "work_results": work_results,
             "chapter_results": chapter_results,
             **world_results,
+            "card_results": card_results,
             "result_count": (
                 len(scene_results)
                 + len(character_results)
@@ -84,6 +93,7 @@ def scene_search(request: HttpRequest) -> HttpResponse:
                 + len(work_results)
                 + len(chapter_results)
                 + sum(len(items) for items in world_results.values())
+                + len(card_results)
             ),
             "searched": searched,
         },

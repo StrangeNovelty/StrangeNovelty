@@ -1,0 +1,1 @@
+{% extends "decks/base.html" %}{% block deck_title %}Create custom card{% endblock %}{% block deck_content %}<form method="post" class="record-form">{% csrf_token %}{{ form.as_p }}<button class="button button-primary" type="submit">Create approved custom card</button></form>{% endblock %}

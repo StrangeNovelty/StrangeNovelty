@@ -1,0 +1,4 @@
+{% extends "decks/base.html" %}{% block deck_title %}How to Use{% endblock %}{% block deck_content %}
+<h2>Complete Rules</h2>{% regroup rules by deck as deck_rules %}{% for group in deck_rules %}<section><h3>{{ group.grouper }}</h3>{% for rule in group.list %}<details><summary>{{ rule.title }}{% if rule.expansion %} · {{ rule.expansion.name }}{% endif %}</summary><div class="long-content">{{ rule.rule_text|linebreaks }}</div></details>{% endfor %}</section>{% empty %}<p>No rules imported.</p>{% endfor %}
+<h2>Spread Library</h2><ul>{% for spread in spreads %}<li><a href="{% url 'deck-spread-detail' spread.id %}">{{ spread.title }}</a> — {{ spread.deck.name }}{% if spread.expansion %} / {{ spread.expansion.name }}{% endif %}</li>{% endfor %}</ul><h2>Journals</h2><ul>{% for journal in journals %}<li><a href="{% url 'deck-journal-detail' journal.id %}">{{ journal.name }}</a></li>{% endfor %}</ul>
+{% endblock %}

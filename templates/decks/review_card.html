@@ -1,0 +1,84 @@
+{% extends "decks/base.html" %}
+{% block deck_title %}Review {{ card.title|default:"card" }}{% endblock %}
+{% block deck_content %}
+<p>Queue position {{ position }} of {{ remaining }} · {{ card.deck.name }} · {{ card.expansion.name }} · {{ card.category.name }} · {{ card.role }} · card {{ card.card_number }}</p>
+<p class="status-chip">{{ card.get_extraction_confidence_display }} confidence · {{ card.get_review_status_display }}</p>
+<div class="review-grid">
+  <section>
+    <h2>Current reviewed content</h2>
+    <form method="post" id="review-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next_id" value="{{ next_id|default:'' }}">
+      <div class="action-row">
+        <button class="button button-secondary" type="submit">Save</button>
+        <button class="button button-secondary" name="save_continue" value="1" type="submit">Save and Continue</button>
+        <button class="button button-primary" name="action" value="approved" type="submit" formaction="{% url 'deck-review-action' card.id %}?{{ request.GET.urlencode }}">Approve</button>
+        <button class="button button-primary" name="action" value="approved_continue" type="submit" formaction="{% url 'deck-review-action' card.id %}?{{ request.GET.urlencode }}">Approve and Continue</button>
+        <button class="button button-secondary" name="action" value="needs_correction" type="submit" formaction="{% url 'deck-review-action' card.id %}?{{ request.GET.urlencode }}">Mark Needs Correction</button>
+        <button class="button button-secondary" name="action" value="needs_symbol_review" type="submit" formaction="{% url 'deck-review-action' card.id %}?{{ request.GET.urlencode }}">Mark Needs Symbol Review</button>
+        <button class="button button-secondary" name="action" value="intentionally_excluded" type="submit" formaction="{% url 'deck-review-action' card.id %}?{{ request.GET.urlencode }}">Mark Intentional Exclusion</button>
+      </div>
+    </form>
+  </section>
+  <aside>
+    <h2>Original extracted snapshot</h2>
+    <pre class="snapshot">{{ card.original_extracted_snapshot }}</pre>
+    <div class="action-row">
+      <button type="button" class="button button-secondary restore-field" data-field="title">Restore title</button>
+      <button type="button" class="button button-secondary restore-field" data-field="prompt">Restore prompt</button>
+      <button type="button" class="button button-secondary restore-field" data-field="instructions">Restore instructions</button>
+      <button type="button" class="button button-secondary restore-field" data-field="examples">Restore examples</button>
+    </div>
+    <h2>Source verification</h2>
+    <p>{{ card.source_archive_label }} {{ card.source_file_label }}</p>
+    <p>Page {{ card.source_page }} · {{ card.source_position }}</p>
+    {% if render_available %}
+      <img class="review-render" src="{% url 'deck-review-render' card.id %}" alt="Private source page for transcription verification">
+    {% else %}
+      <p class="empty-state">Source render unavailable. Text review may continue.</p>
+    {% endif %}
+    <h2>Cues and symbol labels</h2>
+    {% for cue in card.cues.all %}
+      <form method="post" action="{% url 'deck-cue-symbol-update' cue.id %}?{{ request.GET.urlencode }}" class="symbol-review-form">
+        {% csrf_token %}
+        <p><strong>{{ cue.cue_type }}</strong>: {{ cue.cue_text }}</p>
+        <label for="symbol-label-{{ cue.id }}">Semantic label</label>
+        <input id="symbol-label-{{ cue.id }}" name="semantic_label" value="{{ cue.semantic_label }}">
+        <label for="symbol-meaning-{{ cue.id }}">Meaning or mechanical effect</label>
+        <textarea id="symbol-meaning-{{ cue.id }}" name="meaning">{{ cue.meaning }}</textarea>
+        <label><input type="checkbox" name="apply_identical" value="1"> Apply to identical extracted symbol “{{ cue.symbol }}”</label>
+        <button class="button button-secondary" type="submit">Save symbol label</button>
+      </form>
+    {% empty %}
+      <p>No ordered cue rows.</p>
+    {% endfor %}
+  </aside>
+</div>
+<nav class="action-row" aria-label="Review queue navigation">
+  {% if previous_id %}<a class="button button-secondary" href="{% url 'deck-review-card' previous_id %}?{{ request.GET.urlencode }}">Previous</a>{% endif %}
+  {% if next_id %}<a class="button button-secondary" href="{% url 'deck-review-card' next_id %}?{{ request.GET.urlencode }}">Next</a>{% endif %}
+</nav>
+{{ card.original_extracted_snapshot|json_script:"original-card-snapshot" }}
+<script>
+  const reviewForm = document.getElementById('review-form');
+  const original = JSON.parse(document.getElementById('original-card-snapshot').textContent);
+  let dirty = false;
+  reviewForm.querySelectorAll('input:not([type="hidden"]), textarea').forEach((field) => {
+    field.addEventListener('input', () => { field.classList.add('field-changed'); dirty = true; });
+  });
+  document.querySelectorAll('.restore-field').forEach((button) => {
+    button.addEventListener('click', () => {
+      const field = reviewForm.elements[button.dataset.field];
+      if (field && Object.prototype.hasOwnProperty.call(original, button.dataset.field)) {
+        field.value = original[button.dataset.field] || '';
+        field.classList.add('field-changed');
+        field.focus();
+        dirty = true;
+      }
+    });
+  });
+  reviewForm.addEventListener('submit', () => { dirty = false; });
+  window.addEventListener('beforeunload', (event) => { if (dirty) event.preventDefault(); });
+</script>
+{% endblock %}

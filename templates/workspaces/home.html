@@ -20,6 +20,7 @@
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link" href="{% url 'world-home' %}">World</a>
+        <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
 
@@ -152,6 +153,13 @@
             <p class="card-value">{{ world_location_count }} places · {{ world_codex_count }} lore · {{ world_creature_count }} creatures</p>
             {% if recent_world_record %}<p class="card-support">Recently updated: {{ recent_world_record }}</p>{% else %}<p class="card-support">The World library is ready for its first record.</p>{% endif %}
             <a class="side-link" href="{% url 'world-home' %}">Open World</a>
+          </article>
+
+          <article class="dashboard-card">
+            <p class="card-label">Deck review</p>
+            <p class="metric-value">{{ deck_review_remaining }}</p>
+            <p class="card-support">cards remain outside approved status</p>
+            <a class="side-link" href="{% url 'deck-review-dashboard' %}">Continue Deck review</a>
           </article>
 
           <article class="dashboard-card dashboard-card-wide">
