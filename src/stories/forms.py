@@ -117,6 +117,13 @@ class ChapterForm(OrderedStructureForm):
             "order",
             "status",
             "summary",
+            "concept",
+            "goal",
+            "key_beats",
+            "emotional_arc",
+            "character_focus",
+            "brain_dump",
+            "outline",
             "pov_character",
             "notes",
         )
@@ -125,14 +132,35 @@ class ChapterForm(OrderedStructureForm):
             "arc": "Arc (optional)",
             "label": "Chapter number or author-defined label",
             "order": "Chapter order",
-            "summary": "Summary or chapter goal",
+            "summary": "Chapter summary",
+            "concept": "One-sentence concept",
+            "goal": "Chapter goal",
+            "key_beats": "Key beats",
+            "emotional_arc": "Emotional arc",
+            "character_focus": "Character focus",
+            "brain_dump": "Brain dump",
+            "outline": "Chapter outline",
             "pov_character": "POV Character (optional)",
         }
         help_texts = {
             "label": "Examples: Chapter 4, Act II, Interlude, or Sequence A.",
+            "concept": "Capture the Chapter in one sentence; it can stay provisional.",
+            "key_beats": "List the moments that must happen, one per line if useful.",
+            "character_focus": "Note who drives the Chapter and whose change matters.",
+            "brain_dump": (
+                "Fragments, dialogue, sensory notes, questions, and discarded possibilities."
+            ),
+            "outline": "Plan by number, beat, or Scene. This remains an editable working outline.",
         }
         widgets = {
-            "summary": forms.Textarea(attrs={"rows": 5}),
+            "summary": forms.Textarea(attrs={"rows": 4}),
+            "concept": forms.Textarea(attrs={"rows": 3}),
+            "goal": forms.Textarea(attrs={"rows": 4}),
+            "key_beats": forms.Textarea(attrs={"rows": 6}),
+            "emotional_arc": forms.Textarea(attrs={"rows": 5}),
+            "character_focus": forms.Textarea(attrs={"rows": 4}),
+            "brain_dump": forms.Textarea(attrs={"rows": 10}),
+            "outline": forms.Textarea(attrs={"rows": 12}),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 
@@ -258,3 +286,7 @@ class ChapterSceneAttachForm(forms.Form):
             work__isnull=True,
             lifecycle=Scene.Lifecycle.ACTIVE,
         ).order_by("ordering", "id")
+
+
+class ChapterSceneOrderForm(forms.Form):
+    structure_order = forms.IntegerField(min_value=0, label="Scene order")

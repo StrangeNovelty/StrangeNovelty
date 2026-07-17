@@ -9,7 +9,19 @@ from stories.models import Chapter, Work
 from workspaces.services import get_authorized_workspace
 
 WORK_SEARCH_FIELDS = ("title", "subtitle", "premise", "description", "genre_notes")
-CHAPTER_SEARCH_FIELDS = ("title", "label", "summary", "notes")
+CHAPTER_SEARCH_FIELDS = (
+    "title",
+    "label",
+    "summary",
+    "concept",
+    "goal",
+    "key_beats",
+    "emotional_arc",
+    "character_focus",
+    "brain_dump",
+    "outline",
+    "notes",
+)
 
 
 @dataclass(frozen=True, slots=True)

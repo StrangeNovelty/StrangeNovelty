@@ -16,6 +16,7 @@ from stories.forms import (
     ChapterForm,
     ChapterSceneAttachForm,
     ChapterSceneCreateForm,
+    ChapterSceneOrderForm,
     VolumeForm,
     WorkForm,
     WorkSearchForm,
@@ -38,6 +39,7 @@ from stories.services import (
     update_volume,
     update_work,
 )
+from stories.writing import summarize_chapter
 from workspaces.models import Workspace
 from workspaces.services import resolve_owner_workspace
 
@@ -142,9 +144,12 @@ def work_detail(request: HttpRequest, work_id: uuid.UUID) -> HttpResponse:
             return _see_other(reverse("work-detail", kwargs={"work_id": work.id}))
     volumes = work.volumes.order_by("order", "id")
     arcs = work.arcs.select_related("volume").order_by("order", "id")
-    chapters = work.chapters.select_related("volume", "arc", "pov_character").order_by(
-        "order", "id"
+    chapters = list(
+        work.chapters.select_related("volume", "arc", "pov_character").order_by("order", "id")
     )
+    chapter_summaries = {chapter.id: summarize_chapter(chapter) for chapter in chapters}
+    for chapter in chapters:
+        chapter.writing_summary = chapter_summaries[chapter.id]
     work_scenes = Scene.objects.filter(workspace=workspace, work=work).exclude(
         lifecycle=Scene.Lifecycle.TRASHED
     )
@@ -156,7 +161,7 @@ def work_detail(request: HttpRequest, work_id: uuid.UUID) -> HttpResponse:
         "chapters": chapters,
         "scene_count": work_scenes.count(),
         "recent_scenes": work_scenes.select_related("chapter").order_by("-updated_at", "id")[:5],
-        "recent_chapters": chapters.order_by("-updated_at", "id")[:5],
+        "recent_chapters": sorted(chapters, key=lambda item: item.updated_at, reverse=True)[:5],
         "unassigned_scenes": Scene.objects.filter(
             workspace=workspace,
             work__isnull=True,
@@ -359,9 +364,7 @@ def chapter_detail(request: HttpRequest, work_id: uuid.UUID, chapter_id: uuid.UU
             return _see_other(
                 reverse("chapter-detail", kwargs={"work_id": work.id, "chapter_id": chapter.id})
             )
-    scenes = chapter.scenes.exclude(lifecycle=Scene.Lifecycle.TRASHED).order_by(
-        "structure_order", "id"
-    )
+    writing = summarize_chapter(chapter)
     return render(
         request,
         "stories/chapter_detail.html",
@@ -369,8 +372,7 @@ def chapter_detail(request: HttpRequest, work_id: uuid.UUID, chapter_id: uuid.UU
             "work": work,
             "chapter": chapter,
             "form": form,
-            "scenes": scenes,
-            "scene_count": scenes.count(),
+            "writing": writing,
             "scene_create_form": ChapterSceneCreateForm(prefix="new-scene"),
             "scene_attach_form": ChapterSceneAttachForm(
                 workspace=workspace, prefix="existing-scene"
@@ -433,6 +435,75 @@ def chapter_scene_attach(
         )
     except (StoryStructureError, LifecycleDisallowsMutation) as exc:
         raise Http404("Scene is unavailable.") from exc
+    return _see_other(
+        reverse("chapter-detail", kwargs={"work_id": work.id, "chapter_id": chapter.id})
+    )
+
+
+@never_cache
+@login_required
+@require_POST
+def chapter_scene_order(
+    request: HttpRequest,
+    work_id: uuid.UUID,
+    chapter_id: uuid.UUID,
+    scene_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _workspace(request)
+    work = _work(workspace, work_id)
+    chapter = _chapter(workspace, work, chapter_id)
+    scene = _chapter_scene(workspace, chapter, scene_id)
+    form = ChapterSceneOrderForm(request.POST)
+    if not form.is_valid():
+        raise Http404("Scene order is invalid.")
+    try:
+        update_scene_placement(
+            actor=request.user,
+            workspace_id=workspace.id,
+            scene_id=scene.id,
+            values={
+                "work": work,
+                "volume": chapter.volume,
+                "arc": chapter.arc,
+                "chapter": chapter,
+                "structure_order": form.cleaned_data["structure_order"],
+            },
+        )
+    except (StoryStructureError, LifecycleDisallowsMutation) as exc:
+        raise Http404("Scene order could not be updated.") from exc
+    return _see_other(
+        reverse("chapter-detail", kwargs={"work_id": work.id, "chapter_id": chapter.id})
+    )
+
+
+@never_cache
+@login_required
+@require_POST
+def chapter_scene_detach(
+    request: HttpRequest,
+    work_id: uuid.UUID,
+    chapter_id: uuid.UUID,
+    scene_id: uuid.UUID,
+) -> HttpResponse:
+    workspace = _workspace(request)
+    work = _work(workspace, work_id)
+    chapter = _chapter(workspace, work, chapter_id)
+    scene = _chapter_scene(workspace, chapter, scene_id)
+    try:
+        update_scene_placement(
+            actor=request.user,
+            workspace_id=workspace.id,
+            scene_id=scene.id,
+            values={
+                "work": work,
+                "volume": chapter.volume,
+                "arc": chapter.arc,
+                "chapter": None,
+                "structure_order": None,
+            },
+        )
+    except (StoryStructureError, LifecycleDisallowsMutation) as exc:
+        raise Http404("Scene could not be detached.") from exc
     return _see_other(
         reverse("chapter-detail", kwargs={"work_id": work.id, "chapter_id": chapter.id})
     )
@@ -530,6 +601,21 @@ def _chapter(workspace: Workspace, work: Work, chapter_id: uuid.UUID) -> Chapter
         )
     except Chapter.DoesNotExist as exc:
         raise Http404("Chapter is unavailable.") from exc
+
+
+def _chapter_scene(workspace: Workspace, chapter: Chapter, scene_id: uuid.UUID) -> Scene:
+    try:
+        return cast(
+            Scene,
+            Scene.objects.select_related("current_revision").get(
+                id=scene_id,
+                workspace=workspace,
+                chapter=chapter,
+                lifecycle=Scene.Lifecycle.ACTIVE,
+            ),
+        )
+    except Scene.DoesNotExist as exc:
+        raise Http404("Scene is unavailable.") from exc
 
 
 def _structure_record(

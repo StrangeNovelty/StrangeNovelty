@@ -2094,6 +2094,111 @@ a.group-card:focus-visible {
   }
 }
 
+.chapter-writing-workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.chapter-progress-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.chapter-progress-strip > div {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.chapter-progress-strip > div + div {
+  border-left: 1px solid var(--color-border);
+}
+
+.chapter-writing-form,
+.chapter-writing-scene-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.chapter-writing-form textarea,
+.chapter-writing-scene,
+.chapter-writing-scene-main,
+.chapter-writing-card-metrics,
+.chapter-continue-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chapter-writing-form textarea {
+  resize: vertical;
+}
+
+.chapter-intake-section {
+  border-color: rgba(202, 168, 107, 0.35);
+}
+
+.chapter-raw-material {
+  background: linear-gradient(145deg, rgba(111, 91, 135, 0.12), var(--color-surface));
+}
+
+.chapter-writing-scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.chapter-writing-scene h3,
+.chapter-writing-scene p {
+  margin: 0;
+}
+
+.chapter-scene-meta,
+.chapter-scene-cast,
+.chapter-scene-readonly,
+.chapter-writing-card-metrics,
+.chapter-continue-label {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.chapter-scene-controls,
+.chapter-scene-controls form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.chapter-scene-controls input {
+  width: 5.5rem;
+}
+
+.chapter-first-scene {
+  padding: 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.chapter-writing-scene a:focus-visible,
+.chapter-continue-label:focus-visible,
+.chapter-scene-controls button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.chapter-continue-label {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
 @media (max-width: 48rem) {
   .app-shell {
     display: block;
@@ -2250,6 +2355,23 @@ a.group-card:focus-visible {
   .structure-summary-strip > div + div {
     border-top: 1px solid var(--color-border);
     border-left: 0;
+  }
+
+  .chapter-progress-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chapter-progress-strip > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .chapter-writing-scene,
+  .chapter-scene-controls,
+  .chapter-scene-controls form {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
   .relationship-badge-row {

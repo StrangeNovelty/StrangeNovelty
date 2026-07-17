@@ -217,6 +217,13 @@ class Chapter(models.Model):
     order = models.PositiveBigIntegerField()
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.BRAINSTORM)
     summary = models.TextField(blank=True)
+    concept = models.TextField(blank=True)
+    goal = models.TextField(blank=True)
+    key_beats = models.TextField(blank=True)
+    emotional_arc = models.TextField(blank=True)
+    character_focus = models.TextField(blank=True)
+    brain_dump = models.TextField(blank=True)
+    outline = models.TextField(blank=True)
     pov_character = models.ForeignKey(
         "characters.Character",
         on_delete=models.PROTECT,
