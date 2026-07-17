@@ -1,0 +1,1 @@
+{% extends "timeline/base.html" %}{% block timeline_title %}{{ heading }}{% endblock %}{% block timeline_content %}<form method="post" class="native-form">{% csrf_token %}{{ form.as_p }}<button class="button button-primary">Save</button></form>{% endblock %}

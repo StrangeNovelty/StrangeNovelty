@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
@@ -17,6 +18,7 @@ from security_events.taxonomy import (
     SecurityTargetCategory,
 )
 from stories.models import Chapter, Work
+from timeline.models import TimelineEvent
 from workspaces.services import resolve_owner_workspace
 from worldbuilding.models import CodexEntry, Creature, Location
 
@@ -65,6 +67,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "deck_review_remaining": 0,
         "recent_draw": None,
         "continuity_open_count": 0,
+        "timeline_unplaced_count": 0,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -123,6 +126,10 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 .first(),
                 "continuity_open_count": PlotThread.objects.filter(workspace=workspace)
                 .exclude(status__in=("resolved", "abandoned", "superseded"))
+                .count(),
+                "timeline_unplaced_count": TimelineEvent.objects.filter(workspace=workspace)
+                .annotate(placements=Count("eventchapterlink") + Count("eventscenelink"))
+                .filter(placements=0)
                 .count(),
             }
         )

@@ -1,0 +1,20 @@
+{% extends "timeline/base.html" %}
+{% block timeline_title %}Cross-Reference Workspace{% endblock %}
+{% block timeline_content %}
+<form method="post" class="filter-panel">{% csrf_token %}
+  <label for="xref-mode">Query mode</label><select id="xref-mode" name="mode"><option value="characters">Character appearances and combinations</option><option value="character_location">Character at Location</option><option value="group_members">Group members in Scenes</option><option value="item_character">Item and Character</option><option value="creature_location">Creature and Location</option><option value="thread_character">Plot Thread and Character</option><option value="secret_knowledge">Secret knowledge</option><option value="chronology_range">Chronology range</option></select>
+  <label for="xref-work">Work</label><select id="xref-work" name="work"><option value="">All</option>{% for work in works %}<option value="{{ work.id }}">{{ work.title }}</option>{% endfor %}</select>
+  <fieldset><legend>Characters</legend>{% for character in characters %}<label><input type="checkbox" name="characters" value="{{ character.id }}">{{ character.name }}</label>{% endfor %}</fieldset>
+  <label for="xref-match">Combination</label><select id="xref-match" name="match"><option value="any">Any selected Character</option><option value="all">All selected Characters together</option></select>
+  <label for="xref-without">Without Character</label><select id="xref-without" name="without"><option value="">None</option>{% for character in characters %}<option value="{{ character.id }}">{{ character.name }}</option>{% endfor %}</select><label><input type="checkbox" name="pov" value="1">POV only</label>
+  <label for="xref-location">Location</label><select id="xref-location" name="location"><option value="">Any</option>{% for location in locations %}<option value="{{ location.id }}">{{ location.name }}</option>{% endfor %}</select>
+  <label for="xref-group">Group</label><select id="xref-group" name="group"><option value="">Any</option>{% for group in groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}</select>
+  <label for="xref-item">Item</label><select id="xref-item" name="item"><option value="">Any</option>{% for item in items %}<option value="{{ item.id }}">{{ item.name }}</option>{% endfor %}</select>
+  <label for="xref-creature">Creature</label><select id="xref-creature" name="creature"><option value="">Any</option>{% for creature in creatures %}<option value="{{ creature.id }}">{{ creature.name }}</option>{% endfor %}</select>
+  <label for="xref-thread">Plot Thread</label><select id="xref-thread" name="thread"><option value="">Any</option>{% for thread in threads %}<option value="{{ thread.id }}">{{ thread.title }}</option>{% endfor %}</select>
+  <label for="xref-secret">Secret</label><select id="xref-secret" name="secret"><option value="">Choose</option>{% for secret in secrets %}<option value="{{ secret.id }}">{{ secret.title }}</option>{% endfor %}</select>
+  <label for="xref-start">Chronology start</label><input id="xref-start" name="start" inputmode="decimal"><label for="xref-end">Chronology end</label><input id="xref-end" name="end" inputmode="decimal">
+  <button>Run Cross-Reference</button>
+</form>
+{% if searched %}<section><h2>Results</h2><p>{{ result_count }} matches</p><ol>{% for scene in results %}<li><a href="{% url 'scene-editor' scene.id %}">{{ scene.work.title }} · {{ scene.chapter.title|default:"Unplaced" }} · {{ scene.title }}</a></li>{% endfor %}{% for record in knowledge_results %}<li><a href="{% url 'character-detail' record.character_id %}">{{ record.character }} · {{ record.knowledge_state }} · {{ record.knowledge_statement }}</a></li>{% endfor %}</ol>{% if not results and not knowledge_results %}<p class="empty-state">Nothing matched this supported query. Broaden the Work, Character, Location, or knowledge filters.</p>{% endif %}</section>{% endif %}
+{% endblock %}

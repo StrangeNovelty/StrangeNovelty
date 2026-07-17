@@ -132,6 +132,21 @@ from stories.views import (
     work_detail,
     work_list,
 )
+from timeline.views import (
+    cross_reference_view,
+    event_create,
+    event_detail,
+    event_edit,
+    event_link,
+    event_transition,
+    reader_order,
+    relation_create,
+    timeline_create,
+    timeline_detail,
+    timeline_edit,
+    timeline_home,
+    timeline_transition,
+)
 from workspaces.views import root, workspace_home
 from worldbuilding.views import (
     record_connection_create,
@@ -196,6 +211,35 @@ urlpatterns = [
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
     path("continuity/", continuity_home, name="continuity-home"),
+    path("timelines/", timeline_home, name="timeline-home"),
+    path("timelines/new/", timeline_create, name="timeline-create"),
+    path("timelines/cross-reference/", cross_reference_view, name="timeline-cross-reference"),
+    path("timelines/reader-order/<uuid:work_id>/", reader_order, name="timeline-reader-order"),
+    path("timelines/<uuid:timeline_id>/", timeline_detail, name="timeline-detail"),
+    path("timelines/<uuid:timeline_id>/edit/", timeline_edit, name="timeline-edit"),
+    path(
+        "timelines/<uuid:timeline_id>/transition/", timeline_transition, name="timeline-transition"
+    ),
+    path("timelines/<uuid:timeline_id>/events/new/", event_create, name="timeline-event-create"),
+    path("timeline-events/<uuid:event_id>/", event_detail, name="timeline-event-detail"),
+    path(
+        "timeline-events/<uuid:event_id>/edit/<str:section>/",
+        event_edit,
+        name="timeline-event-edit",
+    ),
+    path(
+        "timeline-events/<uuid:event_id>/transition/",
+        event_transition,
+        name="timeline-event-transition",
+    ),
+    path(
+        "timeline-events/<uuid:event_id>/links/<str:kind>/", event_link, name="timeline-event-link"
+    ),
+    path(
+        "timeline-events/<uuid:event_id>/relations/",
+        relation_create,
+        name="timeline-relation-create",
+    ),
     path("continuity/threads/", thread_list, name="continuity-thread-list"),
     path("continuity/threads/new/", thread_create, name="continuity-thread-create"),
     path("continuity/threads/<uuid:thread_id>/", thread_detail, name="continuity-thread-detail"),
