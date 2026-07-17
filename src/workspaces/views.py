@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
 from characters.models import Character
+from decks.models import DeckCard
 from scenes.models import Scene, SceneRevision
 from security_events.middleware import request_correlation_id
 from security_events.services import SecurityEventSpec, record_security_event
@@ -60,6 +61,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "world_codex_count": 0,
         "world_creature_count": 0,
         "recent_world_record": None,
+        "deck_review_remaining": 0,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -109,6 +111,9 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "world_location_count": Location.objects.filter(workspace=workspace).count(),
                 "world_codex_count": CodexEntry.objects.filter(workspace=workspace).count(),
                 "world_creature_count": Creature.objects.filter(workspace=workspace).count(),
+                "deck_review_remaining": DeckCard.objects.filter(deck__workspace=workspace)
+                .exclude(review_status="approved")
+                .count(),
             }
         )
         recent_world = []

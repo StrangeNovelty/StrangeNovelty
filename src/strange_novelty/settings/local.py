@@ -12,6 +12,7 @@ DATABASES = {"default": postgres_database(require_value("DATABASE_URL"), require
 AI_ENABLED = parse_bool("AI_ENABLED", default=False)
 AI_ADAPTER = os.environ.get("AI_ADAPTER", "disabled").strip()
 MAINTENANCE_MODE = parse_bool("MAINTENANCE_MODE", default=False)
+DECK_AUDIT_ROOT = os.environ.get("DECK_AUDIT_ROOT", "").strip()
 SERVICE_ROLE = "web"
 if AI_ADAPTER not in {"disabled", "local_fake"}:
     raise ValueError("Local AI_ADAPTER is unsupported.")

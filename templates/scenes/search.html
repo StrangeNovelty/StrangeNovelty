@@ -18,6 +18,7 @@
         <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
         <a class="nav-link nav-link-active" href="{% url 'scene-search' %}">
           Search
         </a>
@@ -75,6 +76,10 @@
                 {{ form.include_archived.label }}
               </label>
             </div>
+            <div class="search-option">
+              <input id="include-pending-cards" type="checkbox" name="include_pending_cards" value="1" {% if request.POST.include_pending_cards %}checked{% endif %}>
+              <label for="include-pending-cards">Include pending-review cards</label>
+            </div>
           </form>
         </section>
 
@@ -85,7 +90,7 @@
                 <p class="card-label">Search results</p>
                 <h2 id="search-results-heading">Matches across your story</h2>
               </div>
-              {% if scene_results or character_results or group_results or work_results or chapter_results %}
+              {% if scene_results or character_results or group_results or work_results or chapter_results or location_results or region_results or codex_results or item_results or creature_results or card_results %}
                 <p class="search-result-count">
                   {{ result_count }} found
                 </p>
@@ -178,8 +183,9 @@
             {% if codex_results %}<h3 class="search-result-group-heading">Codex</h3><ol class="search-result-list">{% for result in codex_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'codex' result.record.id %}"><span class="search-result-title">{{ result.record.term }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
             {% if item_results %}<h3 class="search-result-group-heading">Items</h3><ol class="search-result-list">{% for result in item_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'items' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
             {% if creature_results %}<h3 class="search-result-group-heading">Creatures</h3><ol class="search-result-list">{% for result in creature_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'creatures' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if card_results %}<h3 class="search-result-group-heading">Cards</h3><ol class="search-result-list">{% for result in card_results %}<li><a class="search-result" href="{% url 'deck-card-detail' result.record.id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="lifecycle-badge">{{ result.record.deck.name }} · {{ result.record.get_review_status_display }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
 
-            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results and not location_results and not region_results and not codex_results and not item_results and not creature_results %}
+            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results and not location_results and not region_results and not codex_results and not item_results and not creature_results and not card_results %}
               <div class="search-empty-state">
                 <p class="card-value">No matches found.</p>
                 <p class="empty-state" role="status">
@@ -197,7 +203,7 @@
         <p class="card-label">Search scope</p>
         <p class="status-value">Current revisions</p>
         <p class="side-copy">
-          Search checks indexed Scene content plus synchronous Character, Group, Work, Chapter, Location, Region, Codex, Item, and Creature fields.
+          Search checks indexed Scene content plus synchronous Character, Group, Work, Chapter, Location, Region, Codex, Item, Creature, and approved active Card fields.
         </p>
       </section>
 

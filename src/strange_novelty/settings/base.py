@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "characters.apps.CharactersConfig",
     "stories.apps.StoriesConfig",
     "worldbuilding.apps.WorldbuildingConfig",
+    "decks.apps.DecksConfig",
     "security_events.apps.SecurityEventsConfig",
     "jobs.apps.JobsConfig",
     "archives.apps.ArchivesConfig",
@@ -104,6 +105,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Optional local-only source-render root used by the authenticated review interface.
+DECK_AUDIT_ROOT = ""
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
