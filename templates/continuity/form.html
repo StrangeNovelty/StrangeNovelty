@@ -1,0 +1,1 @@
+{% extends "continuity/base.html" %}{% block continuity_title %}{{ heading }}{% endblock %}{% block continuity_content %}<form method="post">{% csrf_token %}{{ form.as_p }}<button class="button button-primary">Save</button></form>{% endblock %}

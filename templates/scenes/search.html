@@ -19,6 +19,7 @@
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
+        <a class="nav-link" href="{% url 'continuity-home' %}">Continuity</a>
         <a class="nav-link nav-link-active" href="{% url 'scene-search' %}">
           Search
         </a>
@@ -90,7 +91,7 @@
                 <p class="card-label">Search results</p>
                 <h2 id="search-results-heading">Matches across your story</h2>
               </div>
-              {% if scene_results or character_results or group_results or work_results or chapter_results or location_results or region_results or codex_results or item_results or creature_results or card_results or draw_results %}
+              {% if scene_results or character_results or group_results or work_results or chapter_results or location_results or region_results or codex_results or item_results or creature_results or card_results or draw_results or thread_results or secret_results or clue_results or reveal_results %}
                 <p class="search-result-count">
                   {{ result_count }} found
                 </p>
@@ -184,9 +185,13 @@
             {% if item_results %}<h3 class="search-result-group-heading">Items</h3><ol class="search-result-list">{% for result in item_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'items' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
             {% if creature_results %}<h3 class="search-result-group-heading">Creatures</h3><ol class="search-result-list">{% for result in creature_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'creatures' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
             {% if draw_results %}<h3 class="search-result-group-heading">Saved Draws</h3><ol class="search-result-list">{% for result in draw_results %}<li><a class="search-result" href="{% url 'deck-draw-detail' result.record.id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="lifecycle-badge">{{ result.record.get_status_display }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if thread_results %}<h3 class="search-result-group-heading">Plot Threads</h3><ol class="search-result-list">{% for result in thread_results %}<li><a class="search-result" href="{% url 'continuity-thread-detail' result.record.id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if secret_results %}<h3 class="search-result-group-heading">Secrets</h3><ol class="search-result-list">{% for result in secret_results %}<li><a class="search-result" href="{% url 'continuity-secret-detail' result.record.id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if clue_results %}<h3 class="search-result-group-heading">Clues</h3><ol class="search-result-list">{% for result in clue_results %}<li><a class="search-result" href="{% url 'continuity-thread-detail' result.record.thread_id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if reveal_results %}<h3 class="search-result-group-heading">Reveals</h3><ol class="search-result-list">{% for result in reveal_results %}<li><a class="search-result" href="{% url 'continuity-thread-detail' result.record.thread_id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
             {% if card_results %}<h3 class="search-result-group-heading">Cards</h3><ol class="search-result-list">{% for result in card_results %}<li><a class="search-result" href="{% url 'deck-card-detail' result.record.id %}"><span class="search-result-title">{{ result.record.title }}</span><span class="lifecycle-badge">{{ result.record.deck.name }} · {{ result.record.get_review_status_display }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
 
-            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results and not location_results and not region_results and not codex_results and not item_results and not creature_results and not card_results and not draw_results %}
+            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results and not location_results and not region_results and not codex_results and not item_results and not creature_results and not card_results and not draw_results and not thread_results and not secret_results and not clue_results and not reveal_results %}
               <div class="search-empty-state">
                 <p class="card-value">No matches found.</p>
                 <p class="empty-state" role="status">
