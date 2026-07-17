@@ -1,0 +1,3 @@
+{% extends "decks/base.html" %}{% block deck_title %}Create a Draw{% endblock %}{% block deck_content %}
+<p class="form-support">Choose one or more Decks, an optional official Spread, story context, and creative guidance. Approved active Cards are eligible by default.</p><form method="post" class="draw-setup-form">{% csrf_token %}{{ form.as_p }}<details><summary>Spread and rule help</summary><p>Official Spreads preserve imported position order, required Categories, optional positions, and redraw guidance. Free and manual modes permit custom labels and ordering.</p></details><button class="button button-primary" type="submit">Perform Draw</button></form>
+{% endblock %}

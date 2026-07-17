@@ -1,0 +1,3 @@
+{% extends "decks/base.html" %}{% block deck_title %}Conversion preview{% endblock %}{% block deck_content %}
+<p>Review and edit this interpretation before creating or updating one native record. Existing records are never overwritten unless Chapter replace is explicitly selected.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if preview %}<section class="native-card"><h2>Preview</h2><p>{{ request.POST.title }}</p><p>{{ request.POST.content }}</p></section>{% endif %}<button class="button button-secondary" type="submit">Preview</button><button class="button button-primary" name="confirm" value="1" type="submit">Confirm conversion</button></form>
+{% endblock %}
