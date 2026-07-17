@@ -5,7 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 
 from accounts.models import Account
-from decks.models import DeckCard
+from decks.models import DeckCard, SavedDraw
 from workspaces.services import get_authorized_workspace
 
 
@@ -13,6 +13,31 @@ from workspaces.services import get_authorized_workspace
 class CardSearchResult:
     record: DeckCard
     snippet: str
+
+
+@dataclass(frozen=True, slots=True)
+class DrawSearchResult:
+    record: SavedDraw
+    snippet: str
+
+
+def search_draws(*, actor, workspace_id, query_text, limit=20):
+    workspace = get_authorized_workspace(actor, workspace_id)
+    query_text = query_text.strip()
+    if not query_text:
+        return []
+    query = (
+        Q(title__icontains=query_text)
+        | Q(author_brief__icontains=query_text)
+        | Q(draw_cards__author_note__icontains=query_text)
+        | Q(draw_cards__card__title__icontains=query_text)
+        | Q(work__title__icontains=query_text)
+        | Q(chapter__title__icontains=query_text)
+        | Q(interpretations__interpretation_text__icontains=query_text)
+        | Q(interpretations__author_notes__icontains=query_text)
+    )
+    draws = SavedDraw.objects.filter(workspace=workspace).filter(query).distinct()[:limit]
+    return [DrawSearchResult(draw, (draw.author_brief or draw.title)[:240]) for draw in draws]
 
 
 def search_cards(

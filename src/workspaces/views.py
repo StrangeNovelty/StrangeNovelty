@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
 from characters.models import Character
-from decks.models import DeckCard
+from decks.models import DeckCard, SavedDraw
 from scenes.models import Scene, SceneRevision
 from security_events.middleware import request_correlation_id
 from security_events.services import SecurityEventSpec, record_security_event
@@ -62,6 +62,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "world_creature_count": 0,
         "recent_world_record": None,
         "deck_review_remaining": 0,
+        "recent_draw": None,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -114,6 +115,10 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "deck_review_remaining": DeckCard.objects.filter(deck__workspace=workspace)
                 .exclude(review_status="approved")
                 .count(),
+                "recent_draw": SavedDraw.objects.filter(workspace=workspace)
+                .exclude(status=SavedDraw.Status.ARCHIVED)
+                .order_by("-updated_at")
+                .first(),
             }
         )
         recent_world = []

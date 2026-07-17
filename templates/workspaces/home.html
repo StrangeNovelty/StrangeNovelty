@@ -161,6 +161,10 @@
             <p class="card-support">cards remain outside approved status</p>
             <a class="side-link" href="{% url 'deck-review-dashboard' %}">Continue Deck review</a>
           </article>
+          <article class="dashboard-card">
+            <p class="card-label">Creative Draw</p>
+            {% if recent_draw %}<p class="card-value">{{ recent_draw.title }}</p><p class="card-support">{{ recent_draw.get_status_display }} · updated {{ recent_draw.updated_at|date:"M j" }}</p><a class="side-link" href="{% url 'deck-draw-detail' recent_draw.id %}">Continue Draw</a>{% else %}<p class="card-support">No active Draw yet.</p><a class="side-link" href="{% url 'deck-draw-create' %}">Create a Draw</a>{% endif %}
+          </article>
 
           <article class="dashboard-card dashboard-card-wide">
             <div class="card-heading-row">

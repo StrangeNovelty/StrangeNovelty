@@ -121,7 +121,7 @@ def test_package_validation_rejects_malformed_duplicate_and_position_conflict(
     assert package is None and report.conflicts == 1
 
 
-def test_deck_models_are_typed_workspace_owned_and_future_draw_models_are_absent() -> None:
+def test_deck_models_are_typed_workspace_owned_and_draw_models_are_now_explicit() -> None:
     assert DeckCard._meta.pk.get_internal_type() == "UUIDField"
     assert DeckCardCue._meta.get_field("card").related_model is DeckCard
     assert SpreadPosition._meta.get_field("spread").related_model.__name__ == "SpreadTemplate"
@@ -129,8 +129,9 @@ def test_deck_models_are_typed_workspace_owned_and_future_draw_models_are_absent
     assert ImportBatch._meta.get_field("workspace").related_model.__name__ == "Workspace"
     import decks.models as models
 
-    assert not hasattr(models, "SavedDraw")
-    assert not hasattr(models, "DrawCard")
+    assert models.SavedDraw._meta.get_field("workspace").related_model.__name__ == "Workspace"
+    assert models.DrawCard._meta.get_field("card").related_model is DeckCard
+    assert not hasattr(models, "PlotThread")
 
 
 def test_deck_routes_and_templates_cover_private_review_contract() -> None:

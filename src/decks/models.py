@@ -410,3 +410,306 @@ class FavoriteCard(models.Model):
     def clean(self) -> None:
         if self.card_id and self.card.deck.workspace_id != self.workspace_id:
             raise ValidationError({"card": "Card must belong to this Workspace."})
+
+
+class SavedDraw(models.Model):
+    class Mode(models.TextChoices):
+        OFFICIAL = "official_spread", "Official spread"
+        FREE = "free_draw", "Free draw"
+        MANUAL = "manual_selection", "Manual selection"
+        RANDOM = "random_draw", "Random draw"
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        INTERPRETED = "interpreted", "Interpreted"
+        CONVERTED = "converted", "Converted"
+        ARCHIVED = "archived", "Archived"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, related_name="saved_draws")
+    title = models.CharField(max_length=240)
+    primary_deck = models.ForeignKey(
+        Deck, on_delete=models.PROTECT, null=True, blank=True, related_name="primary_draws"
+    )
+    spread = models.ForeignKey(
+        SpreadTemplate, on_delete=models.PROTECT, null=True, blank=True, related_name="draws"
+    )
+    decks = models.ManyToManyField(Deck, through="DrawDeckSelection", related_name="draws")
+    selected_expansions = models.ManyToManyField(
+        DeckExpansion, blank=True, related_name="filtered_draws"
+    )
+    selected_categories = models.ManyToManyField(
+        DeckCategory, blank=True, related_name="filtered_draws"
+    )
+    draw_mode = models.CharField(max_length=24, choices=Mode.choices)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    random_seed = models.CharField(max_length=120, blank=True)
+    work = models.ForeignKey(
+        "stories.Work", on_delete=models.PROTECT, null=True, blank=True, related_name="deck_draws"
+    )
+    chapter = models.ForeignKey(
+        "stories.Chapter",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="deck_draws",
+    )
+    tone_guidance = models.TextField(blank=True)
+    genre_guidance = models.TextField(blank=True)
+    adult_audience_guidance = models.TextField(blank=True)
+    exclusions = models.TextField(blank=True)
+    author_brief = models.TextField(blank=True)
+    context_snapshot = models.JSONField(default=dict, blank=True)
+    context_snapshot_at = models.DateTimeField(null=True, blank=True)
+    allow_duplicates = models.BooleanField(default=False)
+    include_pending = models.BooleanField(default=False)
+    include_inactive = models.BooleanField(default=False)
+    favorite_mode = models.CharField(
+        max_length=16,
+        choices=(
+            ("all", "All cards"),
+            ("only", "Favorites only"),
+            ("exclude", "Exclude favorites"),
+        ),
+        default="all",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        indexes = [
+            models.Index(fields=("workspace", "status", "-updated_at"), name="draw_ws_status_idx")
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def clean(self) -> None:
+        errors = {}
+        for field in ("primary_deck", "spread", "work", "chapter"):
+            value = getattr(self, field, None)
+            if field != "spread" and value and value.workspace_id != self.workspace_id:
+                errors[field] = "Selection must belong to this Workspace."
+        if self.spread_id and self.spread.deck.workspace_id != self.workspace_id:
+            errors["spread"] = "Spread must belong to this Workspace."
+        if self.chapter_id and (not self.work_id or self.chapter.work_id != self.work_id):
+            errors["chapter"] = "Chapter must belong to the selected Work."
+        if errors:
+            raise ValidationError(errors)
+
+
+class DrawDeckSelection(models.Model):  # noqa: DJ008
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draw = models.ForeignKey(SavedDraw, on_delete=models.CASCADE, related_name="deck_selections")
+    deck = models.ForeignKey(Deck, on_delete=models.PROTECT, related_name="draw_selections")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("order", "id")
+        constraints = [models.UniqueConstraint(fields=("draw", "deck"), name="draw_deck_uniq")]
+
+    def clean(self):
+        if self.deck_id and self.deck.workspace_id != self.draw.workspace_id:
+            raise ValidationError({"deck": "Deck must belong to this Workspace."})
+
+
+class DrawCard(models.Model):  # noqa: DJ008
+    class State(models.TextChoices):
+        ACTIVE = "active", "Active"
+        LOCKED = "locked", "Locked"
+        REDRAWN = "redrawn", "Redrawn"
+        REPLACED = "replaced", "Replaced"
+        DISCARDED = "discarded", "Discarded"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draw = models.ForeignKey(SavedDraw, on_delete=models.CASCADE, related_name="draw_cards")
+    card = models.ForeignKey(DeckCard, on_delete=models.PROTECT, related_name="draw_occurrences")
+    spread_position = models.ForeignKey(
+        SpreadPosition, on_delete=models.PROTECT, null=True, blank=True, related_name="draw_cards"
+    )
+    position_order = models.PositiveIntegerField()
+    custom_position_label = models.CharField(max_length=240, blank=True)
+    orientation = models.CharField(
+        max_length=16,
+        choices=(("upright", "Upright"), ("reversed", "Reversed"), ("rotated", "Rotated")),
+        default="upright",
+    )
+    state = models.CharField(max_length=16, choices=State.choices, default=State.ACTIVE)
+    draw_sequence = models.PositiveIntegerField(default=1)
+    author_note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("position_order", "draw_sequence", "id")
+        constraints = [
+            models.UniqueConstraint(fields=("draw", "position_order"), name="draw_position_uniq")
+        ]
+
+    def clean(self):
+        errors = {}
+        if self.card_id and self.card.deck.workspace_id != self.draw.workspace_id:
+            errors["card"] = "Card must belong to this Workspace."
+        if self.spread_position_id:
+            if self.draw.spread_id != self.spread_position.spread_id:
+                errors["spread_position"] = "Position must belong to this Draw's Spread."
+            required = self.spread_position.required_category_id
+            if required and self.card.category_id != required:
+                errors["card"] = "Card does not satisfy the position's required Category."
+        if errors:
+            raise ValidationError(errors)
+
+
+class DrawCardHistory(models.Model):  # noqa: DJ008
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draw = models.ForeignKey(SavedDraw, on_delete=models.CASCADE, related_name="card_history")
+    draw_card = models.ForeignKey(
+        DrawCard, on_delete=models.CASCADE, null=True, blank=True, related_name="history"
+    )
+    previous_card = models.ForeignKey(
+        DeckCard, on_delete=models.PROTECT, null=True, blank=True, related_name="draw_history_from"
+    )
+    replacement_card = models.ForeignKey(
+        DeckCard, on_delete=models.PROTECT, null=True, blank=True, related_name="draw_history_to"
+    )
+    action = models.CharField(max_length=40)
+    sequence = models.PositiveIntegerField()
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sequence", "created_at", "id")
+
+
+class DrawInterpretation(models.Model):  # noqa: DJ008
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draw = models.ForeignKey(SavedDraw, on_delete=models.CASCADE, related_name="interpretations")
+    title = models.CharField(max_length=240)
+    interpretation_text = models.TextField(blank=True)
+    unresolved_questions = models.TextField(blank=True)
+    opportunities = models.TextField(blank=True)
+    risks_complications = models.TextField(blank=True)
+    author_notes = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=(
+            ("draft", "Draft"),
+            ("accepted", "Accepted"),
+            ("revised", "Revised"),
+            ("rejected", "Rejected"),
+            ("unresolved", "Unresolved"),
+            ("converted", "Converted"),
+        ),
+        default="draft",
+    )
+    provenance = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class DrawContextBase(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draw = models.ForeignKey(SavedDraw, on_delete=models.CASCADE)
+    role = models.CharField(max_length=120, blank=True)
+    notes = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        abstract = True
+        ordering = ("order", "id")
+
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, models.ForeignKey) and field.name != "draw":
+                value = getattr(self, field.name, None)
+                if value and value.workspace_id != self.draw.workspace_id:
+                    raise ValidationError({field.name: "Context must belong to this Workspace."})
+
+
+class DrawCharacterContext(DrawContextBase):  # noqa: DJ008
+    character = models.ForeignKey("characters.Character", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [
+            models.UniqueConstraint(fields=("draw", "character"), name="draw_character_uniq")
+        ]
+
+
+class DrawGroupContext(DrawContextBase):  # noqa: DJ008
+    group = models.ForeignKey("characters.CharacterGroup", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [models.UniqueConstraint(fields=("draw", "group"), name="draw_group_uniq")]
+
+
+class DrawLocationContext(DrawContextBase):  # noqa: DJ008
+    location = models.ForeignKey("worldbuilding.Location", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [
+            models.UniqueConstraint(fields=("draw", "location"), name="draw_location_uniq")
+        ]
+
+
+class DrawRegionContext(DrawContextBase):  # noqa: DJ008
+    region = models.ForeignKey("worldbuilding.Region", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [models.UniqueConstraint(fields=("draw", "region"), name="draw_region_uniq")]
+
+
+class DrawCodexContext(DrawContextBase):  # noqa: DJ008
+    codex = models.ForeignKey("worldbuilding.CodexEntry", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [models.UniqueConstraint(fields=("draw", "codex"), name="draw_codex_uniq")]
+
+
+class DrawItemContext(DrawContextBase):  # noqa: DJ008
+    item = models.ForeignKey("worldbuilding.WorldItem", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [models.UniqueConstraint(fields=("draw", "item"), name="draw_item_uniq")]
+
+
+class DrawCreatureContext(DrawContextBase):  # noqa: DJ008
+    creature = models.ForeignKey("worldbuilding.Creature", on_delete=models.PROTECT)
+
+    class Meta(DrawContextBase.Meta):
+        constraints = [
+            models.UniqueConstraint(fields=("draw", "creature"), name="draw_creature_uniq")
+        ]
+
+
+class DrawConversion(models.Model):  # noqa: DJ008
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    interpretation = models.ForeignKey(
+        DrawInterpretation, on_delete=models.PROTECT, related_name="conversions"
+    )
+    target_type = models.CharField(max_length=40)
+    action = models.CharField(max_length=20, default="create")
+    character = models.ForeignKey(
+        "characters.Character", null=True, blank=True, on_delete=models.PROTECT
+    )
+    group = models.ForeignKey(
+        "characters.CharacterGroup", null=True, blank=True, on_delete=models.PROTECT
+    )
+    location = models.ForeignKey(
+        "worldbuilding.Location", null=True, blank=True, on_delete=models.PROTECT
+    )
+    region = models.ForeignKey(
+        "worldbuilding.Region", null=True, blank=True, on_delete=models.PROTECT
+    )
+    codex = models.ForeignKey(
+        "worldbuilding.CodexEntry", null=True, blank=True, on_delete=models.PROTECT
+    )
+    item = models.ForeignKey(
+        "worldbuilding.WorldItem", null=True, blank=True, on_delete=models.PROTECT
+    )
+    creature = models.ForeignKey(
+        "worldbuilding.Creature", null=True, blank=True, on_delete=models.PROTECT
+    )
+    chapter = models.ForeignKey("stories.Chapter", null=True, blank=True, on_delete=models.PROTECT)
+    work = models.ForeignKey("stories.Work", null=True, blank=True, on_delete=models.PROTECT)
+    summary = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
