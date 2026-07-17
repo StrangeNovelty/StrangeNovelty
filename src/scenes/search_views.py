@@ -9,6 +9,7 @@ from scenes.search import search_scenes
 from scenes.search_forms import SceneSearchForm
 from stories.search import search_chapters, search_works
 from workspaces.services import resolve_owner_workspace
+from worldbuilding.search import search_world
 
 
 @never_cache
@@ -22,6 +23,16 @@ def scene_search(request: HttpRequest) -> HttpResponse:
     group_results = []
     work_results = []
     chapter_results = []
+    world_results = {
+        key: []
+        for key in (
+            "location_results",
+            "region_results",
+            "codex_results",
+            "item_results",
+            "creature_results",
+        )
+    }
     searched = request.method == "POST"
     if searched and form.is_valid():
         scene_results = search_scenes(
@@ -50,6 +61,9 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             workspace_id=workspace.id,
             query_text=form.cleaned_data["query"],
         )
+        world_results = search_world(
+            actor=request.user, workspace_id=workspace.id, query_text=form.cleaned_data["query"]
+        )
     status = 422 if searched and not form.is_valid() else 200
     return render(
         request,
@@ -62,12 +76,14 @@ def scene_search(request: HttpRequest) -> HttpResponse:
             "group_results": group_results,
             "work_results": work_results,
             "chapter_results": chapter_results,
+            **world_results,
             "result_count": (
                 len(scene_results)
                 + len(character_results)
                 + len(group_results)
                 + len(work_results)
                 + len(chapter_results)
+                + sum(len(items) for items in world_results.values())
             ),
             "searched": searched,
         },

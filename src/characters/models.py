@@ -229,6 +229,14 @@ class CharacterRelationship(models.Model):
 
 
 class CharacterGroup(models.Model):
+    class Alignment(models.TextChoices):
+        ALLIED = "allied", "Allied"
+        FRIENDLY = "friendly", "Friendly"
+        NEUTRAL = "neutral", "Neutral"
+        HOSTILE = "hostile", "Hostile"
+        MIXED = "mixed", "Mixed"
+        UNKNOWN = "unknown", "Unknown"
+
     class GroupType(models.TextChoices):
         FAMILY = "family", "Family"
         TEAM = "team", "Team"
@@ -255,6 +263,20 @@ class CharacterGroup(models.Model):
     tagline = models.CharField(max_length=240, blank=True)
     description = models.TextField(blank=True)
     purpose = models.TextField(blank=True)
+    alignment = models.CharField(
+        max_length=16, choices=Alignment.choices, default=Alignment.UNKNOWN
+    )
+    public_goals = models.TextField(blank=True)
+    hidden_goals = models.TextField(blank=True)
+    resources = models.TextField(blank=True)
+    territory = models.TextField(blank=True)
+    leadership_notes = models.TextField(blank=True)
+    methods = models.TextField(blank=True)
+    reputation = models.TextField(blank=True)
+    allies = models.TextField(blank=True)
+    enemies = models.TextField(blank=True)
+    current_conflicts = models.TextField(blank=True)
+    history = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -299,6 +321,60 @@ class CharacterGroup(models.Model):
         super().clean()
         if not isinstance(self.name, str) or self.name != self.name.strip() or not self.name:
             raise ValidationError({"name": "Group name must be present and trimmed."})
+
+
+class GroupRelationship(models.Model):
+    class RelationshipType(models.TextChoices):
+        ALLIED = "allied", "Allied"
+        HOSTILE = "hostile", "Hostile"
+        SUBORDINATE = "subordinate", "Subordinate"
+        RIVAL = "rival", "Rival"
+        TRADING_PARTNER = "trading_partner", "Trading partner"
+        CEASEFIRE = "ceasefire", "Ceasefire"
+        SECRET_COLLABORATION = "secret_collaboration", "Secret collaboration"
+        OTHER = "other", "Other"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="group_relationships"
+    )
+    source = models.ForeignKey(
+        CharacterGroup, on_delete=models.PROTECT, related_name="relationships_as_source"
+    )
+    target = models.ForeignKey(
+        CharacterGroup, on_delete=models.PROTECT, related_name="relationships_as_target"
+    )
+    relationship_type = models.CharField(max_length=24, choices=RelationshipType.choices)
+    summary = models.TextField(blank=True)
+    source_perspective = models.TextField(blank=True)
+    target_perspective = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(source_id__lt=F("target_id")), name="group_rel_pair_order"
+            ),
+            models.UniqueConstraint(fields=("source", "target"), name="unique_group_rel_pair"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.source} — {self.target}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors: dict[str, str] = {}
+        if self.source_id and self.source.workspace_id != self.workspace_id:
+            errors["source"] = "Source Group must belong to this Workspace."
+        if self.target_id and self.target.workspace_id != self.workspace_id:
+            errors["target"] = "Target Group must belong to this Workspace."
+        if self.source_id and self.target_id and self.source_id >= self.target_id:
+            errors["target"] = "Group relationship pair must use canonical order."
+        if errors:
+            raise ValidationError(errors)
 
 
 class GroupMembership(models.Model):

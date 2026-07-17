@@ -2,6 +2,7 @@ import uuid
 from typing import cast
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -22,6 +23,7 @@ from characters.forms import (
     CharacterRelationshipForm,
     CharacterSceneLinkForm,
     GroupMembershipForm,
+    GroupRelationshipForm,
     SceneCharacterSelectorForm,
 )
 from characters.models import (
@@ -33,6 +35,7 @@ from characters.models import (
     CharacterGroup,
     CharacterRelationship,
     GroupMembership,
+    GroupRelationship,
 )
 from characters.search import search_character_groups, search_characters
 from characters.services import (
@@ -136,6 +139,13 @@ def _detail_context(
         .select_related("group")
         .order_by("group__name", "id")
     )
+    from worldbuilding.models import (
+        CodexCharacterLink,
+        CreatureCharacterLink,
+        ItemCharacterLink,
+        LocationCharacterLink,
+    )
+
     return {
         "character": character,
         "form": form,
@@ -151,6 +161,18 @@ def _detail_context(
         "relationship_count": len(relationship_cards),
         "memberships": memberships,
         "group_count": len(memberships),
+        "world_location_links": LocationCharacterLink.objects.filter(
+            character=character
+        ).select_related("location"),
+        "world_item_links": ItemCharacterLink.objects.filter(character=character).select_related(
+            "item"
+        ),
+        "world_creature_links": CreatureCharacterLink.objects.filter(
+            character=character
+        ).select_related("creature"),
+        "world_codex_links": CodexCharacterLink.objects.filter(character=character).select_related(
+            "codex"
+        ),
     }
 
 
@@ -954,12 +976,57 @@ def character_group_detail(request: HttpRequest, group_id: uuid.UUID) -> HttpRes
         else:
             return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
     memberships = group.memberships.select_related("character").order_by("character__name", "id")
+    group_relationships = (
+        GroupRelationship.objects.filter(workspace=workspace)
+        .filter(Q(source=group) | Q(target=group))
+        .select_related("source", "target")
+    )
     return render(
         request,
         "characters/group_detail.html",
-        {"group": group, "form": form, "memberships": memberships},
+        {
+            "group": group,
+            "form": form,
+            "memberships": memberships,
+            "group_relationships": group_relationships,
+            "group_relationship_form": GroupRelationshipForm(workspace=workspace, group=group),
+        },
         status=422 if request.method == "POST" else 200,
     )
+
+
+@never_cache
+@login_required
+@require_POST
+def group_relationship_create(request: HttpRequest, group_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    group = _authorized_group(workspace, group_id)
+    form = GroupRelationshipForm(request.POST, workspace=workspace, group=group)
+    if not form.is_valid():
+        raise Http404("Group relationship is unavailable.")
+    other = form.cleaned_data["other_group"]
+    source, target = sorted((group, other), key=lambda item: item.id)
+    current_is_source = source.id == group.id
+    relationship = GroupRelationship(
+        workspace=workspace,
+        source=source,
+        target=target,
+        relationship_type=form.cleaned_data["relationship_type"],
+        summary=form.cleaned_data["summary"],
+        notes=form.cleaned_data["notes"],
+        source_perspective=form.cleaned_data["current_perspective"]
+        if current_is_source
+        else form.cleaned_data["other_perspective"],
+        target_perspective=form.cleaned_data["other_perspective"]
+        if current_is_source
+        else form.cleaned_data["current_perspective"],
+    )
+    try:
+        relationship.full_clean()
+        relationship.save()
+    except ValidationError as exc:
+        raise Http404("Group relationship is unavailable.") from exc
+    return _see_other(reverse("character-group-detail", kwargs={"group_id": group.id}))
 
 
 @never_cache

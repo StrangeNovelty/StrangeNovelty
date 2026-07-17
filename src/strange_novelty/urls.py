@@ -59,6 +59,7 @@ from characters.views import (
     group_membership_create,
     group_membership_delete,
     group_membership_edit,
+    group_relationship_create,
     scene_characters_update,
 )
 from operations.health import liveness, readiness
@@ -87,6 +88,23 @@ from stories.views import (
     work_list,
 )
 from workspaces.views import root, workspace_home
+from worldbuilding.views import (
+    record_connection_create,
+    scene_world_context_update,
+    world_home,
+)
+from worldbuilding.views import (
+    record_create as world_record_create,
+)
+from worldbuilding.views import (
+    record_delete as world_record_delete,
+)
+from worldbuilding.views import (
+    record_detail as world_record_detail,
+)
+from worldbuilding.views import (
+    record_list as world_record_list,
+)
 
 urlpatterns = [
     path("", root, name="root"),
@@ -132,6 +150,24 @@ urlpatterns = [
     ),
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
+    path("world/", world_home, name="world-home"),
+    path("world/<str:kind>/", world_record_list, name="world-record-list"),
+    path("world/<str:kind>/new/", world_record_create, name="world-record-create"),
+    path(
+        "world/<str:kind>/<uuid:record_id>/",
+        world_record_detail,
+        name="world-record-detail",
+    ),
+    path(
+        "world/<str:kind>/<uuid:record_id>/delete/",
+        world_record_delete,
+        name="world-record-delete",
+    ),
+    path(
+        "world/<str:kind>/<uuid:record_id>/connections/",
+        record_connection_create,
+        name="world-record-connection-create",
+    ),
     path("works/", work_list, name="work-list"),
     path("works/new/", work_create, name="work-create"),
     path("works/<uuid:work_id>/", work_detail, name="work-detail"),
@@ -200,6 +236,11 @@ urlpatterns = [
     path("scenes/", scene_list, name="scene-list"),
     path("scenes/new/", scene_create, name="scene-create"),
     path("scenes/<uuid:scene_id>/", scene_editor, name="scene-editor"),
+    path(
+        "scenes/<uuid:scene_id>/world-context/",
+        scene_world_context_update,
+        name="scene-world-context-update",
+    ),
     path("scenes/<uuid:scene_id>/save/", scene_save, name="scene-save"),
     path(
         "scenes/<uuid:scene_id>/placement/",
@@ -249,6 +290,11 @@ urlpatterns = [
         "groups/<uuid:group_id>/members/new/",
         group_membership_create,
         name="group-membership-create",
+    ),
+    path(
+        "groups/<uuid:group_id>/relationships/new/",
+        group_relationship_create,
+        name="group-relationship-create",
     ),
     path(
         "groups/<uuid:group_id>/members/<uuid:membership_id>/",

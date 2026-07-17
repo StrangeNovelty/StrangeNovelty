@@ -173,11 +173,17 @@
               </ol>
             {% endif %}
 
-            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results %}
+            {% if location_results %}<h3 class="search-result-group-heading">Locations</h3><ol class="search-result-list">{% for result in location_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'locations' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if region_results %}<h3 class="search-result-group-heading">Regions</h3><ol class="search-result-list">{% for result in region_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'regions' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if codex_results %}<h3 class="search-result-group-heading">Codex</h3><ol class="search-result-list">{% for result in codex_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'codex' result.record.id %}"><span class="search-result-title">{{ result.record.term }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if item_results %}<h3 class="search-result-group-heading">Items</h3><ol class="search-result-list">{% for result in item_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'items' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+            {% if creature_results %}<h3 class="search-result-group-heading">Creatures</h3><ol class="search-result-list">{% for result in creature_results %}<li><a class="search-result" href="{% url 'world-record-detail' 'creatures' result.record.id %}"><span class="search-result-title">{{ result.record.name }}</span><span class="search-result-snippet">{{ result.snippet }}</span></a></li>{% endfor %}</ol>{% endif %}
+
+            {% if not scene_results and not character_results and not group_results and not work_results and not chapter_results and not location_results and not region_results and not codex_results and not item_results and not creature_results %}
               <div class="search-empty-state">
                 <p class="card-value">No matches found.</p>
                 <p class="empty-state" role="status">
-                  No matching Scenes, Characters, Groups, Works, or Chapters were found. Recently changed Scenes may still be indexing.
+                  No matching story or worldbuilding records were found. Recently changed Scenes may still be indexing.
                 </p>
               </div>
             {% endif %}
@@ -191,7 +197,7 @@
         <p class="card-label">Search scope</p>
         <p class="status-value">Current revisions</p>
         <p class="side-copy">
-          Search checks indexed Scene content plus synchronous Character, Group, Work, and Chapter fields.
+          Search checks indexed Scene content plus synchronous Character, Group, Work, Chapter, Location, Region, Codex, Item, and Creature fields.
         </p>
       </section>
 

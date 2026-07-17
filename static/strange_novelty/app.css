@@ -2199,6 +2199,59 @@ a.group-card:focus-visible {
   font-weight: 700;
 }
 
+.world-workspace,
+.world-command-card,
+.world-record-card,
+.world-subnav {
+  min-width: 0;
+}
+
+.world-workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.world-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.world-subnav a {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+}
+
+.world-command-grid,
+.world-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.world-record-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.world-record-card:focus-visible,
+.world-subnav a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.codex-state-canon { border-color: #5c9b79; }
+.codex-state-speculative { border-color: #caa86b; }
+.codex-state-disputed { border-color: #b66f6f; }
+.codex-state-deprecated { opacity: 0.72; }
+
 @media (max-width: 48rem) {
   .app-shell {
     display: block;
@@ -2372,6 +2425,11 @@ a.group-card:focus-visible {
     align-items: stretch;
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .world-command-grid,
+  .world-card-grid {
+    grid-template-columns: 1fr;
   }
 
   .relationship-badge-row {

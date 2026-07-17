@@ -1,5 +1,11 @@
 # Private creative material
 private-data/
+/story engine deck/
+/private-data/story-engine/
+/story-engine-audit/
+/story-engine-renders/
+/*deck-import-package*.json
+/*deck-import-package*.zip
 
 # Local configuration and secrets
 .env

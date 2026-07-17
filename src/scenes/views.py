@@ -160,6 +160,22 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
         initial={"characters": scene.characters.all()},
     )
     placement_form = ScenePlacementForm(workspace=workspace, scene=scene)
+    from worldbuilding.forms import SceneWorldContextForm
+    from worldbuilding.views import scene_world_context
+
+    world_context = scene_world_context(scene)
+    world_context_form = SceneWorldContextForm(
+        workspace=workspace,
+        initial={
+            "primary_location": world_context["primary_location"],
+            "locations": world_context["locations"],
+            "regions": world_context["regions"],
+            "groups": world_context["groups"],
+            "codex_entries": world_context["codex_entries"],
+            "items": world_context["items"],
+            "creatures": world_context["creatures"],
+        },
+    )
     return render(
         request,
         "scenes/editor.html",
@@ -170,6 +186,8 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "character_selector_form": character_selector_form,
             "scene_characters": scene.characters.order_by("name"),
             "placement_form": placement_form,
+            "world_context": world_context,
+            "world_context_form": world_context_form,
             "ability_events": scene.ability_events.select_related(
                 "ability", "ability__character"
             ).order_by("-created_at", "-id"),

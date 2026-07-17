@@ -22,6 +22,7 @@
         </a>
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
+        <a class="nav-link" href="{% url 'world-home' %}">World</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
 
@@ -177,6 +178,23 @@
           </div>
         </section>
       {% endif %}
+
+      <section class="side-panel scene-world-context">
+        <p class="card-label">World Context</p>
+        {% if scene.lifecycle == "active" %}
+          <form method="post" action="{% url 'scene-world-context-update' scene.id %}">
+            {% csrf_token %}
+            {% for field in world_context_form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+            <button class="button button-secondary" type="submit">Save World Context</button>
+          </form>
+        {% else %}<p class="side-copy">Archived Scene world context is read-only.</p>{% endif %}
+        {% for location in world_context.locations %}<a class="side-link" href="{% url 'world-record-detail' 'locations' location.id %}">{{ location.name }}</a>{% endfor %}
+        {% for region in world_context.regions %}<a class="side-link" href="{% url 'world-record-detail' 'regions' region.id %}">{{ region.name }}</a>{% endfor %}
+        {% for group in world_context.groups %}<a class="side-link" href="{% url 'character-group-detail' group.id %}">{{ group.name }}</a>{% endfor %}
+        {% for entry in world_context.codex_entries %}<a class="side-link" href="{% url 'world-record-detail' 'codex' entry.id %}">{{ entry.term }}</a>{% endfor %}
+        {% for item in world_context.items %}<a class="side-link" href="{% url 'world-record-detail' 'items' item.id %}">{{ item.name }}</a>{% endfor %}
+        {% for creature in world_context.creatures %}<a class="side-link" href="{% url 'world-record-detail' 'creatures' creature.id %}">{{ creature.name }}</a>{% endfor %}
+      </section>
 
       {% if scene.lifecycle == "active" %}
         <section class="side-panel">

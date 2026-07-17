@@ -132,6 +132,10 @@ The initial Chapter writing workspace stores author-owned planning text directly
 
 Character and Location are explicit typed entities. They share identity, states, provenance, search, linking, archival, and timestamp behaviors but remain distinct types. Version 1 has no generic custom-entity builder.
 
+The connected Worldbuilding Workspace keeps world concepts as explicit Workspace-scoped types rather than a universal entity graph. Region provides a protected, acyclic parent hierarchy; Location may belong to one Region; Codex Entry preserves category and visible canon state; World Item represents artifacts, technologies, and ordinary objects without inventory mechanics; and Creature represents individuals, species, monsters, and other non-Character beings without game statistics. Character Group remains the faction and organization record, enriched with bounded political and operational notes so existing memberships and backlinks remain authoritative.
+
+Typed join records connect these records to Characters, Groups, Scenes, Works, and Chapters where supported. Each join carries direct Workspace identity, a bounded role, optional notes, protected endpoints, same-Workspace validation, and pair uniqueness. Group and Codex pair relationships use canonical endpoint ordering to prevent self-links and duplicate unordered pairs; Group relationships retain source and target perspectives where direction matters. Scene world-context links are mutable metadata outside immutable Scene Revision content. Active Scenes may change them through POST operations, archived links are read-only, and trashed Scenes remain unavailable. Chapter world context is derived from linked non-trashed Scenes and deduplicated rather than stored.
+
 ### Character
 
 A Character represents a person or person-like participant. It supports identity, Workspace ownership, primary name, optional aliases, short description, optional longer notes, explicit association with relevant Worlds, contextual state, provenance, timestamps, and archive, deprecation, and recovery status.
