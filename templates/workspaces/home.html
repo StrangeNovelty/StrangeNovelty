@@ -1,212 +1,60 @@
 {% extends "base.html" %}
-
 {% block title %}Workspace — Strange Novelty{% endblock %}
-
 {% block content %}
-  <div class="app-shell">
-    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">SN</div>
-        <div>
-          <p class="brand-title">Strange Novelty</p>
-          <p class="brand-subtitle">Story workspace</p>
-        </div>
-      </div>
+<div class="app-shell" data-layout="creative-command-center">
+  <aside class="sidebar sidebar-left" aria-label="Primary navigation">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Creative operating system</p></div></div>
+    {% with active_nav="workspace" %}{% include "includes/primary_navigation.html" %}{% endwith %}
+    <section class="sidebar-work-context" aria-label="Active Work">{% if recent_work %}<p class="card-label">Active Work</p><a href="{% url 'work-detail' recent_work.id %}">{{ recent_work.title }}</a><span>{{ recent_work.get_status_display }}</span>{% else %}<p class="card-label">Active Work</p><a href="{% url 'work-create' %}">Create your first Work</a>{% endif %}</section>
+    <a class="sidebar-create" href="{% url 'quick-create' %}"><span aria-hidden="true">＋</span> Create</a>
+    {% include "includes/sidebar_account.html" %}
+  </aside>
 
-      {% with active_nav="workspace" %}{% include "includes/primary_navigation.html" %}{% endwith %}
-      {% include "includes/sidebar_account.html" %}
-    </aside>
+  <main class="workspace-area">
+    <header class="workspace-header command-header"><div><p class="eyebrow">Creative command center</p><h1>{{ workspace.name }}</h1><p class="work-header-subtitle">Return to the work in motion, or choose the next useful thread.</p></div><form class="header-search" method="post" action="{% url 'scene-search' %}">{% csrf_token %}<label class="visually-hidden" for="workspace-search">Search Strange Novelty</label><input id="workspace-search" name="query" type="search" placeholder="Search your creative archive"></form></header>
 
-    <section class="workspace-area">
-      <header class="workspace-header">
-        <div>
-          <p class="eyebrow">Current workspace</p>
-          <h1>{{ workspace.name }}</h1>
-        </div>
+    <div class="workspace-main command-main">
+      {% if show_onboarding %}
+      <section class="guided-path" aria-labelledby="getting-started-heading">
+        <header><div><p class="eyebrow">Guided first use</p><h2 id="getting-started-heading">Build one real creative path.</h2><p>Nothing is locked. Complete these in any order, skip what does not help, and return from the Manual.</p></div><div class="guided-progress"><strong>{{ onboarding_complete_count }} / 10</strong><span>steps complete</span><div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="{{ onboarding_complete_count }}"><i style="--progress: {{ onboarding_complete_count }}0%"></i></div><a href="?onboarding=hide">Collapse for now</a></div></header>
+        <ol class="guided-steps">{% for step in onboarding_steps %}<li class="{% if step.complete %}is-complete{% endif %}"><span class="step-number">{% if step.complete %}✓{% else %}{{ step.number }}{% endif %}</span><div><a href="{{ step.href }}">{{ step.title }}</a><p>{{ step.description }}</p></div></li>{% endfor %}</ol>
+      </section>
+      {% endif %}
 
-        <form class="header-search" method="post" action="{% url 'scene-search' %}">
-          {% csrf_token %}
-          <label class="visually-hidden" for="workspace-search">Search scenes</label>
-          <input
-            id="workspace-search"
-            name="query"
-            type="search"
-            placeholder="Search your story"
-          >
-        </form>
-      </header>
-
-      <div class="workspace-main">
-        <section class="welcome-panel">
-          <p class="eyebrow">Welcome back</p>
-          <h2>Your story is ready when you are.</h2>
-          <p class="welcome-copy">
-            Continue writing, review recent scenes, or explore your project.
-          </p>
-
-          <div class="action-row" aria-label="Workspace actions">
-            <a class="button button-primary" href="{% url 'scene-create' %}">
-              Create a scene
-            </a>
-            <a class="button button-secondary" href="{% url 'scene-list' %}">
-              Open scenes
-            </a>
-            <a class="button button-secondary" href="{% url 'work-list' %}">
-              Open Works
-            </a>
-            <a class="button button-secondary" href="{% url 'character-list' %}">
-              Open Characters
-            </a>
-            <a class="button button-secondary" href="{% url 'scene-search' %}">
-              Search everything
-            </a>
-            <a class="button button-secondary" href="{% url 'quick-create' %}">Create</a>
-          </div>
-        </section>
-
-        {% if show_onboarding %}<section class="onboarding-panel" aria-labelledby="getting-started-heading"><div><p class="eyebrow">Getting started</p><h2 id="getting-started-heading">Build your creative home one useful step at a time.</h2><p class="welcome-copy">Nothing here is mandatory. Follow the next step that helps your current story.</p></div><ol class="onboarding-steps"><li class="{% if active_work_count %}is-complete{% endif %}"><a href="{% url 'work-create' %}">Create a Work</a></li><li><a href="{% url 'work-list' %}">Add a Chapter</a></li><li class="{% if character_count %}is-complete{% endif %}"><a href="{% url 'character-create' %}">Create a Character</a></li><li class="{% if active_scene_count %}is-complete{% endif %}"><a href="{% url 'scene-create' %}">Write the first Scene</a></li><li><a href="{% url 'world-home' %}">Add world context</a></li><li><a href="{% url 'deck-home' %}">Explore Decks</a> or <a href="{% url 'ai-workspace' %}">AI Studio</a></li><li><a href="{% url 'publishing-home' %}">Compile a Manuscript</a></li></ol></section>{% endif %}
-
-        <section class="writing-signal" aria-label="Writing activity"><strong>{{ writing_statistics.today }} words added today</strong> · {{ writing_statistics.week }} this week · {{ writing_statistics.streak }} day streak{% if writing_chapter %} · <a href="{% url 'chapter-detail' writing_chapter.work_id writing_chapter.id %}">Continue {{ writing_chapter.title }}</a>{% endif %}</section><section class="dashboard-grid" aria-label="Workspace overview"><div class="dashboard-section-heading"><p class="eyebrow">Continue creating</p><h2>Return to active work</h2></div>
-          <article class="dashboard-card">
-            <p class="card-label">Active scenes</p>
-            <p class="metric-value">{{ active_scene_count }}</p>
-            <p class="card-support">
-              {{ archived_scene_count }} archived
-            </p>
-          </article>
-
-          <article class="dashboard-card">
-            <p class="card-label">Active Works</p>
-            <p class="metric-value">{{ active_work_count }}</p>
-            <p class="card-support">
-              {% if recent_work %}
-                Recently updated:
-                <a href="{% url 'work-detail' recent_work.id %}">{{ recent_work.title }}</a>
-              {% else %}
-                Your story structure is waiting.
-              {% endif %}
-            </p>
-            <a class="side-link" href="{% url 'work-list' %}">Open Work library</a>
-          </article>
-
-          <article class="dashboard-card">
-            <p class="card-label">Characters</p>
-            <p class="metric-value">{{ character_count }}</p>
-            <p class="card-support">
-              {% if recent_characters %}
-                Recently updated:
-                <a href="{% url 'character-detail' recent_characters.0.id %}">
-                  {{ recent_characters.0.name }}
-                </a>
-              {% else %}
-                Your cast is waiting.
-              {% endif %}
-            </p>
-            <a class="side-link" href="{% url 'character-list' %}">Open Character library</a>
-          </article>
-
-          <article class="dashboard-card">
-            <p class="card-label">Revisions</p>
-            <p class="metric-value">{{ revision_count }}</p>
-            {% if latest_revision %}
-              <p class="card-support">
-                Latest: {{ latest_revision.scene.title }}
-              </p>
-            {% else %}
-              <p class="card-support">No revisions yet</p>
-            {% endif %}
-          </article>
-
-          <article class="dashboard-card">
-            <p class="card-label">Writing now</p>
-            {% if writing_chapter %}
-              <p class="card-value">{{ writing_chapter.title }}</p>
-              <p class="card-support">
-                {{ writing_chapter.work.title }} · {{ writing_chapter.get_status_display }}
-              </p>
-              <a class="side-link" href="{% url 'chapter-detail' writing_chapter.work.id writing_chapter.id %}">
-                Continue Chapter
-              </a>
-            {% else %}
-              <p class="card-support">No Chapter is currently drafting or revising.</p>
-              <a class="side-link" href="{% url 'work-list' %}">Choose a Work</a>
-            {% endif %}
-          </article>
-
-          <div class="dashboard-section-heading"><p class="eyebrow">Cast and world</p><h2>Keep the story connected</h2></div><article class="dashboard-card">
-            <p class="card-label">Worldbuilding</p>
-            <p class="card-value">{{ world_location_count }} places · {{ world_codex_count }} lore · {{ world_creature_count }} creatures</p>
-            {% if recent_world_record %}<p class="card-support">Recently updated: {{ recent_world_record }}</p>{% else %}<p class="card-support">The World library is ready for its first record.</p>{% endif %}
-            <a class="side-link" href="{% url 'world-home' %}">Open World</a>
-          </article>
-
-          <div class="dashboard-section-heading"><p class="eyebrow">Creative development</p><h2>Explore, review, and research</h2></div><article class="dashboard-card">
-            <p class="card-label">Deck review</p>
-            <p class="metric-value">{{ deck_review_remaining }}</p>
-            <p class="card-support">cards remain outside approved status</p>
-            <a class="side-link" href="{% url 'deck-review-dashboard' %}">Continue Deck review</a>
-          </article>
-          <article class="dashboard-card">
-            <p class="card-label">Creative Draw</p>
-            {% if recent_draw %}<p class="card-value">{{ recent_draw.title }}</p><p class="card-support">{{ recent_draw.get_status_display }} · updated {{ recent_draw.updated_at|date:"M j" }}</p><a class="side-link" href="{% url 'deck-draw-detail' recent_draw.id %}">Continue Draw</a>{% else %}<p class="card-support">No active Draw yet.</p><a class="side-link" href="{% url 'deck-draw-create' %}">Create a Draw</a>{% endif %}
-          </article>
-          <article class="dashboard-card"><p class="card-label">Continuity</p><p class="metric-value">{{ continuity_open_count }}</p><p class="card-support">open Plot Threads</p><a class="side-link" href="{% url 'continuity-home' %}">Open Continuity</a></article>
-          <article class="dashboard-card"><p class="card-label">Chronology</p><p class="metric-value">{{ timeline_unplaced_count }}</p><p class="card-support">Events without story placement</p><a class="side-link" href="{% url 'timeline-home' %}">Open Timelines</a></article>
-          <article class="dashboard-card"><p class="card-label">Library</p><p class="metric-value">{{ library_unreviewed_count }}</p><p class="card-support">Sources unread or reviewing</p><a class="side-link" href="{% url 'library-home' %}">Open Library</a></article>
-          <div class="dashboard-section-heading"><p class="eyebrow">Publishing</p><h2>Prepare deliberate release</h2></div><article class="dashboard-card"><p class="card-label">Publishing</p><p class="metric-value">{{ publishing_review_count }}</p><p class="card-support">Manuscripts awaiting review</p><a class="side-link" href="{% url 'publishing-home' %}">Open Publishing</a></article>
-          <article class="dashboard-card"><p class="card-label">AI Studio</p><p class="metric-value">{{ ai_review_count }}</p><p class="card-support">suggestions awaiting review</p><a class="side-link" href="{% url 'ai-workspace' %}">Open AI Studio</a></article>
-
-          <article class="dashboard-card dashboard-card-wide">
-            <div class="card-heading-row">
-              <div>
-                <p class="card-label">Recently updated scenes</p>
-                <p class="card-value">Continue where you left off.</p>
-              </div>
-              <a class="side-link" href="{% url 'scene-list' %}">View all</a>
-            </div>
-
-            {% if recent_scenes %}
-              <div class="recent-scene-list">
-                {% for scene in recent_scenes %}
-                  <a
-                    class="recent-scene"
-                    href="{% url 'scene-editor' scene_id=scene.id %}"
-                  >
-                    <span class="recent-scene-title">{{ scene.title }}</span>
-                    <span class="recent-scene-meta">
-                      Updated {{ scene.updated_at|date:"M j, Y" }}
-                    </span>
-                  </a>
-                {% endfor %}
-              </div>
-            {% else %}
-              <p class="empty-state">
-                No active scenes yet. Create your first scene to begin.
-              </p>
-            {% endif %}
-          </article>
-        </section>
-      </div>
-    </section>
-
-    <aside class="sidebar sidebar-right" aria-label="Workspace details">
-      <section class="side-panel">
-        <p class="card-label">Project status</p>
-        <p class="status-value">Workspace ready</p>
+      <section class="creative-focus" aria-labelledby="creative-focus-heading">
+        <div class="focus-copy"><p class="eyebrow">Continue creating</p><h2 id="creative-focus-heading">{% if writing_chapter %}{{ writing_chapter.title }}{% elif recent_work %}{{ recent_work.title }}{% else %}Begin the first Work{% endif %}</h2><p>{% if writing_chapter %}{{ writing_chapter.work.title }} · {{ writing_chapter.get_status_display }}. Your latest story context is ready around the writing surface.{% elif recent_work %}Open the project command center, add a Chapter, or begin the first Scene.{% else %}Give the story a project home; structure can remain as light as the work needs.{% endif %}</p><div class="action-row">{% if writing_chapter and writing_chapter.scenes.exists %}<a class="button button-primary" href="{% url 'chapter-detail' writing_chapter.work_id writing_chapter.id %}">Continue Writing</a>{% elif recent_work %}<a class="button button-primary" href="{% url 'work-detail' recent_work.id %}">Open Work</a>{% else %}<a class="button button-primary" href="{% url 'work-create' %}">Create a Work</a>{% endif %}<a class="button button-secondary" href="{% url 'quick-create' %}">Create something</a></div></div>
+        <div class="focus-stat"><span>words added today</span><strong>{{ writing_statistics.today }}</strong><small>{{ writing_statistics.week }} this week · {{ writing_statistics.streak }} day streak</small></div>
       </section>
 
-      <section class="side-panel">
-        <p class="card-label">Quick links</p>
-        <a class="side-link" href="{% url 'scene-list' %}">All scenes</a>
-        <a class="side-link" href="{% url 'work-list' %}">All Works</a>
-        <a class="side-link" href="{% url 'character-list' %}">All Characters</a>
-        <a class="side-link" href="{% url 'continuity-home' %}">Continuity</a>
-        <a class="side-link" href="{% url 'timeline-home' %}">Timeline</a>
-        <a class="side-link" href="{% url 'ai-workspace' %}">AI Studio</a>
-        <a class="side-link" href="{% url 'scene-search' %}">Search</a>
+      <div class="command-section-heading"><div><p class="eyebrow">Writing now</p><h2>Scenes and Chapters in motion</h2></div><a href="{% url 'scene-list' %}">All Scenes →</a></div>
+      <section class="command-card-grid command-card-grid-featured" aria-label="Recent writing">
+        <article class="command-card command-card-large"><p class="card-label">Recently updated Scenes</p>{% for scene in recent_scenes %}<a class="command-list-item" href="{% url 'scene-editor' scene_id=scene.id %}"><span><strong>{{ scene.title }}</strong><small>{% if scene.chapter %}{{ scene.chapter.title }} · {% endif %}Updated {{ scene.updated_at|date:"M j, g:i a" }}</small></span><span aria-hidden="true">→</span></a>{% empty %}<div class="creative-empty"><h3>The writing surface is waiting.</h3><p>Create a Scene when you know the next moment—not the whole story.</p><a href="{% url 'scene-create' %}">Create a Scene</a></div>{% endfor %}</article>
+        <article class="command-card"><p class="card-label">Story pulse</p><div class="signal-row"><span>Active Scenes</span><strong>{{ active_scene_count }}</strong></div><div class="signal-row"><span>Immutable Revisions</span><strong>{{ revision_count }}</strong></div><div class="signal-row"><span>Active Works</span><strong>{{ active_work_count }}</strong></div><a class="panel-link" href="{% url 'work-list' %}">Open Work library</a></article>
       </section>
 
-      <section class="side-panel"><p class="card-label">Orientation</p><a class="side-link" href="{% url 'quick-create' %}">Create something</a><a class="side-link" href="{% url 'product-guide' %}">Product guide</a></section>
-    </aside>
-  </div>
+      <div class="command-section-heading"><div><p class="eyebrow">Story memory</p><h2>Cast, world, continuity, and chronology</h2></div></div>
+      <section class="command-card-grid">
+        <article class="command-card"><p class="card-label">Characters</p><p class="metric-value">{{ character_count }}</p>{% if recent_characters %}<a class="panel-link" href="{% url 'character-detail' recent_characters.0.id %}">Recently updated · {{ recent_characters.0.name }}</a>{% else %}<p class="card-support">Create the first person whose choices matter.</p>{% endif %}</article>
+        <article class="command-card"><p class="card-label">Worldbuilding</p><p class="card-value">{{ world_location_count }} places · {{ world_codex_count }} lore</p><p class="card-support">{{ world_creature_count }} creatures{% if recent_world_record %} · recent {{ recent_world_record }}{% endif %}</p><a class="panel-link" href="{% url 'world-home' %}">Open World</a></article>
+        <article class="command-card accent-card"><p class="card-label">Open Plot Threads</p><p class="metric-value">{{ continuity_open_count }}</p><a class="panel-link" href="{% url 'continuity-home' %}">Review story promises</a></article>
+        <article class="command-card"><p class="card-label">Timeline</p><p class="metric-value">{{ timeline_unplaced_count }}</p><p class="card-support">Events without story placement</p><a class="panel-link" href="{% url 'timeline-home' %}">Open chronology</a></article>
+      </section>
+
+      <div class="command-section-heading"><div><p class="eyebrow">Creative development</p><h2>Explore deliberately</h2></div></div>
+      <section class="command-card-grid">
+        <article class="command-card"><p class="card-label">Deck Draw</p>{% if recent_draw %}<h3>{{ recent_draw.title }}</h3><p class="card-support">{{ recent_draw.get_status_display }} · updated {{ recent_draw.updated_at|date:"M j" }}</p><a class="panel-link" href="{% url 'deck-draw-detail' recent_draw.id %}">Continue Draw</a>{% else %}<p class="card-support">Create a bounded prompt from the private Deck library.</p><a class="panel-link" href="{% url 'deck-draw-create' %}">Create a Draw</a>{% endif %}</article>
+        <article class="command-card"><p class="card-label">AI review</p><p class="metric-value">{{ ai_review_count }}</p><p class="card-support">suggestions awaiting your decision</p><a class="panel-link" href="{% url 'ai-workspace' %}">Open AI Studio</a></article>
+        <article class="command-card"><p class="card-label">Research</p><p class="metric-value">{{ library_unreviewed_count }}</p><p class="card-support">Sources unread or reviewing</p><a class="panel-link" href="{% url 'library-home' %}">Open Library</a></article>
+        <article class="command-card"><p class="card-label">Publishing</p><p class="metric-value">{{ publishing_review_count }}</p><p class="card-support">Manuscripts awaiting review</p><a class="panel-link" href="{% url 'publishing-home' %}">Open Publishing</a></article>
+      </section>
+    </div>
+  </main>
+
+  <aside class="sidebar sidebar-right command-rail" aria-label="Creative context">
+    <section class="rail-panel rail-current"><p class="card-label">Current Work</p>{% if recent_work %}<h2><a href="{% url 'work-detail' recent_work.id %}">{{ recent_work.title }}</a></h2><p>{{ recent_work.get_work_type_display }} · {{ recent_work.get_status_display }}</p>{% else %}<h2>No active Work</h2><p>Your first Work becomes the center of writing, context, and publishing.</p>{% endif %}</section>
+    <section class="rail-panel"><p class="card-label">Recent cast</p>{% for character in recent_characters %}<a class="rail-item" href="{% url 'character-detail' character.id %}"><span class="rail-avatar" aria-hidden="true">{{ character.name|slice:":1" }}</span><span>{{ character.name }}<small>{{ character.get_status_display }}</small></span></a>{% empty %}<p class="side-copy">No Characters yet.</p>{% endfor %}</section>
+    <section class="rail-panel"><p class="card-label">Deck review</p><div class="signal-row"><span>Awaiting review</span><strong>{{ deck_review_remaining }}</strong></div><a class="panel-link" href="{% url 'deck-review-dashboard' %}">Open review queue</a></section>
+    <section class="rail-panel"><p class="card-label">Need orientation?</p><p class="side-copy">The Manual explains where each kind of information belongs.</p><a class="button button-secondary button-full" href="{% url 'product-guide' %}">Open Manual</a></section>
+  </aside>
+</div>
 {% endblock %}
