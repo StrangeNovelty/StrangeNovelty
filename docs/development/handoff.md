@@ -1,5 +1,29 @@
 # Development Handoff
 
+## Current Staging Release — 2026-07-17
+
+Classification: **Grouped creative-product staging release successful.**
+
+Staging runs commit `c6c4288c9f2f255a176b92b5badfe273d0957465` with these
+deployments:
+
+| Service | Deployment ID |
+| --- | --- |
+| `staging-migration` | `7f53a216-863f-446d-9857-37e7b067e936` |
+| `staging-web` | `c05d286b-747f-4f02-a378-ecbb571c8b41` |
+| `staging-worker` | `37fc9566-4848-4ee8-9877-c0f82ea7d7b8` |
+
+All 60 migrations are applied with none pending. Web liveness, readiness, static assets,
+and worker readiness pass; maintenance is disabled and the Job queue is empty. Protected
+rendered-page checks passed across the grouped shell, writing, character, world, continuity,
+timeline, Deck, AI, Library, Publishing, Create, Help, and Search destinations using a
+synthetic test session. The physical WebAuthn login ceremony was not exercised.
+
+One `STAGING QA` synthetic Work and its bounded writing records remain for future release
+validation. AI is disabled. Staging private files still use the development filesystem
+backend, so durable hosted uploads and export retention remain unavailable until private
+object storage is configured. Production remains empty and untouched.
+
 ## Current Staging Release
 
 Classification: **Staging release successful with authenticated smoke-test exception.**
