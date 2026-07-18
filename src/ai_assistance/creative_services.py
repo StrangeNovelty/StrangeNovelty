@@ -180,15 +180,33 @@ def review_creative_suggestion(suggestion, *, text, action, notes=""):
 def convert_suggestion(suggestion, *, target_type, title, content, action="create", target=None):
     from characters.models import Character
     from continuity.models import PlotThread
+    from stories.workshop import capture_planning_snapshot
     from timeline.models import TimelineEvent
-    from worldbuilding.models import Creature, WorldItem
+    from worldbuilding.models import Creature, Location, Region, WorldItem
 
     if suggestion.state not in ("accepted", "editing"):
         raise ValueError("Suggestion must be reviewed before conversion.")
     workspace = suggestion.workspace
+    existing = suggestion.conversions.filter(target_type=target_type, action=action).first()
+    if existing:
+        raise ValueError("This reviewed suggestion was already applied to that destination type.")
     if target_type == "character":
         created = Character.objects.create(
             workspace=workspace, name=title, summary=content, notes=f"AI suggestion {suggestion.id}"
+        )
+    elif target_type == "location":
+        created = Location.objects.create(
+            workspace=workspace,
+            name=title,
+            description=content,
+            notes=f"Created from reviewed AI suggestion {suggestion.id}",
+        )
+    elif target_type == "region":
+        created = Region.objects.create(
+            workspace=workspace,
+            name=title,
+            description=content,
+            notes=f"Created from reviewed AI suggestion {suggestion.id}",
         )
     elif target_type == "creature":
         created = Creature.objects.create(
@@ -224,6 +242,29 @@ def convert_suggestion(suggestion, *, target_type, title, content, action="creat
         )
     elif target_type == "voice_profile":
         created = VoiceProfile.objects.create(workspace=workspace, name=title, description=content)
+    elif target_type.startswith("chapter_"):
+        if target is None or target.workspace_id != workspace.id:
+            raise ValueError("A Workspace Chapter is required.")
+        field = {
+            "chapter_concept": "concept",
+            "chapter_outline": "outline",
+            "chapter_notes": "notes",
+        }.get(target_type)
+        if not field or action not in ("append", "replace"):
+            raise ValueError("Unsupported Chapter application.")
+        capture_planning_snapshot(
+            target, label=f"Before AI {action}: {title}", trigger="before_ai_application"
+        )
+        current = getattr(target, field)
+        value = (
+            content
+            if action == "replace" or not current.strip()
+            else f"{current.rstrip()}\n\n{content}"
+        )
+        setattr(target, field, value)
+        target.full_clean()
+        target.save(update_fields=(field, "updated_at"))
+        created = target
     else:
         raise ValueError("Unsupported conversion target.")
     AICreativeConversion.objects.create(

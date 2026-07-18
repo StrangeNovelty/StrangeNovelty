@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ session.title }} — Brainstorm{% endblock %}
+{% block content %}{% with active_nav="brainstorm" %}
+<div class="app-shell app-shell-two-column brainstorm-shell">
+  <aside class="sidebar sidebar-left"><div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story Engine workflow</p></div></div>{% include "includes/primary_navigation.html" %}{% include "includes/sidebar_account.html" %}</aside>
+  <main class="workspace-area">
+    <header class="workspace-header"><div><p class="eyebrow">Brainstorm · {{ mode.title }}</p><h1>{{ session.title }}</h1><p class="work-header-subtitle">Use Cards as creative lenses. You decide what enters the story.</p></div><nav class="action-row" aria-label="Brainstorm session"><a class="button" href="{% url 'brainstorm-list' %}">All Sessions</a><a class="button" href="{% url 'deck-draw-create' %}">Create Draw</a></nav></header>
+    <div class="workspace-main brainstorm-workspace">
+      <nav class="brainstorm-mode-switcher" aria-label="Generator modes">{% for item in modes %}<span class="{% if item.key == session.mode %}is-active{% endif %}">{{ item.title }}</span>{% endfor %}</nav>
+      <form method="post" class="brainstorm-form">{% csrf_token %}{{ form.non_field_errors }}
+        <section class="brainstorm-control-panel"><div class="dossier-section-heading"><div><p class="eyebrow">Session</p><h2>Cards and world context</h2></div><span class="status-badge status-non-canon">Non-canon workspace</span></div>
+          <div class="form-grid form-grid-two"><div>{{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}</div><div>{{ form.mode.label_tag }}{{ form.mode }}{{ form.mode.errors }}</div><div>{{ form.work.label_tag }}{{ form.work }}{{ form.work.errors }}</div><div>{{ form.chapter.label_tag }}{{ form.chapter }}{{ form.chapter.errors }}</div></div>
+          <div>{{ form.draw.label_tag }}{{ form.draw }}<p class="helptext">A Saved Draw keeps the original Cards, positions, and provenance unchanged.</p>{{ form.draw.errors }}</div>
+          <div class="form-grid form-grid-two"><div>{{ form.characters.label_tag }}{{ form.characters }}<p class="helptext">{{ form.characters.help_text }}</p></div><div>{{ form.locations.label_tag }}{{ form.locations }}<p class="helptext">{{ form.locations.help_text }}</p></div></div>
+          <div class="mode-constraints"><div data-mode="npc">{{ form.threat_level.label_tag }}{{ form.threat_level }}</div><div data-mode="item">{{ form.discipline.label_tag }}{{ form.discipline }}</div></div>
+          <div class="form-grid form-grid-two"><div>{{ form.focus.label_tag }}{{ form.focus }}<p class="helptext">What should this session explore?</p></div><div>{{ form.exclusions.label_tag }}{{ form.exclusions }}<p class="helptext">Patterns, outcomes, Characters, or ideas to keep out.</p></div></div>
+          <div class="action-row"><button class="button" type="submit" name="action" value="save">Save Session</button><button class="button button-primary" type="submit" name="action" value="generate" {% if not provider_available %}disabled{% endif %}>Generate {{ mode.title }}</button></div>{% if not provider_available %}<p class="provider-unavailable">Generation is unavailable, but session context and notes remain editable.</p>{% endif %}
+        </section>
+        <section class="brainstorm-result-panel"><div class="dossier-section-heading"><div><p class="eyebrow">Creative result</p><h2>Review before Apply to Story.</h2></div>{% if session.latest_suggestion %}<a class="button button-primary" href="{% url 'ai-creative-review' session.latest_suggestion.id %}">Review &amp; Apply to Story</a>{% endif %}</div>
+          {% if session.latest_suggestion %}<article class="reviewed-result"><p><span class="status-badge status-non-canon">{{ session.latest_suggestion.get_state_display }}</span> {{ session.latest_suggestion.request.routing_category|title }} · {{ session.latest_suggestion.request.model_identifier }}</p><div class="prose-output">{{ session.latest_suggestion.reviewed_output|linebreaks }}</div></article>{% else %}<div class="creative-empty"><h3>The result will stay in this session.</h3><p>Generate when the Cards, cast, world context, focus, and exclusions reflect what you want to explore.</p></div>{% endif %}
+          <div>{{ form.author_notes.label_tag }}{{ form.author_notes }}<p class="helptext">Your decisions and reactions remain separate from provider output.</p></div>
+        </section>
+      </form>
+      <details class="context-preview"><summary>Inspect exact Context Preview</summary><pre class="snapshot">{{ preview.text }}</pre>{% if preview.omissions %}<h3>Truncation or omissions</h3><ul>{% for omission in preview.omissions %}<li>{{ omission }}</li>{% endfor %}</ul>{% endif %}</details>
+    </div>
+  </main>
+</div>{% endwith %}{% endblock %}

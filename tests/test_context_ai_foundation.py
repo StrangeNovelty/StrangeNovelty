@@ -158,6 +158,6 @@ def test_ai_templates_and_docs_do_not_contain_credentials_or_private_content():
     review = (root / "templates/ai_assistance/creative_review.html").read_text()
     docs = (root / "docs/reference/context-aware-ai.md").read_text()
     assert "creative studio" not in workspace.lower() or "Workshop" in workspace
-    assert "Immutable Provider Output" in review and "Explicit Native Conversion" in review
+    assert "Immutable Provider Output" in review and "Apply to Story" in review
     combined = workspace + review + docs
     assert "OPENROUTER_API_KEY=" not in combined and "Bearer " not in combined

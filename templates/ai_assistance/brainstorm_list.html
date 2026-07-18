@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Brainstorm — Strange Novelty{% endblock %}
+{% block content %}{% with active_nav="brainstorm" %}
+<div class="app-shell app-shell-two-column brainstorm-shell">
+  <aside class="sidebar sidebar-left">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Story Engine workflow</p></div></div>
+    {% include "includes/primary_navigation.html" %}{% include "includes/sidebar_account.html" %}
+  </aside>
+  <main class="workspace-area">
+    <header class="workspace-header"><div><p class="eyebrow">Story · Brainstorm</p><h1>Brainstorm</h1><p class="work-header-subtitle">Cards, story context, constraints, generation, notes, and Apply to Story stay together.</p></div><a class="button" href="{% url 'deck-card-library' %}">Card Library</a></header>
+    <div class="workspace-main">
+      <section class="brainstorm-mode-grid" aria-labelledby="new-session-heading"><div class="dossier-section-heading"><div><p class="eyebrow">New session</p><h2 id="new-session-heading">Choose a creative mode.</h2></div></div>
+        {% for mode in modes %}<form method="post" action="{% url 'brainstorm-create' %}" class="brainstorm-mode-card">{% csrf_token %}<input type="hidden" name="mode" value="{{ mode.key }}"><h3>{{ mode.title }}</h3><p>{{ mode.purpose }}</p><button class="button button-primary" type="submit">Start {{ mode.title }}</button></form>{% endfor %}
+      </section>
+      <section><div class="dossier-section-heading"><div><p class="eyebrow">Persistent sessions</p><h2>Return to the same creative thread.</h2></div></div><div class="brainstorm-session-list">{% for session in sessions %}<a class="brainstorm-session-card" href="{% url 'brainstorm-detail' session.id %}"><span><small>{{ session.get_mode_display }}{% if session.work %} · {{ session.work.title }}{% endif %}</small><strong>{{ session.title }}</strong><em>{% if session.latest_suggestion %}{{ session.latest_suggestion.get_state_display }} result{% else %}Ready for context{% endif %}</em></span><span aria-hidden="true">→</span></a>{% empty %}<div class="creative-empty"><h3>No Brainstorm sessions yet.</h3><p>Start with Cards or a focused question. The session will keep your context, generated result, and author notes together.</p></div>{% endfor %}</div></section>
+    </div>
+  </main>
+</div>{% endwith %}{% endblock %}

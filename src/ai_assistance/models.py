@@ -592,6 +592,79 @@ class AICreativeSuggestion(models.Model):
         super().save(*args, **kwargs)
 
 
+class BrainstormSession(models.Model):
+    MODES = (
+        ("plot", "Plot Seeds"),
+        ("realm", "Realm Builder"),
+        ("npc", "NPC Generator"),
+        ("monster", "Monster Generator"),
+        ("item", "Item Generator"),
+    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="brainstorm_sessions"
+    )
+    title = models.CharField(max_length=240, default="New Brainstorm")
+    mode = models.CharField(max_length=16, choices=MODES, default="plot")
+    work = models.ForeignKey(
+        "stories.Work",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="brainstorm_sessions",
+    )
+    chapter = models.ForeignKey(
+        "stories.Chapter",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="brainstorm_sessions",
+    )
+    context_pack = models.OneToOneField(
+        AIContextPack, on_delete=models.PROTECT, related_name="brainstorm_session"
+    )
+    draw = models.ForeignKey(
+        "decks.SavedDraw",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="brainstorm_sessions",
+    )
+    focus = models.TextField(blank=True)
+    exclusions = models.TextField(blank=True)
+    author_notes = models.TextField(blank=True)
+    mode_settings = models.JSONField(default=dict, blank=True)
+    latest_suggestion = models.ForeignKey(
+        AICreativeSuggestion,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="brainstorm_sessions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        indexes = [
+            models.Index(fields=("workspace", "-updated_at"), name="brainstorm_ws_updated_idx")
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        errors = {}
+        for field in ("work", "chapter", "context_pack", "draw"):
+            value = getattr(self, field, None)
+            if value and value.workspace_id != self.workspace_id:
+                errors[field] = "Selection must belong to this Workspace."
+        if self.chapter_id and self.work_id and self.chapter.work_id != self.work_id:
+            errors["chapter"] = "Chapter must belong to the selected Work."
+        if errors:
+            raise ValidationError(errors)
+
+
 class AIChatSession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(

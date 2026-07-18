@@ -2,9 +2,9 @@
 
 ## Purpose and Scope
 
-This document audits the old Story Engine repository as read-only product and implementation reference for Strange Novelty. It evaluates observable structure, code, schemas, workflows, and user-facing behavior against the current Strange Novelty product and architecture documents.
+This document audits the old Story Engine repository as a read-only reference for Strange Novelty. ADR-0016 makes its corresponding creative workflow and product organization binding while retaining Strange Novelty's web architecture and expanded capabilities. This document evaluates observable structure, code, schemas, workflows, and user-facing behavior against the current product and architecture.
 
-The old repository is not a source of current Canon. Its story data, prompts, style material, screenshots, generated artifacts, and private assets were not copied into this audit. No database contents or secret values were inspected. The audit does not recommend retaining an implementation merely because it already exists.
+The old repository is not a source of current Canon. Its story data, story-specific prompt material, generated artifacts, and private assets are not copied into Git. Desktop workflow fidelity does not authorize copying its local trust model or treating legacy data as truth.
 
 Repository locations used for this audit:
 
@@ -65,7 +65,7 @@ The repository grew as a working personal application rather than from an explic
 
 ### Recommendation
 
-Treat the repository as a catalog of workflow experiments and possible migration sources, not as a foundation to fork. Re-evaluate each concept against Strange Novelty’s narrower Version 1 scope.
+Reconstruct the proven workflow in the hosted application without forking the desktop runtime. Preserve the web application's stronger authorization, revision, provenance, storage, continuity, research, and publishing boundaries.
 
 ## Observed Technology and Runtime Structure
 
