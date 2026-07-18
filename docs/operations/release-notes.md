@@ -1,5 +1,36 @@
 # Release Notes
 
+## Staging — 2026-07-17
+
+Classification: **Grouped creative-product staging release successful.**
+
+### Release Identity
+
+- Commit: `c6c4288c9f2f255a176b92b5badfe273d0957465`
+- Migration deployment: `7f53a216-863f-446d-9857-37e7b067e936`
+- Web deployment: `c05d286b-747f-4f02-a378-ecbb571c8b41`
+- Worker deployment: `37fc9566-4848-4ee8-9877-c0f82ea7d7b8`
+
+### Results
+
+- Twenty-four additive migrations across ten apps applied successfully; all 60 migrations
+  are applied and none are pending.
+- Staging web liveness, readiness, static assets, and worker readiness passed. Maintenance
+  mode is disabled and the Job queue is empty.
+- MFA-protected rendered-page smoke tests passed for every primary product destination using
+  a synthetic test session. The physical WebAuthn login ceremony was not exercised.
+- A clearly labelled synthetic QA Work was retained with Chapter, immutable Scene revisions,
+  Beat, Scene Brief, pacing, and planning-snapshot records for future release checks.
+- AI remains disabled. Routine smoke testing stopped at the provider-neutral application
+  shell as required by the staging synthetic-account policy.
+- Private file storage remains the development filesystem backend. Metadata-only Library
+  workflows are available, but durable hosted uploads and generated exports remain a known
+  staging limitation until private object storage is configured.
+- No product defects requiring a release-fix PR were found. The maintenance-mode worker exit
+  observed during rollout was the expected fail-closed behavior; the worker was deployed
+  successfully after maintenance was disabled.
+- Production remains empty and untouched.
+
 ## Staging — 2026-07-13
 
 Classification: **Staging release successful with authenticated smoke-test exception.**
