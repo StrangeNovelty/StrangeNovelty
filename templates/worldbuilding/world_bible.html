@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}World Bible — Strange Novelty{% endblock %}
+{% block content %}
+<div class="app-shell">
+  <aside class="sidebar sidebar-left" aria-label="Primary navigation"><div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">World Bible</p></div></div>{% with active_nav="world" %}{% include "includes/primary_navigation.html" %}{% endwith %}{% include "includes/sidebar_account.html" %}</aside>
+  <main class="workspace-area">
+    <header class="workspace-header"><div><p class="eyebrow">Narrative world reference</p><h1>World Bible</h1><p class="work-header-subtitle">Read the established world as one connected reference, then open structured records when details change.</p></div><div class="action-row"><a class="button button-secondary" href="{% url 'world-home' %}">Structured World</a><a class="button button-primary" href="{% url 'brainstorm-list' %}">Develop the World</a></div></header>
+    <div class="workspace-main world-bible-layout">
+      <aside class="world-bible-index" aria-label="World Bible sections"><p class="card-label">Contents</p>{% for section in sections %}<a href="#bible-{{ section.slug }}">{{ section.label }} <span>{{ section.count }}</span></a>{% endfor %}<a href="#bible-groups">Groups &amp; factions <span>{{ groups|length }}</span></a></aside>
+      <article class="world-bible-content">
+        {% for section in sections %}<section id="bible-{{ section.slug }}" class="world-bible-section"><div class="dossier-section-heading"><div><p class="card-label">{{ section.count }} records</p><h2>{{ section.label }}</h2></div><a href="{% url 'world-record-list' section.slug %}">Open structured library</a></div><div class="world-bible-records">{% for record in section.records %}<a href="{% url 'world-record-detail' section.slug record.id %}"><strong>{{ record }}</strong><span>{% firstof record.summary record.definition record.description "Open the record for details." %}</span></a>{% empty %}<p class="empty-state">No {{ section.label|lower }} yet.</p>{% endfor %}</div></section>{% endfor %}
+        <section id="bible-groups" class="world-bible-section"><div class="dossier-section-heading"><div><p class="card-label">Organizations and family structures</p><h2>Groups &amp; factions</h2></div><a href="{% url 'character-group-list' %}">Open Groups</a></div><div class="world-bible-records">{% for group in groups %}<a href="{% url 'character-group-detail' group.id %}"><strong>{{ group.name }}</strong><span>{{ group.tagline|default:group.description|default:"Open the Group dossier." }}</span></a>{% empty %}<p class="empty-state">No Groups or factions yet.</p>{% endfor %}</div></section>
+      </article>
+    </div>
+  </main>
+</div>
+{% endblock %}

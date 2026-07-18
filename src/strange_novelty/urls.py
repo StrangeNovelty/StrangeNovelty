@@ -78,6 +78,9 @@ from characters.views import (
     group_membership_delete,
     group_membership_edit,
     group_relationship_create,
+    personality_trait_create,
+    personality_trait_delete,
+    relationship_web,
     scene_characters_update,
 )
 from continuity.views import (
@@ -287,6 +290,7 @@ from workspaces.views import product_guide, quick_create, root, workspace_home
 from worldbuilding.views import (
     record_connection_create,
     scene_world_context_update,
+    world_bible,
     world_home,
 )
 from worldbuilding.views import (
@@ -620,6 +624,7 @@ urlpatterns = [
     path("decks/journals/<uuid:journal_id>/", deck_journal_detail, name="deck-journal-detail"),
     path("decks/<uuid:deck_id>/", deck_detail, name="deck-detail"),
     path("world/", world_home, name="world-home"),
+    path("world/bible/", world_bible, name="world-bible"),
     path("world/<str:kind>/", world_record_list, name="world-record-list"),
     path("world/<str:kind>/new/", world_record_create, name="world-record-create"),
     path(
@@ -808,6 +813,7 @@ urlpatterns = [
     ),
     path("search/", scene_search, name="scene-search"),
     path("characters/", character_list, name="character-list"),
+    path("characters/relationships/", relationship_web, name="character-relationship-web"),
     path("characters/new/", character_create, name="character-create"),
     path("groups/", character_group_list, name="character-group-list"),
     path("groups/new/", character_group_create, name="character-group-create"),
@@ -845,6 +851,16 @@ urlpatterns = [
         "characters/<uuid:character_id>/",
         character_detail,
         name="character-detail",
+    ),
+    path(
+        "characters/<uuid:character_id>/personality/",
+        personality_trait_create,
+        name="character-personality-trait-create",
+    ),
+    path(
+        "characters/<uuid:character_id>/personality/<uuid:trait_id>/delete/",
+        personality_trait_delete,
+        name="character-personality-trait-delete",
     ),
     path(
         "characters/<uuid:character_id>/scenes/",

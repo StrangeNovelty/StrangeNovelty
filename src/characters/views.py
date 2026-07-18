@@ -1,3 +1,4 @@
+import math
 import uuid
 from typing import cast
 
@@ -20,6 +21,7 @@ from characters.forms import (
     CharacterGroupForm,
     CharacterGroupSearchForm,
     CharacterListSearchForm,
+    CharacterPersonalityTraitForm,
     CharacterRelationshipForm,
     CharacterSceneLinkForm,
     GroupMembershipForm,
@@ -33,6 +35,7 @@ from characters.models import (
     AbilityStage,
     Character,
     CharacterGroup,
+    CharacterPersonalityTrait,
     CharacterRelationship,
     GroupMembership,
     GroupRelationship,
@@ -158,6 +161,7 @@ def _detail_context(
         ),
         "current_stage_count": sum(bool(ability.current_stages) for ability in abilities),
         "relationship_cards": relationship_cards,
+        "personality_trait_form": CharacterPersonalityTraitForm(),
         "relationship_count": len(relationship_cards),
         "memberships": memberships,
         "group_count": len(memberships),
@@ -318,6 +322,69 @@ def character_detail(request: HttpRequest, character_id: uuid.UUID) -> HttpRespo
         _detail_context(request=request, character=character, form=form),
         status=status,
     )
+
+
+@never_cache
+@login_required
+def relationship_web(request: HttpRequest) -> HttpResponse:
+    workspace = _request_workspace(request)
+    characters = list(Character.objects.filter(workspace=workspace).order_by("name")[:24])
+    character_ids = {character.id for character in characters}
+    relationships = list(
+        CharacterRelationship.objects.filter(
+            workspace=workspace, source_id__in=character_ids, target_id__in=character_ids
+        ).select_related("source", "target")
+    )
+    radius = 39
+    nodes = []
+    positions = {}
+    count = max(len(characters), 1)
+    for index, character in enumerate(characters):
+        angle = (2 * math.pi * index / count) - math.pi / 2
+        x = 50 + radius * math.cos(angle)
+        y = 50 + radius * math.sin(angle)
+        positions[character.id] = (x, y)
+        nodes.append({"character": character, "x": x, "y": y})
+    edges = [
+        {
+            "relationship": relationship,
+            "x1": positions[relationship.source_id][0],
+            "y1": positions[relationship.source_id][1],
+            "x2": positions[relationship.target_id][0],
+            "y2": positions[relationship.target_id][1],
+        }
+        for relationship in relationships
+    ]
+    return render(
+        request,
+        "characters/relationship_web.html",
+        {"nodes": nodes, "edges": edges, "relationships": relationships},
+    )
+
+
+@login_required
+@require_POST
+def personality_trait_create(request: HttpRequest, character_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    form = CharacterPersonalityTraitForm(request.POST)
+    if form.is_valid():
+        trait = form.save(commit=False)
+        trait.workspace = workspace
+        trait.character = character
+        trait.full_clean()
+        trait.save()
+    return _see_other(reverse("character-detail", args=(character.id,)) + "#personality-sliders")
+
+
+@login_required
+@require_POST
+def personality_trait_delete(
+    request: HttpRequest, character_id: uuid.UUID, trait_id: uuid.UUID
+) -> HttpResponse:
+    character = _authorized_character(request, character_id)
+    CharacterPersonalityTrait.objects.filter(id=trait_id, character=character).delete()
+    return _see_other(reverse("character-detail", args=(character.id,)) + "#personality-sliders")
 
 
 @never_cache

@@ -92,6 +92,51 @@ class CharacterScene(models.Model):
             raise ValidationError(errors)
 
 
+class CharacterPersonalityTrait(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="character_personality_traits"
+    )
+    character = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="personality_traits"
+    )
+    name = models.CharField(max_length=120)
+    score = models.SmallIntegerField(default=0)
+    low_label = models.CharField(max_length=80, blank=True)
+    high_label = models.CharField(max_length=80, blank=True)
+    notes = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("order", "name", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(score__gte=-5, score__lte=5), name="personality_trait_score_range"
+            ),
+            models.UniqueConstraint(
+                fields=("character", "name"), name="unique_character_personality_trait"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=("workspace", "character"), name="personality_ws_character_idx")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.character}: {self.name}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors = {}
+        if self.character_id and self.character.workspace_id != self.workspace_id:
+            errors["character"] = "Character must belong to this Workspace."
+        if not -5 <= self.score <= 5:
+            errors["score"] = "Score must be between -5 and 5."
+        if errors:
+            raise ValidationError(errors)
+
+
 class CharacterRelationship(models.Model):
     class RelationshipType(models.TextChoices):
         FAMILY = "family", "Family"

@@ -43,6 +43,7 @@
             <p class="ability-summary-value">{{ current_stage_count }}</p>
           </div>
         </section>
+        <nav class="dossier-section-nav" aria-label="Character dossier sections"><a href="#identity-heading">Identity</a><a href="#presence-heading">Presence</a><a href="#personality-sliders">Personality Sliders</a><a href="#pressure-heading">Goals &amp; Conflict</a><a href="#voice-heading">Voice</a><a href="#character-relationships-heading">Relationships</a><a href="#character-groups-heading">Family &amp; Groups</a><a href="#character-abilities-heading">Abilities</a><a href="#character-scenes-heading">Appearances</a><a href="{% url 'character-relationship-web' %}">Relationship Web</a></nav>
 
         {% include "characters/_form_errors.html" %}
         <form class="character-dossier-form" method="post">
@@ -154,6 +155,12 @@
           </div>
         </form>
 
+        <section class="dossier-section" id="personality-sliders" aria-labelledby="personality-sliders-heading">
+          <div class="dossier-section-heading"><div><p class="card-label">Personality sliders</p><h2 id="personality-sliders-heading">Tendencies with room to contradict themselves</h2><p class="form-support">Use dimensions that matter for this Character. A position is a creative reference, not a diagnosis or fixed truth.</p></div></div>
+          <div class="personality-trait-list">{% for trait in character.personality_traits.all %}<article class="personality-trait"><div><strong>{{ trait.name }}</strong><span>{{ trait.low_label|default:"Low" }} ← {{ trait.score }} → {{ trait.high_label|default:"High" }}</span></div><meter min="-5" max="5" low="-2" high="2" optimum="0" value="{{ trait.score }}">{{ trait.score }}</meter>{% if trait.notes %}<p>{{ trait.notes }}</p>{% endif %}<form method="post" action="{% url 'character-personality-trait-delete' character.id trait.id %}">{% csrf_token %}<button class="text-button danger-link" type="submit">Remove</button></form></article>{% empty %}<p class="empty-state">No sliders yet. Add only the tensions or tendencies that help you write this Character consistently.</p>{% endfor %}</div>
+          <details><summary>Add a personality dimension</summary><form class="dossier-field-grid dossier-two-column" method="post" action="{% url 'character-personality-trait-create' character.id %}">{% csrf_token %}{{ personality_trait_form.as_div }}<button class="button button-secondary" type="submit">Add Personality Slider</button></form></details>
+        </section>
+
         <section class="connection-summary-strip" aria-label="Cast connections">
           <div>
             <p class="card-label">Relationships</p>
@@ -171,9 +178,7 @@
               <p class="card-label">Relationships</p>
               <h2 id="character-relationships-heading">Who is connected to {{ character.name }}</h2>
             </div>
-            <a class="button button-secondary" href="{% url 'character-relationship-create' character.id %}">
-              Add Relationship
-            </a>
+            <div class="action-row"><a class="button button-secondary" href="{% url 'character-relationship-web' %}">Open Relationship Web</a><a class="button button-primary" href="{% url 'character-relationship-create' character.id %}">Add Relationship</a></div>
           </div>
           {% if relationship_cards %}
             <div class="relationship-card-list">
