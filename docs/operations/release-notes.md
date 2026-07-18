@@ -1,5 +1,46 @@
 # Release Notes
 
+## Staging — 2026-07-18 — Complete Deck Collection
+
+Classification: **Private Deck collection import and hosted workflow validation successful.**
+
+### Release Identity
+
+- Application commit: `08ee5db9f2059f9e5be37bae8501170f1a0ffd24`
+- Web deployment: `f2358d73-a1bf-4103-b442-adbacdca48ae`
+- Import batches: 2 committed
+
+### Import Results
+
+- The authoritative schema-v3 package validated locally and in staging with 2,148 accepted
+  Cards, zero malformed records, duplicates, conflicts, or rejections, and no validate-only
+  writes.
+- The first committed import created 2,493 parent/native records and preserved the expected
+  product totals: 840 Deck of Worlds Cards, 540 Lore Master's Deck Cards, and 768 Story
+  Engine Cards.
+- Supporting totals are 149 Rules, 28 Spreads or guided modules, 115 Spread positions, one
+  Journal, six Journal sections, and 28 Journal prompts.
+- Imported Card review states remain 1,998 pending, 30 needs correction, and 120 needing
+  symbol review. Confidence totals remain 59 high, 1,400 medium, and 689 low.
+- The required second committed import created and updated zero records, reported 2,493
+  unchanged records, and preserved the synthetic custom Card, reviewed state, and favorite.
+
+### Hosted Product Validation
+
+- Authenticated Deck Library, Deck detail, pending inclusion, filters, search, Card detail,
+  Review Workspace, missing-render behavior, Rules, Spreads, Journal, dashboard, and combined
+  search checks passed without exposing host paths.
+- A synthetic custom Card was approved and favorited; no imported commercial Card was
+  approved or edited.
+- Synthetic free and official Spread Draws passed with pending inclusion, deterministic seed
+  behavior, required Categories, locking, redraw history, story-context snapshot, author
+  notes, interpretation, and saved-history reopening.
+- Release-fix PR #30 bound the Workspace before Draw form model validation, restoring
+  coherent Work, Chapter, and Character context selection.
+- The transient private package object was removed after import. The complete native
+  collection and both ImportBatch records remain in staging for authenticated use.
+- Production remains empty and untouched. AI remains disabled.
+
 ## Staging — 2026-07-18
 
 Classification: **Hosted private storage release successful.**

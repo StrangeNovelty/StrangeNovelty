@@ -1,5 +1,28 @@
 # Development Handoff
 
+## Current Staging Deck State — 2026-07-18
+
+Classification: **Complete private Deck collection imported and validated.**
+
+Staging web runs application commit `08ee5db9f2059f9e5be37bae8501170f1a0ffd24`
+in deployment `f2358d73-a1bf-4103-b442-adbacdca48ae`. Liveness and readiness return
+HTTP 200. The existing migration and worker deployments remain healthy because the focused
+Draw form repair required only the web role.
+
+The staging Workspace contains all 2,148 imported Cards: 840 Deck of Worlds, 540 Lore
+Master's Deck, and 768 Story Engine. It also contains 149 Rules, 28 Spreads or modules, 115
+Spread positions, one Journal, six sections, and 28 prompts. Imported review states are
+1,998 pending, 30 needs correction, and 120 needing symbol review; no imported Card was
+approved during smoke testing.
+
+Both committed ImportBatch records are clean. The second import reported zero created or
+updated records and 2,493 unchanged records while preserving the approved/favorited
+synthetic custom Card. Authenticated Library, review, guidance, free Draw, official Spread,
+context snapshot, interpretation, search, and dashboard checks passed. Release-fix PR #30
+corrected Draw creation with coherent story context. The transient package object was
+removed; the authoritative audit remains outside the repository. AI is disabled, and
+production remains empty and untouched.
+
 ## Current Staging Release — 2026-07-18
 
 Classification: **Hosted private storage release successful.**
