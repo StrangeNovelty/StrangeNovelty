@@ -174,6 +174,7 @@ class DrawSetupForm(forms.ModelForm):
     def __init__(self, *args, workspace, **kwargs):
         super().__init__(*args, **kwargs)
         self.workspace = workspace
+        self.instance.workspace = workspace
         mappings = {
             "decks": Deck.objects.filter(workspace=workspace),
             "expansions": DeckExpansion.objects.filter(deck__workspace=workspace, is_active=True),
