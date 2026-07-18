@@ -49,6 +49,8 @@ def test_character_sections_are_direct_scoped_and_focused():
         assert response.status_code == 200
         assert b'aria-current="page"' in response.content
         assert response.content.count(b'id="character-section-select"') == 1
+        assert response.content.count(b'id="main-content"') == 1
+        assert response.content.count(b"<main") == 1
     assert (
         client.get(
             reverse(

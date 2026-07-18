@@ -3,7 +3,7 @@
 {% block content %}
 <div class="app-shell character-workspace-shell">
   <aside class="sidebar sidebar-left" aria-label="Primary navigation">{% with active_nav="characters" %}{% include "includes/primary_navigation.html" %}{% endwith %}{% include "includes/sidebar_account.html" %}</aside>
-  <main class="workspace-area character-workspace" id="main-content">
+  <div class="workspace-area character-workspace">
     <header class="character-workspace-header">
       <div class="character-header-identity">
         <a class="character-back" href="{% url 'character-list' %}" aria-label="Back to Characters">←</a>
@@ -64,6 +64,6 @@
         <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Appearances</p><h2>Reader order and story placement</h2></div></div><form class="compact-filter" method="get"><label for="appearance-filter">Filter title</label><input id="appearance-filter" name="q" value="{{ request.GET.q }}"><button class="button button-secondary" type="submit">Filter</button></form><div class="appearance-list">{% for link in scene_links %}<article class="appearance-card"><div><p class="card-label">{% if link.scene.chapter %}{{ link.scene.chapter.title }}{% else %}Unplaced Scene{% endif %}</p><h3><a href="{% url 'scene-editor' link.scene.id %}">{{ link.scene.title }}</a></h3><p>{{ link.scene.get_lifecycle_display }}{% if link.scene.chapter.pov_character_id == character.id %} · POV{% endif %}{% if link.scene.work %} · <a href="{% url 'work-detail' link.scene.work.id %}">{{ link.scene.work.title }}</a>{% endif %}</p></div></article>{% empty %}<p class="empty-state">No Scene appearances yet. Link this Character from a Scene or Chapter context panel.</p>{% endfor %}</div></section>
       {% endif %}
     </div>
-  </main>
+  </div>
 </div>
 {% endblock %}
