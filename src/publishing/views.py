@@ -19,6 +19,7 @@ from publishing.forms import (
 )
 from publishing.models import ExportRecord, ManuscriptEntry, ManuscriptProject, PublicationEntry
 from publishing.profiles import PROFILES
+from strange_novelty.file_delivery import PrivateObjectUnavailable, open_private_object
 from workspaces.services import resolve_owner_workspace
 
 
@@ -262,8 +263,8 @@ def export_download(request, export_id):
     if not record.file:
         raise Http404
     try:
-        handle = record.file.open("rb")
-    except OSError as exc:
+        handle = open_private_object(record.file)
+    except PrivateObjectUnavailable as exc:
         raise Http404("Export unavailable.") from exc
     return FileResponse(
         handle, content_type=record.mime_type, as_attachment=True, filename=record.filename

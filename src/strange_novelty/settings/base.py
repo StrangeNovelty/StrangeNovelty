@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+from .storage import private_storage_settings
+
 BASE_DIR = Path(__file__).resolve().parents[3]
 
 SECRET_KEY = ""
@@ -113,6 +115,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 MEDIA_ROOT = Path(os.environ.get("PRIVATE_MEDIA_ROOT", BASE_DIR / ".private-media"))
+STORAGES = private_storage_settings(MEDIA_ROOT)
+STORAGES["staticfiles"] = {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}
 LIBRARY_MAX_UPLOAD_BYTES = int(os.environ.get("LIBRARY_MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
 LIBRARY_MAX_EXTRACT_BYTES = int(os.environ.get("LIBRARY_MAX_EXTRACT_BYTES", str(10 * 1024 * 1024)))
 LIBRARY_MAX_EXTRACTED_TEXT_CHARS = int(

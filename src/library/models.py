@@ -4,6 +4,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from strange_novelty.private_storage import private_upload_storage
 from workspaces.models import Workspace
 
 
@@ -64,7 +65,9 @@ class ResearchSource(models.Model):
     bias_notes = models.TextField(blank=True)
     usage_rights_notes = models.TextField(blank=True)
     tags = models.JSONField(default=list, blank=True)
-    source_file = models.FileField(upload_to=private_upload_path, blank=True)
+    source_file = models.FileField(
+        upload_to=private_upload_path, storage=private_upload_storage, blank=True
+    )
     original_filename = models.CharField(max_length=255, blank=True)
     mime_type = models.CharField(max_length=120, blank=True)
     file_size = models.PositiveBigIntegerField(null=True, blank=True)
@@ -191,7 +194,7 @@ class ArtworkAsset(models.Model):
     creator_source = models.CharField(max_length=240, blank=True)
     source_url = models.URLField(blank=True)
     usage_rights_notes = models.TextField(blank=True)
-    file = models.FileField(upload_to=private_upload_path)
+    file = models.FileField(upload_to=private_upload_path, storage=private_upload_storage)
     original_filename = models.CharField(max_length=255)
     mime_type = models.CharField(max_length=120)
     size = models.PositiveBigIntegerField()

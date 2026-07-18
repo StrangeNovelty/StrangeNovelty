@@ -17,6 +17,7 @@ from library.models import (
     ResearchSource,
 )
 from library.services import extract_source_text
+from strange_novelty.file_delivery import PrivateObjectUnavailable, open_private_object
 from workspaces.services import resolve_owner_workspace
 
 
@@ -134,8 +135,8 @@ def source_file(request, source_id):
     if not source.source_file:
         raise Http404
     try:
-        handle = source.source_file.open("rb")
-    except OSError as exc:
+        handle = open_private_object(source.source_file)
+    except PrivateObjectUnavailable as exc:
         raise Http404("File unavailable.") from exc
     return FileResponse(
         handle,
@@ -251,8 +252,8 @@ def artwork_detail(request, artwork_id):
 def artwork_file(request, artwork_id):
     record = get_object_or_404(ArtworkAsset, id=artwork_id, workspace=workspace(request))
     try:
-        handle = record.file.open("rb")
-    except OSError as exc:
+        handle = open_private_object(record.file)
+    except PrivateObjectUnavailable as exc:
         raise Http404("Image unavailable.") from exc
     return FileResponse(handle, content_type=record.mime_type, filename=record.original_filename)
 

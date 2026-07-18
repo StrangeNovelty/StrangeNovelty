@@ -7,6 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
 from .environment import parse_bool, parse_csv, parse_int, postgres_database, require_value
+from .storage import private_storage_settings
 
 SECRET_KEY = require_value("DJANGO_SECRET_KEY")
 if len(SECRET_KEY) < 50 or SECRET_KEY.startswith(("<", "development-", "test-")):
@@ -105,10 +106,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = DATA_UPLOAD_MAX_MEMORY_SIZE
 EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
-STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-}
+STORAGES = private_storage_settings(MEDIA_ROOT)  # noqa: F405
+STORAGES["staticfiles"] = {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
 if LOG_LEVEL not in {"INFO", "WARNING", "ERROR", "CRITICAL"}:

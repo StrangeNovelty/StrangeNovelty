@@ -5,6 +5,7 @@ from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from strange_novelty.private_storage import private_export_storage
 from workspaces.models import Workspace
 
 
@@ -310,7 +311,9 @@ class ExportRecord(models.Model):
     export_format = models.CharField(max_length=12, choices=FORMATS)
     status = models.CharField(max_length=16, choices=STATUSES, default="queued")
     filename = models.CharField(max_length=255)
-    file = models.FileField(upload_to=export_upload_path, blank=True)
+    file = models.FileField(
+        upload_to=export_upload_path, storage=private_export_storage, blank=True
+    )
     mime_type = models.CharField(max_length=120, blank=True)
     file_size = models.PositiveBigIntegerField(null=True, blank=True)
     checksum = models.CharField(max_length=64, blank=True)
