@@ -295,9 +295,9 @@ def collection_detail(request, collection_id):
     ws = workspace(request)
     collection = get_object_or_404(LibraryCollection, id=collection_id, workspace=ws)
     form = MembershipForm(request.POST or None, workspace=ws)
+    form.instance.collection = collection
     if request.method == "POST" and form.is_valid():
         member = form.save(commit=False)
-        member.collection = collection
         try:
             member.full_clean()
             member.save()
