@@ -164,7 +164,7 @@ def test_scene_editor_template_uses_application_shell_and_preserves_save_contrac
     )
     assert 'class="app-shell"' in template
     assert 'aria-label="Primary navigation"' in template
-    assert 'class="nav-link nav-link-active"' in template
+    assert "includes/primary_navigation.html" in template
     assert "action=\"{% url 'scene-save' scene.id %}\"" in template
     assert "{% csrf_token %}" in template
     assert "{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}" in template

@@ -67,7 +67,7 @@ def test_search_template_uses_application_shell_and_preserves_form_contract() ->
     template = (Path(__file__).parents[1] / "templates/scenes/search.html").read_text()
     assert 'class="app-shell"' in template
     assert 'aria-label="Primary navigation"' in template
-    assert 'class="nav-link nav-link-active"' in template
+    assert "includes/primary_navigation.html" in template
     assert '<form class="scene-search-form" method="post"' in template
     assert "action=\"{% url 'scene-search' %}\"" in template
     assert "{% csrf_token %}" in template

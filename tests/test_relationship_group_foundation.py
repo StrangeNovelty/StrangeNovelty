@@ -87,16 +87,11 @@ def test_connected_cast_templates_use_post_for_mutations_and_confirm_deletion() 
     assert "Remove member" in group_detail
 
 
-def test_groups_are_exposed_in_shared_navigation_and_combined_search() -> None:
+def test_groups_are_exposed_contextually_and_in_combined_search() -> None:
     root = Path(__file__).parents[1] / "templates"
-    for template in (
-        root / "workspaces/home.html",
-        root / "scenes/list.html",
-        root / "characters/list.html",
-        root / "characters/detail.html",
-    ):
-        content = template.read_text()
-        assert "{% url 'character-group-list' %}" in content
+    assert "{% url 'character-group-list' %}" in (root / "characters/list.html").read_text()
+    assert "{% url 'character-group-list' %}" in (root / "stories/work_detail.html").read_text()
+    assert ">Groups<" not in (root / "includes/primary_navigation.html").read_text()
     search = (root / "scenes/search.html").read_text()
     assert 'class="search-result-group-heading">Groups<' in search
     assert "character-group-detail" in search

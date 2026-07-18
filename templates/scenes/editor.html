@@ -14,27 +14,8 @@
         </div>
       </div>
 
-      <nav class="primary-nav">
-        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
-        <a class="nav-link" href="{% url 'work-list' %}">Works</a>
-        <a class="nav-link nav-link-active" href="{% url 'scene-list' %}">
-          Scenes
-        </a>
-        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
-        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
-        <a class="nav-link" href="{% url 'world-home' %}">World</a>
-        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
-      </nav>
-
-      <div class="sidebar-account">
-        <p class="account-label">Signed in as</p>
-        <p class="account-name">{{ request.user.email }}</p>
-
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="text-button" type="submit">Sign out</button>
-        </form>
-      </div>
+      {% with active_nav="scenes" %}{% include "includes/primary_navigation.html" %}{% endwith %}
+      {% include "includes/sidebar_account.html" %}
     </aside>
 
     <section class="workspace-area">
@@ -44,9 +25,7 @@
           <h1>{{ scene.title }}</h1>
         </div>
 
-        <a class="button button-secondary" href="{% url 'scene-list' %}">
-          Back to scenes
-        </a>
+        <nav class="action-row" aria-label="Scene sequence">{% if previous_scene %}<a class="button button-secondary" href="{% url 'scene-editor' previous_scene.id %}">Previous Scene</a>{% endif %}{% if scene.chapter %}<a class="button button-secondary" href="{% url 'chapter-detail' scene.work.id scene.chapter.id %}">Back to Chapter</a>{% elif scene.work %}<a class="button button-secondary" href="{% url 'work-detail' scene.work.id %}">Back to Work</a>{% else %}<a class="button button-secondary" href="{% url 'scene-list' %}">All Scenes</a>{% endif %}{% if next_scene %}<a class="button button-primary" href="{% url 'scene-editor' next_scene.id %}">Next Scene</a>{% endif %}</nav>
       </header>
 
       <div class="workspace-main editor-workspace">
