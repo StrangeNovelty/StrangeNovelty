@@ -13,29 +13,8 @@
         </div>
       </div>
 
-      <nav class="primary-nav">
-        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
-        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
-        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
-        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
-        <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
-        <a class="nav-link" href="{% url 'continuity-home' %}">Continuity</a>
-        <a class="nav-link" href="{% url 'timeline-home' %}">Timeline</a>
-        <a class="nav-link" href="{% url 'ai-workspace' %}">AI Studio</a>
-        <a class="nav-link nav-link-active" href="{% url 'scene-search' %}">
-          Search
-        </a>
-      </nav>
-
-      <div class="sidebar-account">
-        <p class="account-label">Signed in as</p>
-        <p class="account-name">{{ request.user.email }}</p>
-
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="text-button" type="submit">Sign out</button>
-        </form>
-      </div>
+      {% with active_nav="search" %}{% include "includes/primary_navigation.html" %}{% endwith %}
+      {% include "includes/sidebar_account.html" %}
     </aside>
 
     <section class="workspace-area">
@@ -54,7 +33,7 @@
         <section class="scene-search-panel" aria-labelledby="scene-search-heading">
           <div>
             <p class="card-label">Find your writing</p>
-            <h2 id="scene-search-heading">Find Scenes, Characters, Groups, Works, and Chapters.</h2>
+            <h2 id="scene-search-heading">Find your writing, story memory, tools, and publishing records.</h2>
             <p class="form-support">
               Search current Scene revisions, cast records, and story structure from one place.
             </p>
@@ -72,6 +51,8 @@
               </div>
               {{ form.query.errors }}
             </div>
+
+            <nav class="search-result-jumps" aria-label="Result types">{% if scene_results %}<a href="#results-scenes">Scenes</a>{% endif %}{% if chapter_results %}<a href="#results-chapters">Chapters</a>{% endif %}{% if character_results %}<a href="#results-characters">Characters</a>{% endif %}{% if location_results or region_results or codex_results or item_results or creature_results %}<a href="#results-world">World</a>{% endif %}{% if thread_results or secret_results or clue_results or reveal_results %}<a href="#results-continuity">Continuity</a>{% endif %}{% if timeline_results or timeline_event_results %}<a href="#results-timeline">Timeline</a>{% endif %}{% if research_source_results or research_note_results or artwork_results or collection_results %}<a href="#results-library">Library</a>{% endif %}{% if manuscript_results or publication_results or export_results %}<a href="#results-publishing">Publishing</a>{% endif %}</nav>
 
             <div class="search-option">
               {{ form.include_archived }}
@@ -101,7 +82,7 @@
             </div>
 
             {% if scene_results %}
-              <h3 class="search-result-group-heading">Scenes</h3>
+              <h3 class="search-result-group-heading" id="results-scenes">Scenes</h3>
               <ol class="search-result-list">
                 {% for result in scene_results %}
                   <li>
@@ -123,7 +104,7 @@
             {% endif %}
 
             {% if character_results %}
-              <h3 class="search-result-group-heading">Characters</h3>
+              <h3 class="search-result-group-heading" id="results-characters">Characters</h3>
               <ol class="search-result-list">
                 {% for result in character_results %}
                   <li>
@@ -173,7 +154,7 @@
             {% endif %}
 
             {% if chapter_results %}
-              <h3 class="search-result-group-heading">Chapters</h3>
+              <h3 class="search-result-group-heading" id="results-chapters">Chapters</h3>
               <ol class="search-result-list">
                 {% for result in chapter_results %}
                   <li><a class="search-result" href="{% url 'chapter-detail' result.chapter.work.id result.chapter.id %}"><span class="search-result-heading"><span class="search-result-title">{{ result.chapter.title }}</span><span class="lifecycle-badge">{{ result.chapter.work.title }} · {{ result.chapter.get_status_display }}</span></span>{% if result.chapter.label %}<span class="character-role">{{ result.chapter.label }}</span>{% endif %}<span class="search-result-snippet">{{ result.snippet }}</span></a></li>

@@ -13,26 +13,8 @@
         </div>
       </div>
 
-      <nav class="primary-nav">
-        <a class="nav-link" href="{% url 'workspace-home' %}">Workspace</a>
-        <a class="nav-link" href="{% url 'work-list' %}">Works</a>
-        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
-        <a class="nav-link nav-link-active" href="{% url 'character-list' %}">
-          Characters
-        </a>
-        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
-        <a class="nav-link" href="{% url 'world-home' %}">World</a>
-        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
-      </nav>
-
-      <div class="sidebar-account">
-        <p class="account-label">Signed in as</p>
-        <p class="account-name">{{ request.user.email }}</p>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="text-button" type="submit">Sign out</button>
-        </form>
-      </div>
+      {% with active_nav="characters" %}{% include "includes/primary_navigation.html" %}{% endwith %}
+      {% include "includes/sidebar_account.html" %}
     </aside>
 
     <section class="workspace-area">

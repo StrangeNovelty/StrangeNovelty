@@ -143,8 +143,8 @@ def test_workspace_template_preserves_shell_navigation_and_search_contract() -> 
         encoding="utf-8"
     )
     assert 'class="app-shell"' in template
-    assert 'class="nav-link nav-link-active"' in template
-    assert '<form method="post" action="{% url \'logout\' %}">' in template
+    assert "includes/primary_navigation.html" in template
+    assert "includes/sidebar_account.html" in template
     assert '<form class="header-search" method="post"' in template
     assert "{% csrf_token %}" in template
     assert 'name="query"' in template

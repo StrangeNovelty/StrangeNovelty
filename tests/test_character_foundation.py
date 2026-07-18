@@ -125,8 +125,11 @@ def test_application_navigation_exposes_characters() -> None:
         root / "ai_assistance/request_status.html",
         root / "ai_assistance/review.html",
     ]
+    shared_navigation = (root / "includes/primary_navigation.html").read_text(encoding="utf-8")
+    assert "{% url 'character-list' %}" in shared_navigation
     for template_path in shell_templates:
-        assert "{% url 'character-list' %}" in template_path.read_text(encoding="utf-8")
+        source = template_path.read_text(encoding="utf-8")
+        assert "{% url 'character-list' %}" in source or "primary_navigation.html" in source
 
 
 def test_character_migration_is_narrow_and_typed() -> None:

@@ -1,0 +1,1 @@
+<div class="sidebar-account"><p class="account-label">Signed in as</p><p class="account-name">{{ request.user.email }}</p><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Sign out</button></form></div>

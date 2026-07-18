@@ -76,6 +76,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "writing_statistics": {"today": 0, "week": 0, "streak": 0, "seven_days": []},
         "library_unreviewed_count": 0,
         "publishing_review_count": 0,
+        "show_onboarding": True,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -149,6 +150,8 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "publishing_review_count": ManuscriptProject.objects.filter(
                     workspace=workspace, status="ready"
                 ).count(),
+                "show_onboarding": not Work.objects.filter(workspace=workspace).exists()
+                or not Scene.objects.filter(workspace=workspace).exists(),
             }
         )
         recent_world = []
@@ -161,3 +164,24 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         )
 
     return render(request, "workspaces/home.html", context)
+
+
+@never_cache
+@login_required
+def quick_create(request: HttpRequest) -> HttpResponse:
+    workspace = resolve_owner_workspace(request.user)
+    recent_work = Work.objects.filter(workspace=workspace).order_by("-updated_at", "id").first()
+    return render(
+        request,
+        "workspaces/quick_create.html",
+        {"workspace": workspace, "recent_work": recent_work, "active_nav": "create"},
+    )
+
+
+@never_cache
+@login_required
+def product_guide(request: HttpRequest) -> HttpResponse:
+    workspace = resolve_owner_workspace(request.user)
+    return render(
+        request, "workspaces/product_guide.html", {"workspace": workspace, "active_nav": "help"}
+    )

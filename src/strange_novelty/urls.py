@@ -280,7 +280,7 @@ from timeline.views import (
     timeline_home,
     timeline_transition,
 )
-from workspaces.views import root, workspace_home
+from workspaces.views import product_guide, quick_create, root, workspace_home
 from worldbuilding.views import (
     record_connection_create,
     scene_world_context_update,
@@ -483,6 +483,8 @@ urlpatterns = [
     ),
     path("account/security/password/", password_change, name="password-change"),
     path("workspace/", workspace_home, name="workspace-home"),
+    path("create/", quick_create, name="quick-create"),
+    path("help/", product_guide, name="product-guide"),
     path("ai/", ai_workspace, name="ai-workspace"),
     path("ai/history/", ai_history, name="ai-history"),
     path("ai/request/", creative_request, name="ai-creative-request"),

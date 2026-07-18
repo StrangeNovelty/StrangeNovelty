@@ -13,27 +13,8 @@
         </div>
       </div>
 
-      <nav class="primary-nav">
-        <a class="nav-link nav-link-active" href="{% url 'workspace-home' %}">Workspace</a>
-        <a class="nav-link" href="{% url 'work-list' %}">Works</a>
-        <a class="nav-link" href="{% url 'scene-list' %}">Scenes</a>
-        <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
-        <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
-        <a class="nav-link" href="{% url 'world-home' %}">World</a>
-        <a class="nav-link" href="{% url 'library-home' %}">Library</a>
-        <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
-        <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
-      </nav>
-
-      <div class="sidebar-account">
-        <p class="account-label">Signed in as</p>
-        <p class="account-name">{{ request.user.email }}</p>
-
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="text-button" type="submit">Sign out</button>
-        </form>
-      </div>
+      {% with active_nav="workspace" %}{% include "includes/primary_navigation.html" %}{% endwith %}
+      {% include "includes/sidebar_account.html" %}
     </aside>
 
     <section class="workspace-area">
@@ -63,7 +44,7 @@
             Continue writing, review recent scenes, or explore your project.
           </p>
 
-          <div class="action-row">
+          <div class="action-row" aria-label="Workspace actions">
             <a class="button button-primary" href="{% url 'scene-create' %}">
               Create a scene
             </a>
@@ -77,12 +58,15 @@
               Open Characters
             </a>
             <a class="button button-secondary" href="{% url 'scene-search' %}">
-              Search scenes
+              Search everything
             </a>
+            <a class="button button-secondary" href="{% url 'quick-create' %}">Create</a>
           </div>
         </section>
 
-        <section class="writing-signal" aria-label="Writing activity"><strong>{{ writing_statistics.today }} words added today</strong> · {{ writing_statistics.week }} this week · {{ writing_statistics.streak }} day streak{% if writing_chapter %} · <a href="{% url 'chapter-detail' writing_chapter.work_id writing_chapter.id %}">Continue {{ writing_chapter.title }}</a>{% endif %}</section><section class="dashboard-grid" aria-label="Workspace overview">
+        {% if show_onboarding %}<section class="onboarding-panel" aria-labelledby="getting-started-heading"><div><p class="eyebrow">Getting started</p><h2 id="getting-started-heading">Build your creative home one useful step at a time.</h2><p class="welcome-copy">Nothing here is mandatory. Follow the next step that helps your current story.</p></div><ol class="onboarding-steps"><li class="{% if active_work_count %}is-complete{% endif %}"><a href="{% url 'work-create' %}">Create a Work</a></li><li><a href="{% url 'work-list' %}">Add a Chapter</a></li><li class="{% if character_count %}is-complete{% endif %}"><a href="{% url 'character-create' %}">Create a Character</a></li><li class="{% if active_scene_count %}is-complete{% endif %}"><a href="{% url 'scene-create' %}">Write the first Scene</a></li><li><a href="{% url 'world-home' %}">Add world context</a></li><li><a href="{% url 'deck-home' %}">Explore Decks</a> or <a href="{% url 'ai-workspace' %}">AI Studio</a></li><li><a href="{% url 'publishing-home' %}">Compile a Manuscript</a></li></ol></section>{% endif %}
+
+        <section class="writing-signal" aria-label="Writing activity"><strong>{{ writing_statistics.today }} words added today</strong> · {{ writing_statistics.week }} this week · {{ writing_statistics.streak }} day streak{% if writing_chapter %} · <a href="{% url 'chapter-detail' writing_chapter.work_id writing_chapter.id %}">Continue {{ writing_chapter.title }}</a>{% endif %}</section><section class="dashboard-grid" aria-label="Workspace overview"><div class="dashboard-section-heading"><p class="eyebrow">Continue creating</p><h2>Return to active work</h2></div>
           <article class="dashboard-card">
             <p class="card-label">Active scenes</p>
             <p class="metric-value">{{ active_scene_count }}</p>
@@ -149,14 +133,14 @@
             {% endif %}
           </article>
 
-          <article class="dashboard-card">
+          <div class="dashboard-section-heading"><p class="eyebrow">Cast and world</p><h2>Keep the story connected</h2></div><article class="dashboard-card">
             <p class="card-label">Worldbuilding</p>
             <p class="card-value">{{ world_location_count }} places · {{ world_codex_count }} lore · {{ world_creature_count }} creatures</p>
             {% if recent_world_record %}<p class="card-support">Recently updated: {{ recent_world_record }}</p>{% else %}<p class="card-support">The World library is ready for its first record.</p>{% endif %}
             <a class="side-link" href="{% url 'world-home' %}">Open World</a>
           </article>
 
-          <article class="dashboard-card">
+          <div class="dashboard-section-heading"><p class="eyebrow">Creative development</p><h2>Explore, review, and research</h2></div><article class="dashboard-card">
             <p class="card-label">Deck review</p>
             <p class="metric-value">{{ deck_review_remaining }}</p>
             <p class="card-support">cards remain outside approved status</p>
@@ -169,7 +153,7 @@
           <article class="dashboard-card"><p class="card-label">Continuity</p><p class="metric-value">{{ continuity_open_count }}</p><p class="card-support">open Plot Threads</p><a class="side-link" href="{% url 'continuity-home' %}">Open Continuity</a></article>
           <article class="dashboard-card"><p class="card-label">Chronology</p><p class="metric-value">{{ timeline_unplaced_count }}</p><p class="card-support">Events without story placement</p><a class="side-link" href="{% url 'timeline-home' %}">Open Timelines</a></article>
           <article class="dashboard-card"><p class="card-label">Library</p><p class="metric-value">{{ library_unreviewed_count }}</p><p class="card-support">Sources unread or reviewing</p><a class="side-link" href="{% url 'library-home' %}">Open Library</a></article>
-          <article class="dashboard-card"><p class="card-label">Publishing</p><p class="metric-value">{{ publishing_review_count }}</p><p class="card-support">Manuscripts awaiting review</p><a class="side-link" href="{% url 'publishing-home' %}">Open Publishing</a></article>
+          <div class="dashboard-section-heading"><p class="eyebrow">Publishing</p><h2>Prepare deliberate release</h2></div><article class="dashboard-card"><p class="card-label">Publishing</p><p class="metric-value">{{ publishing_review_count }}</p><p class="card-support">Manuscripts awaiting review</p><a class="side-link" href="{% url 'publishing-home' %}">Open Publishing</a></article>
           <article class="dashboard-card"><p class="card-label">AI Studio</p><p class="metric-value">{{ ai_review_count }}</p><p class="card-support">suggestions awaiting review</p><a class="side-link" href="{% url 'ai-workspace' %}">Open AI Studio</a></article>
 
           <article class="dashboard-card dashboard-card-wide">
@@ -222,12 +206,7 @@
         <a class="side-link" href="{% url 'scene-search' %}">Search</a>
       </section>
 
-      <section class="side-panel">
-        <p class="card-label">Coming next</p>
-        <p class="side-copy">
-          Recent scenes, project notes, and writing progress.
-        </p>
-      </section>
+      <section class="side-panel"><p class="card-label">Orientation</p><a class="side-link" href="{% url 'quick-create' %}">Create something</a><a class="side-link" href="{% url 'product-guide' %}">Product guide</a></section>
     </aside>
   </div>
 {% endblock %}

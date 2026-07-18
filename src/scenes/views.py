@@ -2,6 +2,7 @@ import uuid
 from typing import cast
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -176,6 +177,35 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "creatures": world_context["creatures"],
         },
     )
+    ordered_scenes = Scene.objects.filter(
+        workspace=workspace, lifecycle=Scene.Lifecycle.ACTIVE
+    ).exclude(id=scene.id)
+    if scene.chapter_id:
+        ordered_scenes = ordered_scenes.filter(chapter_id=scene.chapter_id)
+    elif scene.work_id:
+        ordered_scenes = ordered_scenes.filter(work_id=scene.work_id)
+    else:
+        ordered_scenes = ordered_scenes.filter(work__isnull=True)
+    if scene.structure_order is None:
+        previous_filter = Q(ordering__lt=scene.ordering) | Q(
+            ordering=scene.ordering, id__lt=scene.id
+        )
+        next_filter = Q(ordering__gt=scene.ordering) | Q(ordering=scene.ordering, id__gt=scene.id)
+        sequence_fields = ("ordering", "id")
+    else:
+        previous_filter = Q(structure_order__lt=scene.structure_order) | Q(
+            structure_order=scene.structure_order, id__lt=scene.id
+        )
+        next_filter = Q(structure_order__gt=scene.structure_order) | Q(
+            structure_order=scene.structure_order, id__gt=scene.id
+        )
+        sequence_fields = ("structure_order", "id")
+    previous_scene = (
+        ordered_scenes.filter(previous_filter)
+        .order_by(*[f"-{field}" for field in sequence_fields])
+        .first()
+    )
+    next_scene = ordered_scenes.filter(next_filter).order_by(*sequence_fields).first()
     return render(
         request,
         "scenes/editor.html",
@@ -191,6 +221,8 @@ def scene_editor(request: HttpRequest, scene_id: uuid.UUID) -> HttpResponse:
             "ability_events": scene.ability_events.select_related(
                 "ability", "ability__character"
             ).order_by("-created_at", "-id"),
+            "previous_scene": previous_scene,
+            "next_scene": next_scene,
         },
     )
 
