@@ -141,7 +141,7 @@ def _filtered(workspace, filters, *, review=False):
             | Q(role__icontains=q)
             | Q(suit__icontains=q)
         )
-    return cards.distinct()
+    return cards.distinct().order_by("stable_source_identity", "id")
 
 
 @never_cache

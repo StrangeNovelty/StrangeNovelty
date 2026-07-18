@@ -8,6 +8,7 @@ from ai_assistance.models import AICreativeSuggestion
 from characters.models import Character
 from continuity.models import PlotThread
 from decks.models import DeckCard, SavedDraw
+from library.models import ResearchSource
 from scenes.models import Scene, SceneRevision
 from security_events.middleware import request_correlation_id
 from security_events.services import SecurityEventSpec, record_security_event
@@ -72,6 +73,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "timeline_unplaced_count": 0,
         "ai_review_count": 0,
         "writing_statistics": {"today": 0, "week": 0, "streak": 0, "seven_days": []},
+        "library_unreviewed_count": 0,
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -139,6 +141,9 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                     workspace=workspace, state__in=("ready", "editing")
                 ).count(),
                 "writing_statistics": writing_statistics(workspace),
+                "library_unreviewed_count": ResearchSource.objects.filter(
+                    workspace=workspace, status__in=("unread", "reviewing")
+                ).count(),
             }
         )
         recent_world = []

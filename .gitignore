@@ -12,6 +12,7 @@ private-data/
 .env.*
 !.env.example
 /staticfiles/
+/.private-media/
 
 # Python environments and caches
 .venv/

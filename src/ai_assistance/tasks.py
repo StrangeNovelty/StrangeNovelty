@@ -29,6 +29,47 @@ TASKS = {
             "story_chat", "Continue Story Chat", "chat", ("Response", "Questions", "Possibilities")
         ),
         task(
+            "research_summary",
+            "Summarize Research Source",
+            "research",
+            ("Source Summary", "Useful Details", "Citations", "Questions"),
+            ("research_note",),
+        ),
+        task(
+            "research_compare",
+            "Compare Research Sources",
+            "research",
+            (
+                "Agreements",
+                "Differences",
+                "Possible Contradictions",
+                "Credibility Notes",
+                "Questions",
+            ),
+            ("research_note",),
+        ),
+        task(
+            "research_story",
+            "Apply Research to Story Context",
+            "research",
+            ("Source-Supported Details", "Story Applications", "Canon Questions", "Citations"),
+            ("research_note", "codex", "plot_thread"),
+        ),
+        task(
+            "visual_direction",
+            "Develop Visual Direction",
+            "research",
+            ("Visual Motifs", "Palette", "Mood", "Design Guidance", "Story Use"),
+            ("research_note",),
+        ),
+        task(
+            "chapter_reference_brief",
+            "Create Chapter Reference Brief",
+            "research",
+            ("Relevant Research", "Visual References", "Continuity Boundaries", "Citations"),
+            ("research_note", "chapter"),
+        ),
+        task(
             "chapter_directions",
             "Brainstorm Chapter Directions",
             "chapter",

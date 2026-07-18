@@ -490,6 +490,16 @@ AIContextInterpretationLink = context_link(
     "AIContextInterpretationLink", "decks.DrawInterpretation", "interpretation"
 )
 AIContextCardLink = context_link("AIContextCardLink", "decks.DeckCard", "card")
+AIContextResearchSourceLink = context_link(
+    "AIContextResearchSourceLink", "library.ResearchSource", "research_source"
+)
+AIContextResearchNoteLink = context_link(
+    "AIContextResearchNoteLink", "library.ResearchNote", "research_note"
+)
+AIContextArtworkLink = context_link("AIContextArtworkLink", "library.ArtworkAsset", "artwork")
+AIContextCollectionLink = context_link(
+    "AIContextCollectionLink", "library.LibraryCollection", "collection"
+)
 
 
 class AICreativeRequest(models.Model):
