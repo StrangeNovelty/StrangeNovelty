@@ -171,6 +171,61 @@ from library.views import (
     transition as library_transition,
 )
 from operations.health import liveness, readiness
+from publishing.views import (
+    artwork_placement_form as publishing_artwork_placement_form,
+)
+from publishing.views import (
+    batch_web_serial,
+    publishing_home,
+)
+from publishing.views import (
+    entry_form as publishing_entry_form,
+)
+from publishing.views import (
+    export_detail as publishing_export_detail,
+)
+from publishing.views import (
+    export_download as publishing_export_download,
+)
+from publishing.views import (
+    export_list as publishing_export_list,
+)
+from publishing.views import (
+    export_retry as publishing_export_retry,
+)
+from publishing.views import (
+    export_review as publishing_export_review,
+)
+from publishing.views import (
+    glossary_entry_form as publishing_glossary_entry_form,
+)
+from publishing.views import (
+    manuscript_detail as publishing_manuscript_detail,
+)
+from publishing.views import (
+    manuscript_form as publishing_manuscript_form,
+)
+from publishing.views import (
+    manuscript_list as publishing_manuscript_list,
+)
+from publishing.views import (
+    manuscript_populate as publishing_manuscript_populate,
+)
+from publishing.views import (
+    publication_form as publishing_publication_form,
+)
+from publishing.views import (
+    publication_list as publishing_publication_list,
+)
+from publishing.views import (
+    publication_transition as publishing_publication_transition,
+)
+from publishing.views import (
+    reading_preview as publishing_reading_preview,
+)
+from publishing.views import (
+    revision_action as publishing_revision_action,
+)
 from scenes.search_views import scene_search
 from scenes.views import (
     scene_create,
@@ -245,6 +300,96 @@ from worldbuilding.views import (
 )
 
 urlpatterns = [
+    path("publishing/", publishing_home, name="publishing-home"),
+    path("publishing/manuscripts/", publishing_manuscript_list, name="publishing-manuscript-list"),
+    path(
+        "publishing/manuscripts/new/",
+        publishing_manuscript_form,
+        name="publishing-manuscript-create",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/",
+        publishing_manuscript_detail,
+        name="publishing-manuscript-detail",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/edit/",
+        publishing_manuscript_form,
+        name="publishing-manuscript-edit",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/populate/",
+        publishing_manuscript_populate,
+        name="publishing-manuscript-populate",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/entries/new/",
+        publishing_entry_form,
+        name="publishing-entry-create",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/entries/<uuid:entry_id>/",
+        publishing_entry_form,
+        name="publishing-entry-edit",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/revisions/",
+        publishing_revision_action,
+        name="publishing-revision-action",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/artwork/",
+        publishing_artwork_placement_form,
+        name="publishing-artwork-placement",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/glossary/",
+        publishing_glossary_entry_form,
+        name="publishing-glossary-entry",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/read/",
+        publishing_reading_preview,
+        name="publishing-reading-preview",
+    ),
+    path(
+        "publishing/manuscripts/<uuid:manuscript_id>/export/",
+        publishing_export_review,
+        name="publishing-export-review",
+    ),
+    path("publishing/exports/", publishing_export_list, name="publishing-export-list"),
+    path(
+        "publishing/exports/<uuid:export_id>/",
+        publishing_export_detail,
+        name="publishing-export-detail",
+    ),
+    path(
+        "publishing/exports/<uuid:export_id>/download/",
+        publishing_export_download,
+        name="publishing-export-download",
+    ),
+    path(
+        "publishing/exports/<uuid:export_id>/retry/",
+        publishing_export_retry,
+        name="publishing-export-retry",
+    ),
+    path("publishing/queue/", publishing_publication_list, name="publishing-publication-list"),
+    path(
+        "publishing/queue/new/", publishing_publication_form, name="publishing-publication-create"
+    ),
+    path(
+        "publishing/queue/<uuid:publication_id>/edit/",
+        publishing_publication_form,
+        name="publishing-publication-edit",
+    ),
+    path(
+        "publishing/queue/<uuid:publication_id>/transition/",
+        publishing_publication_transition,
+        name="publishing-publication-transition",
+    ),
+    path(
+        "publishing/queue/web-serial/batch/", batch_web_serial, name="publishing-web-serial-batch"
+    ),
     path("library/", library_home, name="library-home"),
     path("library/research/", library_source_list, name="library-source-list"),
     path("library/research/new/", library_source_form, name="library-source-create"),

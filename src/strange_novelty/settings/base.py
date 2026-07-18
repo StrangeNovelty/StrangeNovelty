@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "legacy_imports.apps.LegacyImportsConfig",
     "ai_assistance.apps.AiAssistanceConfig",
     "library.apps.LibraryConfig",
+    "publishing.apps.PublishingConfig",
     "operations.apps.OperationsConfig",
 ]
 

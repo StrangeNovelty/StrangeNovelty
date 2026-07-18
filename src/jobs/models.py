@@ -14,6 +14,7 @@ class Job(models.Model):
         REBUILD_SCENE_SEARCH = "rebuild_scene_search_projection", "Rebuild Scene search"
         VALIDATE_LEGACY_IMPORT = "validate_legacy_import", "Validate legacy import"
         GENERATE_AI_SUGGESTION = "generate_ai_scene_suggestion", "Generate AI Scene suggestion"
+        GENERATE_MANUSCRIPT_EXPORT = "generate_manuscript_export", "Generate manuscript export"
 
     class State(models.TextChoices):
         QUEUED = "queued", "Queued"
@@ -32,6 +33,7 @@ class Job(models.Model):
         SCENE = "scene", "Scene"
         IMPORT_BATCH = "import_batch", "Import batch"
         AI_REQUEST = "ai_request", "AI request"
+        EXPORT = "export", "Export"
 
     class EffectClass(models.TextChoices):
         INTERNAL_IDEMPOTENT = "internal_idempotent", "Internal idempotent"
@@ -117,6 +119,7 @@ class Job(models.Model):
                         "rebuild_scene_search_projection",
                         "validate_legacy_import",
                         "generate_ai_scene_suggestion",
+                        "generate_manuscript_export",
                     )
                 ),
                 name="job_type_valid",
@@ -129,6 +132,7 @@ class Job(models.Model):
                         "scene",
                         "import_batch",
                         "ai_request",
+                        "export",
                     )
                 ),
                 name="job_target_category_valid",
@@ -195,6 +199,16 @@ class Job(models.Model):
                         expected_scene_version__isnull=False,
                         projection_version="ai-scene-v1",
                         effect_class="external_ambiguous",
+                    )
+                    | Q(
+                        job_type="generate_manuscript_export",
+                        workspace__isnull=False,
+                        target_category="export",
+                        target_id__isnull=False,
+                        expected_revision_id__isnull=True,
+                        expected_scene_version__isnull=True,
+                        projection_version="publishing-export-v1",
+                        effect_class="internal_idempotent",
                     )
                 ),
                 name="job_type_parameters_consistent",

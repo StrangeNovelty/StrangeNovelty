@@ -114,6 +114,13 @@ CONTEXT_LINKS = {
         "collection",
         "workspace",
     ),
+    "manuscript": (
+        "publishing",
+        "ManuscriptProject",
+        "AIContextManuscriptLink",
+        "manuscript",
+        "workspace",
+    ),
 }
 
 

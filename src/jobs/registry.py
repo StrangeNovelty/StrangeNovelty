@@ -51,11 +51,23 @@ def _generate_ai_suggestion(context: JobContext) -> HandlerResult:
     return HandlerResult(HandlerOutcome.SUCCEEDED)
 
 
+def _generate_manuscript_export(context: JobContext) -> HandlerResult:
+    from jobs.models import Job
+    from publishing.exporting import generate_export
+
+    job = Job.execution_objects.get(id=context.job_id)
+    if context.cancellation_requested():
+        raise TerminalJobError("Cancellation requested.")
+    generate_export(job.target_id)
+    return HandlerResult(HandlerOutcome.SUCCEEDED)
+
+
 _HANDLERS: dict[str, JobHandler] = {
     "internal_noop": _internal_noop,
     "rebuild_scene_search_projection": _rebuild_scene_search,
     "validate_legacy_import": _validate_legacy_import,
     "generate_ai_scene_suggestion": _generate_ai_suggestion,
+    "generate_manuscript_export": _generate_manuscript_export,
 }
 
 

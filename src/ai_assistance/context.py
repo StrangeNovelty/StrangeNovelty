@@ -41,6 +41,8 @@ def _label(model_name):
         return "Research and Citations"
     if model_name in ("ArtworkAsset", "LibraryCollection"):
         return "Visual References"
+    if model_name == "ManuscriptProject":
+        return "Manuscript Configuration (prose included only through explicit Scene context)"
     return model_name.replace("AIContext", "").replace("Link", "")
 
 

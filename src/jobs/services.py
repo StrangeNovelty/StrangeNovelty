@@ -61,7 +61,14 @@ def enqueue_job(
     maximum_attempts: int = DEFAULT_MAXIMUM_ATTEMPTS,
 ) -> EnqueueResult:
     get_handler(job_type)
-    if target_category not in ("system", "workspace", "scene", "import_batch", "ai_request"):
+    if target_category not in (
+        "system",
+        "workspace",
+        "scene",
+        "import_batch",
+        "ai_request",
+        "export",
+    ):
         raise ValueError("Invalid target category.")
     if effect_class not in ("internal_idempotent", "external_ambiguous"):
         raise ValueError("Invalid effect classification.")

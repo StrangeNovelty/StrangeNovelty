@@ -500,6 +500,9 @@ AIContextArtworkLink = context_link("AIContextArtworkLink", "library.ArtworkAsse
 AIContextCollectionLink = context_link(
     "AIContextCollectionLink", "library.LibraryCollection", "collection"
 )
+AIContextManuscriptLink = context_link(
+    "AIContextManuscriptLink", "publishing.ManuscriptProject", "manuscript"
+)
 
 
 class AICreativeRequest(models.Model):
