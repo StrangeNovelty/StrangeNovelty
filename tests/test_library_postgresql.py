@@ -126,9 +126,12 @@ def test_notes_mixed_collections_connections_search_and_dashboard():
     collection = LibraryCollection.objects.create(
         workspace=workspace, name="Synthetic Mood Board", collection_type="mood_board"
     )
-    member = CollectionMembership(collection=collection, note=note, order=1)
-    member.full_clean()
-    member.save()
+    membership_response = client.post(
+        reverse("library-collection-detail", args=(collection.id,)),
+        {"note": note.id, "order": 1, "caption": "Synthetic note"},
+    )
+    assert membership_response.status_code == 302
+    assert collection.memberships.filter(note=note).exists()
     duplicate = CollectionMembership(collection=collection, note=note, order=2)
     with pytest.raises(ValidationError):
         duplicate.full_clean(validate_constraints=True)
