@@ -50,6 +50,27 @@ TASKS = {
             ("plot_thread", "clue", "reveal"),
         ),
         task(
+            "chapter_pacing",
+            "Analyze Chapter Pacing",
+            "chapter",
+            (
+                "Pacing Shape",
+                "Tension",
+                "Energy",
+                "Emotional Intimacy",
+                "Humor",
+                "Planning Suggestions",
+            ),
+            ("chapter",),
+        ),
+        task(
+            "chapter_voice",
+            "Review Chapter Voice",
+            "chapter",
+            ("Voice Profile Alignment", "Strengths", "Possible Drift", "Revision Priorities"),
+            ("chapter",),
+        ),
+        task(
             "scene_brief",
             "Build Scene Brief",
             "scene",

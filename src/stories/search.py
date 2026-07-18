@@ -67,13 +67,23 @@ def search_chapters(
     if not query_text:
         return []
     query = _query_for_fields(CHAPTER_SEARCH_FIELDS, query_text)
+    query |= Q(structured_beats__title__icontains=query_text)
+    query |= Q(structured_beats__summary__icontains=query_text)
+    query |= Q(structured_beats__notes__icontains=query_text)
+    query |= Q(scenes__briefs__scene_function__icontains=query_text)
+    query |= Q(scenes__briefs__author_notes__icontains=query_text)
+    query |= Q(checklist_items__label__icontains=query_text)
     chapters = (
-        Chapter.objects.filter(workspace=workspace).filter(query).select_related("work")[:limit]
+        Chapter.objects.filter(workspace=workspace)
+        .filter(query)
+        .select_related("work")
+        .distinct()[:limit]
     )
     return [
         ChapterSearchResult(
             chapter=chapter,
-            snippet=_excerpt(chapter, CHAPTER_SEARCH_FIELDS, query_text),
+            snippet=_excerpt(chapter, CHAPTER_SEARCH_FIELDS, query_text)
+            or "Matched Chapter Workshop planning content.",
         )
         for chapter in chapters
     ]

@@ -81,7 +81,7 @@
           </div>
         </section>
 
-        <section class="dashboard-grid" aria-label="Workspace overview">
+        <section class="writing-signal" aria-label="Writing activity"><strong>{{ writing_statistics.today }} words added today</strong> · {{ writing_statistics.week }} this week · {{ writing_statistics.streak }} day streak{% if writing_chapter %} · <a href="{% url 'chapter-detail' writing_chapter.work_id writing_chapter.id %}">Continue {{ writing_chapter.title }}</a>{% endif %}</section><section class="dashboard-grid" aria-label="Workspace overview">
           <article class="dashboard-card">
             <p class="card-label">Active scenes</p>
             <p class="metric-value">{{ active_scene_count }}</p>

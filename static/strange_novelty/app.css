@@ -17,6 +17,8 @@
   --shadow-panel: 0 1rem 3rem rgb(0 0 0 / 0.22);
 }
 
+.chapter-workshop-nav,.pacing-mini,.checklist-row,.snapshot-row,.filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}.chapter-workshop-nav,.workshop-panel,.writing-signal{margin:1rem;padding:1rem;border:1px solid var(--border-color,#3a3444);border-radius:.75rem;background:var(--panel-color,#17141d)}.beat-card,.brief-row,.snapshot-row{margin:.75rem 0;padding:1rem;border-left:3px solid #9d7ac7;overflow-wrap:anywhere}.pacing-table{width:100%;border-collapse:collapse}.pacing-table th,.pacing-table td{padding:.65rem;border:1px solid #3a3444;text-align:left}.table-scroll{overflow-x:auto}.planning-signal{padding:.75rem;border-left:3px solid #d0a65a}.workshop-form{max-width:70rem;margin:auto}.series-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem}@media(max-width:700px){.chapter-workshop-nav{position:static}.pacing-table{font-size:.85rem}}
+
 .deck-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
 .native-card, .detail-panel, .filter-panel { background: var(--panel, #18171b); border: 1px solid var(--border, #3a3540); border-radius: .75rem; padding: 1.25rem; overflow-wrap: anywhere; }
 .native-card h2 { margin-top: .4rem; }
