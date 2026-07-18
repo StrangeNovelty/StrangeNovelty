@@ -513,6 +513,45 @@ TASKS = {
             ("Original", "Proposed Text", "Tension Changes", "Voice Preservation"),
             ("scene_revision",),
         ),
+        task(
+            "deslop_pacing_analysis",
+            "De-Slop: Pacing Analysis",
+            "editorial",
+            ("Source Excerpt", "Pacing Concerns", "Rhythm Risks", "Revision Plan"),
+        ),
+        task(
+            "deslop_pacing_rewrite",
+            "De-Slop: Pacing Rewrite",
+            "editorial",
+            ("Original", "Proposed Text", "Pacing Changes", "Voice Preservation"),
+            ("scene_revision",),
+        ),
+        task(
+            "deslop_line_analysis",
+            "De-Slop: Line Analysis",
+            "editorial",
+            ("Source Excerpt", "Line-Level Habits", "Repetition", "Revision Plan"),
+        ),
+        task(
+            "deslop_line_rewrite",
+            "De-Slop: Line Rewrite",
+            "editorial",
+            ("Original", "Proposed Text", "Line Changes", "Voice Preservation"),
+            ("scene_revision",),
+        ),
+        task(
+            "deslop_tendency_analysis",
+            "De-Slop: AI-Tendency Analysis",
+            "editorial",
+            ("Source Excerpt", "Possible Tendencies", "Evidence", "Author Questions"),
+        ),
+        task(
+            "deslop_final_rewrite",
+            "De-Slop: Final Voice-Preserving Rewrite",
+            "editorial",
+            ("Original", "Proposed Text", "Resolved Tendencies", "Voice Preservation"),
+            ("scene_revision",),
+        ),
     )
 }
 

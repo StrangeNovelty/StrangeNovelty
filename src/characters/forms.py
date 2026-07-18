@@ -10,6 +10,7 @@ from characters.models import (
     AbilityStage,
     Character,
     CharacterGroup,
+    CharacterPersonalityTrait,
     CharacterRelationship,
     GroupMembership,
     GroupRelationship,
@@ -81,6 +82,22 @@ class CharacterForm(forms.ModelForm):
 class CharacterCreateForm(CharacterForm):
     class Meta(CharacterForm.Meta):
         fields = ("name", "aliases", "role", "status", "summary")
+
+
+class CharacterPersonalityTraitForm(forms.ModelForm):
+    class Meta:
+        model = CharacterPersonalityTrait
+        fields = ("name", "score", "low_label", "high_label", "notes", "order")
+        labels = {
+            "name": "Personality dimension",
+            "score": "Position (-5 to 5)",
+            "low_label": "Low-end meaning",
+            "high_label": "High-end meaning",
+        }
+        widgets = {
+            "score": forms.NumberInput(attrs={"type": "range", "min": -5, "max": 5}),
+            "notes": forms.Textarea(attrs={"rows": 2}),
+        }
 
 
 class CharacterListSearchForm(forms.Form):

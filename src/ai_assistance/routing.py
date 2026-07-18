@@ -14,6 +14,9 @@ TASK_ROUTES = {
     "scene_rewrite": WRITING,
     "editorial_tighten": WRITING,
     "editorial_tension": WRITING,
+    "deslop_pacing_rewrite": WRITING,
+    "deslop_line_rewrite": WRITING,
+    "deslop_final_rewrite": WRITING,
     "manuscript_back_cover": WRITING,
     "submission_summary": WRITING,
     # Planning, structure, and chronology synthesis.
@@ -59,6 +62,9 @@ TASK_ROUTES = {
     "timeline_review": ANALYSIS,
     "voice_analyze": ANALYSIS,
     "editorial_developmental": ANALYSIS,
+    "deslop_pacing_analysis": ANALYSIS,
+    "deslop_line_analysis": ANALYSIS,
+    "deslop_tendency_analysis": ANALYSIS,
 }
 
 

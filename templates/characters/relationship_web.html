@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Relationship Web — Strange Novelty{% endblock %}
+{% block content %}
+<div class="app-shell">
+  <aside class="sidebar sidebar-left" aria-label="Primary navigation"><div class="brand"><div class="brand-mark" aria-hidden="true">SN</div><div><p class="brand-title">Strange Novelty</p><p class="brand-subtitle">Relationship Web</p></div></div>{% with active_nav="characters" %}{% include "includes/primary_navigation.html" %}{% endwith %}{% include "includes/sidebar_account.html" %}</aside>
+  <main class="workspace-area">
+    <header class="workspace-header"><div><p class="eyebrow">Characters · Family · Relationships</p><h1>Relationship Web</h1><p class="work-header-subtitle">See how the cast connects without reducing the relationship to a line.</p></div><a class="button button-primary" href="{% url 'character-list' %}">Open Characters</a></header>
+    <div class="workspace-main relationship-web-workspace">
+      {% if nodes %}
+      <section class="relationship-map-panel" aria-labelledby="relationship-map-heading">
+        <h2 id="relationship-map-heading">Cast connections</h2>
+        <div class="relationship-map" role="img" aria-label="A visual map of Character relationships. A complete text list follows.">
+          <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            {% for edge in edges %}<line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" class="relationship-edge relationship-{{ edge.relationship.status }}" />{% endfor %}
+          </svg>
+          {% for node in nodes %}<a class="relationship-node" style="--node-x: {{ node.x }}%; --node-y: {{ node.y }}%" href="{% url 'character-detail' node.character.id %}">{{ node.character.name }}</a>{% endfor %}
+        </div>
+      </section>
+      <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Accessible relationship list</p><h2>Dynamics and perspectives</h2></div></div>{% for relationship in relationships %}<article class="relationship-list-row"><div><h3><a href="{% url 'character-detail' relationship.source_id %}">{{ relationship.source }}</a> ↔ <a href="{% url 'character-detail' relationship.target_id %}">{{ relationship.target }}</a></h3><p>{{ relationship.get_relationship_type_display }} · {{ relationship.get_status_display }} · {{ relationship.get_knowledge_state_display }}</p></div><p>{{ relationship.short_label|default:relationship.summary|default:"Add the relationship's current dynamic." }}</p></article>{% empty %}<p class="empty-state">Characters exist, but no relationships are recorded yet. Open a Character dossier to add one.</p>{% endfor %}</section>
+      {% else %}<section class="empty-state"><h2>Begin with the cast.</h2><p>Create Characters, then record the relationships that create pressure, loyalty, obligation, and change.</p><a class="button button-primary" href="{% url 'character-create' %}">Create a Character</a></section>{% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

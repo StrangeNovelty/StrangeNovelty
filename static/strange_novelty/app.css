@@ -2790,11 +2790,55 @@ textarea:focus, input:focus, select:focus { border-color: var(--color-accent); b
 .lifecycle-badge { border-color: var(--color-border); background: rgb(166 117 218 / 0.08); color: var(--color-text-secondary); }
 .empty-state, .structure-empty-state { border-color: var(--color-border-soft); background: rgb(12 10 16 / 0.45); color: var(--color-text-muted); }
 
+.story-workshop-pipeline, .dossier-section-nav { display: flex; gap: 0.45rem; overflow-x: auto; padding: 0.65rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: rgb(32 25 41 / 0.75); }
+.story-workshop-pipeline a, .dossier-section-nav a { flex: 0 0 auto; padding: 0.55rem 0.7rem; color: var(--color-text-muted); text-decoration: none; border-radius: 0.45rem; }
+.story-workshop-pipeline a:hover, .story-workshop-pipeline a:focus-visible, .dossier-section-nav a:hover, .dossier-section-nav a:focus-visible { color: var(--color-text); background: rgb(166 117 218 / 0.12); }
+.story-workshop-pipeline span, .pipeline-card-grid article > span { display: block; color: var(--color-accent-strong); font-size: 0.65rem; letter-spacing: 0.1em; }
+.workshop-pipeline-board { margin-top: 1rem; }
+.pipeline-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.pipeline-card-grid article { padding: 1rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: rgb(23 19 30 / 0.9); }
+.pipeline-card-grid article p { color: var(--color-text-muted); }
+.pipeline-card-grid article a { color: var(--color-accent-strong); }
+
+.relationship-map-panel, .world-bible-section { padding: 1rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); background: rgb(23 19 30 / 0.9); }
+.relationship-map { position: relative; min-height: 38rem; border-radius: 50%; background: radial-gradient(circle, rgb(166 117 218 / 0.11), transparent 65%); }
+.relationship-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.relationship-edge { stroke: #5e5269; stroke-width: 0.35; }
+.relationship-strained, .relationship-broken { stroke: var(--color-warning); stroke-dasharray: 1.2 1; }
+.relationship-node { position: absolute; left: var(--node-x); top: var(--node-y); translate: -50% -50%; max-width: 8rem; padding: 0.55rem 0.7rem; text-align: center; color: var(--color-text); text-decoration: none; border: 1px solid var(--color-accent); border-radius: 999px; background: #211a2b; box-shadow: 0 0 1.25rem rgb(166 117 218 / 0.2); }
+.relationship-list-row { display: grid; grid-template-columns: minmax(12rem, 0.7fr) 1fr; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid var(--color-border-soft); }
+.personality-trait { display: grid; grid-template-columns: minmax(12rem, 0.8fr) minmax(12rem, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--color-border-soft); }
+.personality-trait div span { display: block; color: var(--color-text-muted); }
+.personality-trait meter { width: 100%; accent-color: var(--color-accent); }
+
+.world-bible-layout { display: grid; grid-template-columns: minmax(11rem, 0.25fr) minmax(0, 1fr); gap: 1rem; }
+.world-bible-index { position: sticky; top: 1rem; align-self: start; display: grid; gap: 0.35rem; padding: 1rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: rgb(23 19 30 / 0.9); }
+.world-bible-index a { display: flex; justify-content: space-between; color: var(--color-text-muted); text-decoration: none; }
+.world-bible-content { display: grid; gap: 1rem; }
+.world-bible-records { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+.world-bible-records > a { display: grid; gap: 0.35rem; padding: 0.8rem; color: var(--color-text); text-decoration: none; border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); background: rgb(12 10 16 / 0.35); }
+.world-bible-records span { color: var(--color-text-muted); overflow-wrap: anywhere; }
+
+#main-content:has(.chapter-writing-workspace) > .continuity-panel,
+#main-content:has(.chapter-writing-workspace) > .timeline-panel,
+#main-content:has(.chapter-writing-workspace) > .chapter-workshop-nav,
+#main-content:has(.chapter-writing-workspace) > .workshop-panel,
+#main-content:has(.chapter-writing-workspace) > .ai-panel {
+  width: min(calc(100% - 33rem), 100rem);
+  margin-right: 16.5rem;
+  margin-left: 16.5rem;
+}
+
 @media (max-width: 78rem) {
   .app-shell, .command-shell { grid-template-columns: 14.5rem minmax(0, 1fr); }
   .sidebar-right { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: auto; border-top: 1px solid var(--color-border-soft); border-left: 0; }
   .command-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .guided-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #main-content:has(.chapter-writing-workspace) > .continuity-panel,
+  #main-content:has(.chapter-writing-workspace) > .timeline-panel,
+  #main-content:has(.chapter-writing-workspace) > .chapter-workshop-nav,
+  #main-content:has(.chapter-writing-workspace) > .workshop-panel,
+  #main-content:has(.chapter-writing-workspace) > .ai-panel { width: auto; margin-right: 1rem; margin-left: 15.5rem; }
 }
 
 @media (max-width: 52rem) {
@@ -2822,6 +2866,14 @@ textarea:focus, input:focus, select:focus { border-color: var(--color-accent); b
   .manual-definitions dd { margin-bottom: 0.8rem; }
   .workshop-orientation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scene-editor-panel textarea { min-height: 55vh; padding: 1rem; }
+  .pipeline-card-grid, .world-bible-records, .world-bible-layout, .personality-trait, .relationship-list-row { grid-template-columns: 1fr; }
+  .world-bible-index { position: static; }
+  .relationship-map { min-height: 28rem; }
+  #main-content:has(.chapter-writing-workspace) > .continuity-panel,
+  #main-content:has(.chapter-writing-workspace) > .timeline-panel,
+  #main-content:has(.chapter-writing-workspace) > .chapter-workshop-nav,
+  #main-content:has(.chapter-writing-workspace) > .workshop-panel,
+  #main-content:has(.chapter-writing-workspace) > .ai-panel { width: auto; margin-inline: 1rem; }
 }
 
 @media (max-width: 32rem) {

@@ -207,6 +207,35 @@ def world_home(request: HttpRequest) -> HttpResponse:
 
 @never_cache
 @login_required
+def world_bible(request: HttpRequest) -> HttpResponse:
+    workspace = _workspace(request)
+    sections = []
+    for slug, config in KINDS.items():
+        records = config.model.objects.filter(workspace=workspace).order_by("-updated_at", "id")
+        sections.append(
+            {
+                "slug": slug,
+                "label": config.plural,
+                "count": records.count(),
+                "records": records[:8],
+                "title_field": config.title_field,
+            }
+        )
+    from characters.models import CharacterGroup
+
+    return render(
+        request,
+        "worldbuilding/world_bible.html",
+        {
+            "workspace": workspace,
+            "sections": sections,
+            "groups": CharacterGroup.objects.filter(workspace=workspace).order_by("name")[:8],
+        },
+    )
+
+
+@never_cache
+@login_required
 def record_list(request: HttpRequest, kind: str) -> HttpResponse:
     workspace = _workspace(request)
     config = _kind(kind)
