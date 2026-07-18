@@ -52,16 +52,37 @@ def test_empty_workspace_onboarding_create_hub_and_help_are_authorized():
     _, _, client = setup_workspace()
     response = client.get(reverse("workspace-home"))
     assert response.status_code == 200
-    assert b"Getting started" in response.content
+    assert b"Guided first use" in response.content
     assert b"Create a Work" in response.content
+    assert b'aria-valuenow="0"' in response.content
     create = client.get(reverse("quick-create"))
     assert create.status_code == 200
     assert b"What are you making?" in create.content
     assert b"New Work" in create.content and b"New Story Chat" in create.content
     guide = client.get(reverse("product-guide"))
     assert guide.status_code == 200
-    assert b"Continuity tracks narrative promises" in guide.content
+    assert b"Track what the story promises" in guide.content
+    assert b"Where does this go?" in guide.content
+    assert b"Open guided first use" in guide.content
     assert Client().get(reverse("quick-create")).status_code == 302
+
+
+def test_onboarding_detects_real_steps_and_can_be_reopened():
+    _, workspace, client = setup_workspace()
+    work = Work.objects.create(
+        workspace=workspace, title="Synthetic Guided Work", work_type="novel", status="planning"
+    )
+    Chapter.objects.create(workspace=workspace, work=work, title="Guided Chapter", order=10)
+
+    dashboard = client.get(reverse("workspace-home"))
+    assert dashboard.status_code == 200
+    assert b'aria-valuenow="2"' in dashboard.content
+    assert b"2 / 10" in dashboard.content
+
+    hidden = client.get(reverse("workspace-home"), {"onboarding": "hide"})
+    assert b"Guided first use" not in hidden.content
+    reopened = client.get(reverse("workspace-home"), {"onboarding": "1"})
+    assert b"Guided first use" in reopened.content
 
 
 def test_work_command_center_and_scene_reader_order_navigation():
