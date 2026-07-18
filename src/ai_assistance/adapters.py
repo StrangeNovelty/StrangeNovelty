@@ -86,6 +86,7 @@ class OpenRouterAdapter:
         self.maximum_tokens = maximum_tokens
 
     def generate(self, request: AdapterRequest) -> AdapterResult:
+        user_content = f"{request.source_content}\n\n## Author Request\n{request.instruction}"
         payload = json.dumps(
             {
                 "model": self.model,
@@ -94,10 +95,14 @@ class OpenRouterAdapter:
                         "role": "system",
                         "content": (
                             "You are a non-authoritative creative collaborator. Follow labeled "
-                            "context boundaries and the requested output format."
+                            "context boundaries and the requested output format. When sections "
+                            "are requested, use Markdown level-two headings beginning with ##."
                         ),
                     },
-                    {"role": "user", "content": request.source_content},
+                    {
+                        "role": "user",
+                        "content": user_content,
+                    },
                 ],
                 "max_tokens": self.maximum_tokens,
                 "stream": False,
