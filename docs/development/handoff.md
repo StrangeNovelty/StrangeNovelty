@@ -1,5 +1,30 @@
 # Development Handoff
 
+## Current Staging Release — 2026-07-18
+
+Classification: **Hosted private storage release successful.**
+
+Staging runs commit `3db70cdbee4e592c8cb5a2401c38beb256870d9d` with these
+deployments:
+
+| Service | Deployment ID |
+| --- | --- |
+| `staging-migration` | `3f2f8fa4-7b05-4f0a-9ed7-b789a72cc117` |
+| `staging-web` | `e65ede75-50a2-4a49-a915-592e247e5027` |
+| `staging-worker` | `caf13347-f0bf-42e6-94a0-750e27df1edb` |
+
+All 62 migrations are applied with none pending. Liveness and readiness return HTTP 200,
+and the worker is healthy and idle. Staging uses a private Railway S3-compatible bucket via
+environment variable references; production configuration is unchanged.
+
+Authenticated synthetic Research upload and extraction, Artwork preview and Character
+portrait use, and TXT, Markdown, HTML, DOCX, and PDF export generation/download all passed.
+The stored objects remained available after web redeployment and in a new authenticated
+test session. Missing objects, generation failure, retry, supersession, and retained export
+history also passed. Release-fix PR #28 corrected Collection membership form validation.
+The bounded `STAGING QA` fixtures remain for future release validation. AI remains disabled,
+and production remains empty and untouched.
+
 ## Current Staging Release — 2026-07-17
 
 Classification: **Grouped creative-product staging release successful.**
