@@ -92,6 +92,28 @@ CONTEXT_LINKS = {
         "draw__workspace",
     ),
     "card": ("decks", "DeckCard", "AIContextCardLink", "card", "deck__workspace"),
+    "research_source": (
+        "library",
+        "ResearchSource",
+        "AIContextResearchSourceLink",
+        "research_source",
+        "workspace",
+    ),
+    "research_note": (
+        "library",
+        "ResearchNote",
+        "AIContextResearchNoteLink",
+        "research_note",
+        "workspace",
+    ),
+    "artwork": ("library", "ArtworkAsset", "AIContextArtworkLink", "artwork", "workspace"),
+    "collection": (
+        "library",
+        "LibraryCollection",
+        "AIContextCollectionLink",
+        "collection",
+        "workspace",
+    ),
 }
 
 

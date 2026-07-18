@@ -1,0 +1,1 @@
+{% extends "library/base.html" %}{% block library_title %}{{ heading }}{% endblock %}{% block library_content %}<form method="post" enctype="multipart/form-data" class="library-form">{% csrf_token %}{{ form.as_div }}<button class="button button-primary" type="submit">Save</button></form>{% endblock %}

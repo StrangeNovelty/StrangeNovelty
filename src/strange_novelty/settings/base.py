@@ -1,5 +1,6 @@
 """Settings shared by all Strange Novelty environments."""
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[3]
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "archives.apps.ArchivesConfig",
     "legacy_imports.apps.LegacyImportsConfig",
     "ai_assistance.apps.AiAssistanceConfig",
+    "library.apps.LibraryConfig",
     "operations.apps.OperationsConfig",
 ]
 
@@ -109,6 +111,12 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
+MEDIA_ROOT = Path(os.environ.get("PRIVATE_MEDIA_ROOT", BASE_DIR / ".private-media"))
+LIBRARY_MAX_UPLOAD_BYTES = int(os.environ.get("LIBRARY_MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
+LIBRARY_MAX_EXTRACT_BYTES = int(os.environ.get("LIBRARY_MAX_EXTRACT_BYTES", str(10 * 1024 * 1024)))
+LIBRARY_MAX_EXTRACTED_TEXT_CHARS = int(
+    os.environ.get("LIBRARY_MAX_EXTRACTED_TEXT_CHARS", "2000000")
+)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 

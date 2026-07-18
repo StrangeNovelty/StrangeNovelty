@@ -20,6 +20,7 @@
         <a class="nav-link" href="{% url 'character-list' %}">Characters</a>
         <a class="nav-link" href="{% url 'character-group-list' %}">Groups</a>
         <a class="nav-link" href="{% url 'world-home' %}">World</a>
+        <a class="nav-link" href="{% url 'library-home' %}">Library</a>
         <a class="nav-link" href="{% url 'deck-home' %}">Decks</a>
         <a class="nav-link" href="{% url 'scene-search' %}">Search</a>
       </nav>
@@ -167,6 +168,7 @@
           </article>
           <article class="dashboard-card"><p class="card-label">Continuity</p><p class="metric-value">{{ continuity_open_count }}</p><p class="card-support">open Plot Threads</p><a class="side-link" href="{% url 'continuity-home' %}">Open Continuity</a></article>
           <article class="dashboard-card"><p class="card-label">Chronology</p><p class="metric-value">{{ timeline_unplaced_count }}</p><p class="card-support">Events without story placement</p><a class="side-link" href="{% url 'timeline-home' %}">Open Timelines</a></article>
+          <article class="dashboard-card"><p class="card-label">Library</p><p class="metric-value">{{ library_unreviewed_count }}</p><p class="card-support">Sources unread or reviewing</p><a class="side-link" href="{% url 'library-home' %}">Open Library</a></article>
           <article class="dashboard-card"><p class="card-label">AI Studio</p><p class="metric-value">{{ ai_review_count }}</p><p class="card-support">suggestions awaiting review</p><a class="side-link" href="{% url 'ai-workspace' %}">Open AI Studio</a></article>
 
           <article class="dashboard-card dashboard-card-wide">

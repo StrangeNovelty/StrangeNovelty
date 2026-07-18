@@ -37,6 +37,10 @@ def _label(model_name):
         return "Original Deck Card Material"
     if model_name == "DrawInterpretation":
         return "Author Draw Interpretation"
+    if model_name in ("ResearchSource", "ResearchNote"):
+        return "Research and Citations"
+    if model_name in ("ArtworkAsset", "LibraryCollection"):
+        return "Visual References"
     return model_name.replace("AIContext", "").replace("Link", "")
 
 
@@ -79,6 +83,11 @@ def assemble_context(pack: AIContextPack | None, *, task, instruction, chat_mess
                 )
                 record = getattr(link, field.name)
                 content = _record_text(record)
+                if record.__class__.__name__ == "ResearchSource":
+                    content += (
+                        "\nSelected extracted text (unverified unless author-reviewed): "
+                        f"{record.extracted_text[:4000]}"
+                    )
                 if record.__class__.__name__ == "Scene" and record.current_revision_id:
                     content += (
                         f"\nrevision identity: {record.current_revision_id}"

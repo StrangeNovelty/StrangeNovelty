@@ -122,6 +122,54 @@ from decks.views import (
 from decks.views import (
     spread_detail as deck_spread_detail,
 )
+from library.views import (
+    artwork_detail as library_artwork_detail,
+)
+from library.views import (
+    artwork_file as library_artwork_file,
+)
+from library.views import (
+    artwork_form as library_artwork_form,
+)
+from library.views import (
+    artwork_list as library_artwork_list,
+)
+from library.views import (
+    collection_detail as library_collection_detail,
+)
+from library.views import (
+    collection_form as library_collection_form,
+)
+from library.views import (
+    collection_list as library_collection_list,
+)
+from library.views import (
+    connection_create as library_connection_create,
+)
+from library.views import (
+    library_home,
+)
+from library.views import (
+    note_form as library_note_form,
+)
+from library.views import (
+    source_detail as library_source_detail,
+)
+from library.views import (
+    source_extract as library_source_extract,
+)
+from library.views import (
+    source_file as library_source_file,
+)
+from library.views import (
+    source_form as library_source_form,
+)
+from library.views import (
+    source_list as library_source_list,
+)
+from library.views import (
+    transition as library_transition,
+)
 from operations.health import liveness, readiness
 from scenes.search_views import scene_search
 from scenes.views import (
@@ -197,6 +245,56 @@ from worldbuilding.views import (
 )
 
 urlpatterns = [
+    path("library/", library_home, name="library-home"),
+    path("library/research/", library_source_list, name="library-source-list"),
+    path("library/research/new/", library_source_form, name="library-source-create"),
+    path("library/research/<uuid:source_id>/", library_source_detail, name="library-source-detail"),
+    path(
+        "library/research/<uuid:source_id>/edit/", library_source_form, name="library-source-edit"
+    ),
+    path(
+        "library/research/<uuid:source_id>/file/", library_source_file, name="library-source-file"
+    ),
+    path(
+        "library/research/<uuid:source_id>/extract/",
+        library_source_extract,
+        name="library-source-extract",
+    ),
+    path("library/notes/new/", library_note_form, name="library-note-create"),
+    path("library/notes/<uuid:note_id>/", library_note_form, name="library-note-edit"),
+    path("library/artwork/", library_artwork_list, name="library-artwork-list"),
+    path("library/artwork/new/", library_artwork_form, name="library-artwork-create"),
+    path(
+        "library/artwork/<uuid:artwork_id>/", library_artwork_detail, name="library-artwork-detail"
+    ),
+    path(
+        "library/artwork/<uuid:artwork_id>/edit/", library_artwork_form, name="library-artwork-edit"
+    ),
+    path(
+        "library/artwork/<uuid:artwork_id>/file/", library_artwork_file, name="library-artwork-file"
+    ),
+    path("library/collections/", library_collection_list, name="library-collection-list"),
+    path("library/collections/new/", library_collection_form, name="library-collection-create"),
+    path(
+        "library/collections/<uuid:collection_id>/",
+        library_collection_detail,
+        name="library-collection-detail",
+    ),
+    path(
+        "library/collections/<uuid:collection_id>/edit/",
+        library_collection_form,
+        name="library-collection-edit",
+    ),
+    path(
+        "library/<str:kind>/<uuid:record_id>/transition/",
+        library_transition,
+        name="library-transition",
+    ),
+    path(
+        "library/<str:kind>/<uuid:item_id>/connections/",
+        library_connection_create,
+        name="library-connection-create",
+    ),
     path("", root, name="root"),
     path("login/", WorkspaceLoginView.as_view(), name="login"),
     path("logout/", WorkspaceLogoutView.as_view(), name="logout"),
