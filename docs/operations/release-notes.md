@@ -1,5 +1,38 @@
 # Release Notes
 
+## Staging — 2026-07-18
+
+Classification: **Hosted private storage release successful.**
+
+### Release Identity
+
+- Commit: `3db70cdbee4e592c8cb5a2401c38beb256870d9d`
+- Migration deployment: `3f2f8fa4-7b05-4f0a-9ed7-b789a72cc117`
+- Web deployment: `e65ede75-50a2-4a49-a915-592e247e5027`
+- Worker deployment: `caf13347-f0bf-42e6-94a0-750e27df1edb`
+
+### Results
+
+- Staging now uses the private Railway S3-compatible bucket through environment variable
+  references. Uploads and exports use separate prefixes; production configuration was not
+  changed.
+- Two additive storage-field migrations applied successfully. All 62 migrations are applied
+  and none are pending.
+- Authenticated synthetic Research upload, extraction, download, Note creation, and Chapter
+  connection passed.
+- Authenticated synthetic Artwork upload, inline preview, Collection membership, Character
+  portrait connection, and dossier rendering passed.
+- TXT, Markdown, HTML, DOCX, and PDF exports completed through the worker, retained MIME type,
+  size, and checksum metadata, and passed authenticated download/content inspection.
+- Missing-object, intentional generation-failure, retry, supersession, and export-history
+  behavior passed. No partial object remained after the intentional generation failure.
+- Research, Artwork, and all export formats remained downloadable after a web redeployment
+  and from a new authenticated test session.
+- Release-fix PR #28 corrected Collection membership form validation and added a focused
+  authenticated POST regression.
+- Synthetic `STAGING QA` storage fixtures remain for later release validation. AI remains
+  disabled. Production remains empty and untouched.
+
 ## Staging — 2026-07-17
 
 Classification: **Grouped creative-product staging release successful.**
