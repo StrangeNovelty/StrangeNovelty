@@ -8,14 +8,17 @@ from characters.models import (
     AbilityEvent,
     AbilityPrediction,
     AbilityStage,
+    BorrowedAbilityLog,
     Character,
     CharacterGroup,
+    CharacterMechanicMembership,
     CharacterPersonalityTrait,
     CharacterRelationship,
     GroupMembership,
     GroupRelationship,
 )
 from scenes.models import Scene
+from stories.models import Work
 from workspaces.models import Workspace
 
 
@@ -28,12 +31,34 @@ class CharacterForm(forms.ModelForm):
             "role",
             "status",
             "summary",
+            "age",
+            "tags",
             "appearance",
+            "distinctive_features",
+            "clothing",
+            "mannerisms",
+            "sensory_presence",
             "personality",
+            "temperament",
+            "values",
+            "fears",
+            "wants",
+            "contradictions",
+            "habits",
+            "backstory",
+            "origins",
+            "formative_events",
             "goals",
             "internal_conflict",
             "external_conflict",
             "voice_notes",
+            "current_story_function",
+            "intended_arc",
+            "current_arc_phase",
+            "arc_turning_points",
+            "arc_questions",
+            "arc_predictions",
+            "evaluation_notes",
             "notes",
         )
         labels = {
@@ -49,15 +74,9 @@ class CharacterForm(forms.ModelForm):
             "status": "Their current story condition, such as active, missing, or deceased.",
         }
         widgets = {
-            "aliases": forms.Textarea(attrs={"rows": 3}),
-            "summary": forms.Textarea(attrs={"rows": 4}),
-            "appearance": forms.Textarea(attrs={"rows": 5}),
-            "personality": forms.Textarea(attrs={"rows": 5}),
-            "goals": forms.Textarea(attrs={"rows": 5}),
-            "internal_conflict": forms.Textarea(attrs={"rows": 5}),
-            "external_conflict": forms.Textarea(attrs={"rows": 5}),
-            "voice_notes": forms.Textarea(attrs={"rows": 5}),
-            "notes": forms.Textarea(attrs={"rows": 6}),
+            name: forms.Textarea(attrs={"rows": 5})
+            for name in fields
+            if name not in {"name", "role", "status", "age"}
         }
 
     def clean_name(self) -> str:
@@ -77,6 +96,94 @@ class CharacterForm(forms.ModelForm):
                 normalized.append(alias)
                 seen.add(key)
         return "\n".join(normalized)
+
+
+class BorrowedAbilityLogForm(forms.ModelForm):
+    class Meta:
+        model = BorrowedAbilityLog
+        fields = (
+            "borrowed_from",
+            "ability",
+            "ability_name",
+            "chapter",
+            "scene",
+            "story_time",
+            "cost_or_damage",
+            "duration",
+            "reduced_effectiveness",
+            "limitation_triggered",
+            "recovery",
+            "lasting_consequence",
+            "continuity_implications",
+            "notes",
+        )
+        widgets = {
+            name: forms.Textarea(attrs={"rows": 2})
+            for name in (
+                "cost_or_damage",
+                "reduced_effectiveness",
+                "limitation_triggered",
+                "recovery",
+                "lasting_consequence",
+                "continuity_implications",
+                "notes",
+            )
+        }
+
+    def __init__(self, *args, workspace, membership: CharacterMechanicMembership, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.membership = membership
+        self.instance.workspace = workspace
+        self.instance.membership = membership
+        self.fields["borrowed_from"].queryset = Character.objects.filter(
+            workspace=workspace
+        ).exclude(id=membership.character_id)
+        self.fields["ability"].queryset = Ability.objects.filter(workspace=workspace)
+        self.fields["chapter"].queryset = workspace.chapters.select_related("work").order_by(
+            "work__title", "order"
+        )
+        self.fields["scene"].queryset = workspace.scenes.exclude(
+            lifecycle=Scene.Lifecycle.TRASHED
+        ).order_by("ordering")
+
+    def clean(self):
+        cleaned = super().clean()
+        ability = cleaned.get("ability")
+        source = cleaned.get("borrowed_from")
+        if ability and source and ability.character_id != source.id:
+            self.add_error("ability", "Choose an Ability owned by the source Character.")
+        return cleaned
+
+
+class CharacterMechanicSetupForm(forms.Form):
+    work = forms.ModelChoiceField(queryset=Work.objects.none())
+    name = forms.CharField(max_length=200, label="Mechanic name")
+    designation_label = forms.CharField(max_length=120, initial="Designation")
+    designation = forms.CharField(max_length=120, required=False)
+    family_group = forms.ModelChoiceField(
+        queryset=CharacterGroup.objects.none(), required=False, label="Family"
+    )
+    shared_abilities = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+        help_text="One shared ability per line. Details can be refined in the database later.",
+    )
+    borrowing_rules = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    default_cost = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    reduced_effectiveness_rule = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={"rows": 2})
+    )
+    repetition_rule = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    recovery_rule = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    own_ability_rule = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    consequence_rule = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+
+    def __init__(self, *args, workspace, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["work"].queryset = Work.objects.filter(workspace=workspace)
+        self.fields["family_group"].queryset = CharacterGroup.objects.filter(
+            workspace=workspace, group_type=CharacterGroup.GroupType.FAMILY
+        )
 
 
 class CharacterCreateForm(CharacterForm):

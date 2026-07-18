@@ -155,21 +155,25 @@ def test_character_detail_edits_full_dossier_and_escapes_content() -> None:
     detail_url = reverse("character-detail", kwargs={"character_id": character.id})
     response = client.get(detail_url)
     assert response.status_code == 200
-    assert b"Character dossier" in response.content
-    assert b"Desire and pressure" in response.content
+    assert b"Character workspace" in response.content
+    assert b"Identity and story function" in response.content
     assert "no-store" in response.headers["Cache-Control"]
 
-    updated = _dossier_payload(
-        name="Mara Vale",
-        personality="<script>observant</script>",
-        notes="A new private note.",
-    )
+    updated = _dossier_payload(name="Mara Vale", notes="A new private note.")
     saved = client.post(detail_url, updated)
     assert saved.status_code == 303
     character.refresh_from_db()
     assert character.name == "Mara Vale"
+    personality_url = reverse(
+        "character-section", kwargs={"character_id": character.id, "section": "personality"}
+    )
+    personality_payload = _dossier_payload(
+        name="Mara Vale", personality="<script>observant</script>"
+    )
+    assert client.post(personality_url, personality_payload).status_code == 303
+    character.refresh_from_db()
     assert character.personality == "<script>observant</script>"
-    rendered = client.get(detail_url)
+    rendered = client.get(personality_url)
     assert b"&lt;script&gt;observant&lt;/script&gt;" in rendered.content
     assert b"<script>observant</script>" not in rendered.content
 
@@ -200,15 +204,17 @@ def test_character_scene_linking_unlinking_and_backlinks() -> None:
     character = _character(workspace)
     scene = _scene(account, workspace)
     client = _client(account)
-    detail_url = reverse("character-detail", kwargs={"character_id": character.id})
-
     linked = client.post(
         reverse("character-scene-link", kwargs={"character_id": character.id}),
         {"scene": scene.id},
     )
     assert linked.status_code == 303
     assert CharacterScene.objects.filter(character=character, scene=scene).exists()
-    detail = client.get(detail_url)
+    detail = client.get(
+        reverse(
+            "character-section", kwargs={"character_id": character.id, "section": "appearances"}
+        )
+    )
     assert scene.title.encode() in detail.content
     assert reverse("scene-editor", kwargs={"scene_id": scene.id}).encode() in detail.content
     editor = client.get(reverse("scene-editor", kwargs={"scene_id": scene.id}))
@@ -274,7 +280,12 @@ def test_archived_scene_keeps_character_links_visible_and_read_only() -> None:
     assert unlink.status_code == 404
     assert CharacterScene.objects.filter(character=character, scene=scene).exists()
 
-    dossier = client.get(reverse("character-detail", kwargs={"character_id": character.id}))
+    dossier = client.get(
+        reverse(
+            "character-section",
+            kwargs={"character_id": character.id, "section": "appearances"},
+        )
+    )
     assert scene.title.encode() in dossier.content
     assert reverse("scene-editor", kwargs={"scene_id": scene.id}).encode() in dossier.content
     assert b"Unlink" not in dossier.content

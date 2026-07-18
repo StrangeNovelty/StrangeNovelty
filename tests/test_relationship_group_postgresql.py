@@ -102,7 +102,12 @@ def test_relationship_creation_is_canonical_asymmetric_and_visible_on_both_dossi
     second = _character(workspace, "Ivo Reed")
     client = _client(account)
 
-    empty = client.get(reverse("character-detail", kwargs={"character_id": first.id}))
+    empty = client.get(
+        reverse(
+            "character-section",
+            kwargs={"character_id": first.id, "section": "relationships"},
+        )
+    )
     assert b"No relationships recorded yet" in empty.content
 
     response = client.post(
@@ -124,7 +129,12 @@ def test_relationship_creation_is_canonical_asymmetric_and_visible_on_both_dossi
         (first, second, expected[first.id]),
         (second, first, expected[second.id]),
     ):
-        dossier = client.get(reverse("character-detail", kwargs={"character_id": character.id}))
+        dossier = client.get(
+            reverse(
+                "character-section",
+                kwargs={"character_id": character.id, "section": "relationships"},
+            )
+        )
         assert other.name.encode() in dossier.content
         assert perspective.encode() in dossier.content
         assert b"Complicated" in dossier.content
@@ -454,7 +464,12 @@ def test_authenticated_qa_renders_varied_cast_states_and_long_content() -> None:
     )
 
     client = _client(account)
-    dossier = client.get(reverse("character-detail", kwargs={"character_id": anchor.id}))
+    dossier = client.get(
+        reverse(
+            "character-section",
+            kwargs={"character_id": anchor.id, "section": "relationships"},
+        )
+    )
     assert dossier.status_code == 200
     for value in (
         "Family",
@@ -462,11 +477,14 @@ def test_authenticated_qa_renders_varied_cast_states_and_long_content() -> None:
         "Historical",
         "One-sided",
         "Secret",
-        "Synthetic Family",
-        "Synthetic Team",
         long_token,
     ):
         assert value.encode() in dossier.content
+    overview = client.get(
+        reverse("character-section", kwargs={"character_id": anchor.id, "section": "overview"})
+    )
+    assert b"Synthetic Family" in overview.content
+    assert b"Synthetic Team" in overview.content
     for group in groups:
         detail = client.get(reverse("character-group-detail", kwargs={"group_id": group.id}))
         assert detail.status_code == 200

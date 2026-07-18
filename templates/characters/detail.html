@@ -1,416 +1,69 @@
 {% extends "base.html" %}
-
-{% block title %}{{ character.name }} — Strange Novelty{% endblock %}
-
+{% block title %}{{ character.name }} · {{ section|title }} — Strange Novelty{% endblock %}
 {% block content %}
-  <div class="app-shell">
-    <aside class="sidebar sidebar-left" aria-label="Primary navigation">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">SN</div>
-        <div>
-          <p class="brand-title">Strange Novelty</p>
-          <p class="brand-subtitle">Story workspace</p>
-        </div>
+<div class="app-shell character-workspace-shell">
+  <aside class="sidebar sidebar-left" aria-label="Primary navigation">{% with active_nav="characters" %}{% include "includes/primary_navigation.html" %}{% endwith %}{% include "includes/sidebar_account.html" %}</aside>
+  <main class="workspace-area character-workspace" id="main-content">
+    <header class="character-workspace-header">
+      <div class="character-header-identity">
+        <a class="character-back" href="{% url 'character-list' %}" aria-label="Back to Characters">←</a>
+        <div class="character-portrait-placeholder" aria-hidden="true">{{ character.name|first }}</div>
+        <div><p class="eyebrow">Character workspace</p><h1>{{ character.name }}</h1><p class="character-header-meta">{% if character.role %}{{ character.role }} · {% endif %}{{ character.status|default:"Status not set" }}{% if works %} · {% for work in works %}{{ work.title }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</p></div>
       </div>
-      {% with active_nav="characters" %}{% include "includes/primary_navigation.html" %}{% endwith %}
-      {% include "includes/sidebar_account.html" %}
-    </aside>
-
-    <section class="workspace-area">
-      <header class="workspace-header character-header">
-        <div>
-          <p class="eyebrow">Character dossier</p>
-          <h1>{{ character.name }}</h1>
-          {% if character.aliases_display %}
-            <p class="character-header-aliases">Also known as {{ character.aliases_display }}</p>
-          {% endif %}
-        </div>
-        <a class="button button-secondary" href="{% url 'character-list' %}">All Characters</a>
-      </header>
-
-      <div class="workspace-main character-dossier-workspace">
-        <section class="ability-summary-strip" aria-label="Ability summary">
-          <div>
-            <p class="card-label">Abilities</p>
-            <p class="ability-summary-value">{{ ability_count }}</p>
-          </div>
-          <div>
-            <p class="card-label">Active now</p>
-            <p class="ability-summary-value">{{ active_ability_count }}</p>
-          </div>
-          <div>
-            <p class="card-label">Current stages</p>
-            <p class="ability-summary-value">{{ current_stage_count }}</p>
-          </div>
-        </section>
-        <nav class="dossier-section-nav" aria-label="Character dossier sections"><a href="#identity-heading">Identity</a><a href="#presence-heading">Presence</a><a href="#personality-sliders">Personality Sliders</a><a href="#pressure-heading">Goals &amp; Conflict</a><a href="#voice-heading">Voice</a><a href="#character-relationships-heading">Relationships</a><a href="#character-groups-heading">Family &amp; Groups</a><a href="#character-abilities-heading">Abilities</a><a href="#character-scenes-heading">Appearances</a><a href="{% url 'character-relationship-web' %}">Relationship Web</a></nav>
-
-        {% include "characters/_form_errors.html" %}
-        <form class="character-dossier-form" method="post">
-          {% csrf_token %}
-          <section class="dossier-section dossier-identity" aria-labelledby="identity-heading">
-            <div class="dossier-section-heading">
-              <div>
-                <p class="card-label">Identity</p>
-                <h2 id="identity-heading">Who they are on the page</h2>
-              </div>
-              <span class="lifecycle-badge">
-                {% if character.status %}{{ character.status }}{% else %}Status not set{% endif %}
-              </span>
-            </div>
-            <div class="dossier-field-grid">
-              <div class="form-field character-form-field dossier-name">
-                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                {{ form.name }}{{ form.name.errors }}
-              </div>
-              <div class="form-field character-form-field">
-                <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
-                {{ form.role }}
-                <p class="field-help">{{ form.role.help_text }}</p>
-                {{ form.role.errors }}
-              </div>
-              <div class="form-field character-form-field">
-                <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
-                {{ form.status }}
-                <p class="field-help">{{ form.status.help_text }}</p>
-                {{ form.status.errors }}
-              </div>
-              <div class="form-field character-form-field dossier-aliases">
-                <label for="{{ form.aliases.id_for_label }}">{{ form.aliases.label }}</label>
-                {{ form.aliases }}
-                <p class="field-help">{{ form.aliases.help_text }}</p>
-                {{ form.aliases.errors }}
-              </div>
-              <div class="form-field character-form-field dossier-full-width">
-                <label for="{{ form.summary.id_for_label }}">{{ form.summary.label }}</label>
-                {{ form.summary }}{{ form.summary.errors }}
-              </div>
-            </div>
-          </section>
-
-          <section class="dossier-section" aria-labelledby="presence-heading">
-            <div class="dossier-section-heading">
-              <div>
-                <p class="card-label">Presence</p>
-                <h2 id="presence-heading">How they enter a room</h2>
-              </div>
-            </div>
-            <div class="dossier-field-grid dossier-two-column">
-              <div class="form-field character-form-field">
-                <label for="{{ form.appearance.id_for_label }}">{{ form.appearance.label }}</label>
-                {{ form.appearance }}{{ form.appearance.errors }}
-              </div>
-              <div class="form-field character-form-field">
-                <label for="{{ form.personality.id_for_label }}">{{ form.personality.label }}</label>
-                {{ form.personality }}{{ form.personality.errors }}
-              </div>
-            </div>
-          </section>
-
-          <section class="dossier-section" aria-labelledby="pressure-heading">
-            <div class="dossier-section-heading">
-              <div>
-                <p class="card-label">Desire and pressure</p>
-                <h2 id="pressure-heading">What moves them—and what resists</h2>
-              </div>
-            </div>
-            <div class="dossier-field-grid dossier-two-column">
-              <div class="form-field character-form-field">
-                <label for="{{ form.goals.id_for_label }}">{{ form.goals.label }}</label>
-                {{ form.goals }}{{ form.goals.errors }}
-              </div>
-              <div class="form-field character-form-field">
-                <label for="{{ form.internal_conflict.id_for_label }}">{{ form.internal_conflict.label }}</label>
-                {{ form.internal_conflict }}{{ form.internal_conflict.errors }}
-              </div>
-              <div class="form-field character-form-field dossier-full-width">
-                <label for="{{ form.external_conflict.id_for_label }}">{{ form.external_conflict.label }}</label>
-                {{ form.external_conflict }}{{ form.external_conflict.errors }}
-              </div>
-            </div>
-          </section>
-
-          <section class="dossier-section" aria-labelledby="voice-heading">
-            <div class="dossier-section-heading">
-              <div>
-                <p class="card-label">On the page</p>
-                <h2 id="voice-heading">Voice and working notes</h2>
-              </div>
-            </div>
-            <div class="dossier-field-grid dossier-two-column">
-              <div class="form-field character-form-field">
-                <label for="{{ form.voice_notes.id_for_label }}">{{ form.voice_notes.label }}</label>
-                {{ form.voice_notes }}{{ form.voice_notes.errors }}
-              </div>
-              <div class="form-field character-form-field">
-                <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
-                {{ form.notes }}{{ form.notes.errors }}
-              </div>
-            </div>
-          </section>
-
-          <div class="dossier-save-bar">
-            <p class="save-status">Last updated {{ character.updated_at|date:"M j, Y, g:i a" }}</p>
-            <button class="button button-primary" type="submit">Save dossier</button>
-          </div>
-        </form>
-
-        <section class="dossier-section" id="personality-sliders" aria-labelledby="personality-sliders-heading">
-          <div class="dossier-section-heading"><div><p class="card-label">Personality sliders</p><h2 id="personality-sliders-heading">Tendencies with room to contradict themselves</h2><p class="form-support">Use dimensions that matter for this Character. A position is a creative reference, not a diagnosis or fixed truth.</p></div></div>
-          <div class="personality-trait-list">{% for trait in character.personality_traits.all %}<article class="personality-trait"><div><strong>{{ trait.name }}</strong><span>{{ trait.low_label|default:"Low" }} ← {{ trait.score }} → {{ trait.high_label|default:"High" }}</span></div><meter min="-5" max="5" low="-2" high="2" optimum="0" value="{{ trait.score }}">{{ trait.score }}</meter>{% if trait.notes %}<p>{{ trait.notes }}</p>{% endif %}<form method="post" action="{% url 'character-personality-trait-delete' character.id trait.id %}">{% csrf_token %}<button class="text-button danger-link" type="submit">Remove</button></form></article>{% empty %}<p class="empty-state">No sliders yet. Add only the tensions or tendencies that help you write this Character consistently.</p>{% endfor %}</div>
-          <details><summary>Add a personality dimension</summary><form class="dossier-field-grid dossier-two-column" method="post" action="{% url 'character-personality-trait-create' character.id %}">{% csrf_token %}{{ personality_trait_form.as_div }}<button class="button button-secondary" type="submit">Add Personality Slider</button></form></details>
-        </section>
-
-        <section class="connection-summary-strip" aria-label="Cast connections">
-          <div>
-            <p class="card-label">Relationships</p>
-            <p class="ability-summary-value">{{ relationship_count }}</p>
-          </div>
-          <div>
-            <p class="card-label">Groups</p>
-            <p class="ability-summary-value">{{ group_count }}</p>
-          </div>
-        </section>
-
-        <section class="dossier-section character-relationships" aria-labelledby="character-relationships-heading">
-          <div class="dossier-section-heading">
-            <div>
-              <p class="card-label">Relationships</p>
-              <h2 id="character-relationships-heading">Who is connected to {{ character.name }}</h2>
-            </div>
-            <div class="action-row"><a class="button button-secondary" href="{% url 'character-relationship-web' %}">Open Relationship Web</a><a class="button button-primary" href="{% url 'character-relationship-create' character.id %}">Add Relationship</a></div>
-          </div>
-          {% if relationship_cards %}
-            <div class="relationship-card-list">
-              {% for card in relationship_cards %}
-                <article class="relationship-card">
-                  <div class="relationship-card-heading">
-                    <div>
-                      <p class="relationship-kicker">Connected Character</p>
-                      <h3>
-                        <a href="{% url 'character-detail' card.other.id %}">{{ card.other.name }}</a>
-                      </h3>
-                      {% if card.relationship.short_label %}
-                        <p class="relationship-label">{{ card.relationship.short_label }}</p>
-                      {% endif %}
-                    </div>
-                    <div class="relationship-badge-row" aria-label="Relationship classification">
-                      <span class="relationship-badge relationship-badge-type">
-                        {{ card.relationship.get_relationship_type_display }}
-                      </span>
-                      <span class="relationship-badge relationship-status-{{ card.relationship.status }}">
-                        {{ card.relationship.get_status_display }}
-                      </span>
-                      <span class="relationship-badge relationship-knowledge-{{ card.relationship.knowledge_state }}">
-                        {{ card.relationship.get_knowledge_state_display }}
-                      </span>
-                    </div>
-                  </div>
-                  {% if card.relationship.summary %}
-                    <p class="relationship-prose">{{ card.relationship.summary }}</p>
-                  {% else %}
-                    <p class="empty-state">No shared dynamic recorded yet.</p>
-                  {% endif %}
-                  <div class="relationship-perspective">
-                    <p class="card-label">{{ character.name }}’s perspective</p>
-                    <p>{% if card.perspective %}{{ card.perspective }}{% else %}Not recorded.{% endif %}</p>
-                  </div>
-                  <div class="relationship-card-footer">
-                    <span>Updated {{ card.relationship.updated_at|date:"M j, Y" }}</span>
-                    <a class="side-link" href="{% url 'character-relationship-edit' character.id card.relationship.id %}">
-                      Edit relationship
-                    </a>
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="ability-empty-state">
-              <p class="card-value">No relationships recorded yet.</p>
-              <p class="empty-state">Connect this Character to the person who knows, needs, loves, fears, or opposes them.</p>
-              <a class="button button-primary" href="{% url 'character-relationship-create' character.id %}">
-                Add the first Relationship
-              </a>
-            </div>
-          {% endif %}
-        </section>
-
-        <section class="dossier-section character-groups" aria-labelledby="character-groups-heading">
-          <div class="dossier-section-heading">
-            <div>
-              <p class="card-label">Groups</p>
-              <h2 id="character-groups-heading">Where {{ character.name }} belongs</h2>
-            </div>
-            <a class="button button-secondary" href="{% url 'character-group-list' %}">Browse Groups</a>
-          </div>
-          {% if memberships %}
-            <div class="character-group-list">
-              {% for membership in memberships %}
-                <a class="character-group-row" href="{% url 'character-group-detail' membership.group.id %}">
-                  <span>
-                    <span class="character-name">{{ membership.group.name }}</span>
-                    <span class="character-role">
-                      {{ membership.group.get_group_type_display }}
-                      {% if membership.role %} · {{ membership.role }}{% endif %}
-                    </span>
-                  </span>
-                  <span class="membership-status membership-status-{{ membership.status }}">
-                    {{ membership.get_status_display }}
-                  </span>
-                </a>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="empty-state">This Character does not belong to a Group yet.</p>
-          {% endif %}
-        </section>
-
-        <section class="dossier-section character-abilities" aria-labelledby="character-abilities-heading">
-          <div class="dossier-section-heading">
-            <div>
-              <p class="card-label">Abilities and progression</p>
-              <h2 id="character-abilities-heading">What {{ character.name }} can do now</h2>
-            </div>
-            <a class="button button-secondary" href="{% url 'ability-create' character.id %}">
-              Add Ability
-            </a>
-          </div>
-
-          {% if abilities %}
-            <div class="ability-card-list">
-              {% for ability in abilities %}
-                <article class="ability-card">
-                  <div class="ability-card-heading">
-                    <div>
-                      <p class="ability-card-category">
-                        {% if ability.category %}{{ ability.category }}{% else %}Uncategorized Ability{% endif %}
-                      </p>
-                      <h3>
-                        <a href="{% url 'ability-detail' character.id ability.id %}">
-                          {{ ability.name }}
-                        </a>
-                      </h3>
-                    </div>
-                    <div class="ability-badge-row">
-                      <span class="ability-badge">{{ ability.get_mastery_display }}</span>
-                      <span class="ability-badge ability-status-{{ ability.status }}">
-                        {{ ability.get_status_display }}
-                      </span>
-                    </div>
-                  </div>
-
-                  {% if ability.current_stages %}
-                    <p class="ability-current-stage">
-                      <span>Current stage</span>
-                      {{ ability.current_stages.0.name }}
-                    </p>
-                  {% endif %}
-
-                  <div class="ability-card-body">
-                    <div>
-                      <p class="card-label">Current capability</p>
-                      <p>{% if ability.description %}{{ ability.description }}{% else %}No current description yet.{% endif %}</p>
-                    </div>
-                    <div>
-                      <p class="card-label">Limitations</p>
-                      <p>{% if ability.limitations %}{{ ability.limitations }}{% else %}No limitations recorded.{% endif %}</p>
-                    </div>
-                    <div>
-                      <p class="card-label">Costs or consequences</p>
-                      <p>{% if ability.costs %}{{ ability.costs }}{% else %}No costs recorded.{% endif %}</p>
-                    </div>
-                    {% if ability.notes %}
-                      <div>
-                        <p class="card-label">Notes</p>
-                        <p>{{ ability.notes }}</p>
-                      </div>
-                    {% endif %}
-                  </div>
-                  <a class="side-link" href="{% url 'ability-detail' character.id ability.id %}">
-                    Open Ability progression
-                  </a>
-                </article>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="ability-empty-state">
-              <p class="card-value">No Abilities recorded yet.</p>
-              <p class="empty-state">
-                Begin with one thing this Character can do—or might only be starting to discover.
-              </p>
-              <a class="button button-primary" href="{% url 'ability-create' character.id %}">
-                Add the first Ability
-              </a>
-            </div>
-          {% endif %}
-        </section>
-
-        <section class="dossier-section character-scenes" aria-labelledby="character-scenes-heading">
-          <div class="dossier-section-heading">
-            <div>
-              <p class="card-label">Scene appearances</p>
-              <h2 id="character-scenes-heading">Scenes involving {{ character.name }}</h2>
-            </div>
-          </div>
-          {% if scene_links %}
-            <div class="linked-scene-list">
-              {% for link in scene_links %}
-                <div class="linked-scene-row">
-                  <a href="{% url 'scene-editor' link.scene.id %}">
-                    <span class="scene-list-title">{{ link.scene.title }}</span>
-                    <span class="scene-list-meta">{{ link.scene.get_lifecycle_display }}</span>
-                  </a>
-                  {% if link.scene.lifecycle == "active" %}
-                    <form method="post" action="{% url 'character-scene-unlink' character.id link.scene.id %}">
-                      {% csrf_token %}
-                      <button class="text-button unlink-button" type="submit">Unlink</button>
-                    </form>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="empty-state">This Character is not linked to a Scene yet.</p>
-          {% endif %}
-
-          {% if scene_link_form.scene.field.queryset.exists %}
-            <form class="scene-link-form" method="post" action="{% url 'character-scene-link' character.id %}">
-              {% csrf_token %}
-              <label for="{{ scene_link_form.scene.id_for_label }}">Add a Scene</label>
-              {{ scene_link_form.scene }}
-              <button class="button button-secondary" type="submit">Link Scene</button>
-            </form>
-          {% endif %}
-        </section>
+      <div class="character-header-actions">
+        <a class="button button-secondary" href="{% url 'character-fill-description' character.id %}">Fill from Description</a>
+        <a class="button button-secondary character-ai-button" href="{% url 'character-ai-assist' character.id %}">✦ AI Assist</a>
+        {% if not mechanic_membership %}<a class="text-button" href="{% url 'character-mechanic-setup' character.id %}">Custom Mechanics</a>{% endif %}
+        <a class="text-button danger-link" href="{% url 'character-delete' character.id %}">Delete</a>
       </div>
-    </section>
+    </header>
 
-    <aside class="sidebar sidebar-right" aria-label="Character details">
-      <section class="side-panel">
-        <p class="card-label">Story status</p>
-        <p class="status-value">
-          {% if character.status %}{{ character.status }}{% else %}Status not set{% endif %}
-        </p>
-        <p class="side-copy">
-          {% if character.role %}{{ character.role }}{% else %}Role not set{% endif %}
-        </p>
-      </section>
-      <section class="side-panel">
-        <p class="card-label">Scene appearances</p>
-        <p class="status-value">{{ scene_links|length }}</p>
-        <p class="side-copy">Follow a linked Scene directly into the editor.</p>
-      </section>
-      <section class="side-panel">
-        <p class="card-label">Cast connections</p>
-        <p class="side-copy">
-          {{ relationship_count }} relationship{{ relationship_count|pluralize }} ·
-          {{ group_count }} Group{{ group_count|pluralize }}
-        </p>
-      </section>
-      <section class="side-panel"><p class="card-label">World Connections</p>{% for link in world_location_links %}<a class="side-link" href="{% url 'world-record-detail' 'locations' link.location.id %}">{{ link.location.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_item_links %}<a class="side-link" href="{% url 'world-record-detail' 'items' link.item.id %}">{{ link.item.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_creature_links %}<a class="side-link" href="{% url 'world-record-detail' 'creatures' link.creature.id %}">{{ link.creature.name }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}{% for link in world_codex_links %}<a class="side-link" href="{% url 'world-record-detail' 'codex' link.codex.id %}">{{ link.codex.term }}{% if link.role %} · {{ link.role }}{% endif %}</a>{% endfor %}</section>
-    </aside>
-  </div>
-  <section class="continuity-panel"><h2>Continuity</h2>{% for link in character.thread_links.all %}<a href="{% url 'continuity-thread-detail' link.thread_id %}">{{ link.role }} · {{ link.thread.title }}</a>{% endfor %}{% for knowledge in character.knowledge_records.all %}<p>{{ knowledge.knowledge_state }} · {{ knowledge.knowledge_statement|truncatechars:80 }}</p>{% endfor %}</section>
-<section class="timeline-panel"><h2>Character Timeline</h2>{% for link in character.timeline_links.all %}<a href="{% url 'timeline-event-detail' link.event_id %}">{{ link.event.display_date|default:"Unknown" }} · {{ link.role }} · {{ link.event.title }}</a>{% empty %}<p>No connected Timeline Events.</p>{% endfor %}<a href="{% url 'timeline-cross-reference' %}">Open appearance index and Cross-Reference</a></section>
-<section class="library-panel"><h2>Portraits and References</h2>{% for link in character.library_connections.all %}{% if link.artwork %}<a href="{% url 'library-artwork-detail' link.artwork_id %}">{{ link.role }} · {{ link.artwork.title }}</a>{% elif link.source %}<a href="{% url 'library-source-detail' link.source_id %}">{{ link.role }} · {{ link.source.title }}</a>{% elif link.note %}<a href="{% url 'library-note-edit' link.note_id %}">{{ link.role }} · {{ link.note.title }}</a>{% endif %}{% empty %}<p>No portraits or research connected yet.</p>{% endfor %}<a href="{% url 'library-artwork-list' %}">Open Artwork Library</a></section>
-<section class="ai-panel"><h2>Character Workshop</h2><a href="{% url 'ai-creative-request' %}?task=character_deepen">Deepen Character</a> · <a href="{% url 'ai-creative-request' %}?task=character_knowledge">What do they know?</a></section>{% endblock %}
+    <nav class="character-section-tabs" aria-label="Character sections">
+      {% for item in character_sections %}{% if item != "bio-arcane" or mechanic_membership %}<a class="character-section-tab{% if section == item %} is-active{% endif %}" {% if section == item %}aria-current="page"{% endif %} href="{% url 'character-section' character.id item %}">{{ item|title }}</a>{% endif %}{% endfor %}
+    </nav>
+    <label class="character-section-mobile-label" for="character-section-select">Character section</label>
+    <select id="character-section-select" class="character-section-mobile" onchange="if(this.value){window.location.href=this.value}">
+      {% for item in character_sections %}{% if item != "bio-arcane" or mechanic_membership %}<option value="{% url 'character-section' character.id item %}"{% if section == item %} selected{% endif %}>{{ item|title }}</option>{% endif %}{% endfor %}
+    </select>
+
+    <div class="workspace-main character-section-content">
+      {% include "characters/_form_errors.html" %}
+      {% if section == "overview" or section == "appearance" or section == "personality" or section == "backstory" or section == "arc-notes" or section == "evaluation" %}
+      <form class="character-focused-form" method="post">{% csrf_token %}
+        {% if section == "overview" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Overview</p><h2>Identity and story function</h2><p class="form-support">The durable facts that orient every other Character section.</p></div></div><div class="dossier-field-grid dossier-two-column">
+          {% for field in form %}{% if field.name == 'name' or field.name == 'aliases' or field.name == 'role' or field.name == 'status' or field.name == 'age' or field.name == 'tags' or field.name == 'summary' or field.name == 'goals' or field.name == 'internal_conflict' or field.name == 'external_conflict' or field.name == 'current_story_function' or field.name == 'notes' %}<div class="form-field{% if field.field.widget.input_type == 'textarea' %} dossier-full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}</div></section>
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Belonging</p><h2>Family, Groups, and story involvement</h2></div></div><div class="character-belonging-grid"><div><h3>Family</h3>{% for membership in family_memberships %}<a class="side-link" href="{% url 'character-group-detail' membership.group.id %}">{{ membership.group.name }}{% if membership.role %} · {{ membership.role }}{% endif %}</a>{% empty %}<p class="empty-state">No Family membership yet.</p>{% endfor %}</div><div><h3>Other Groups</h3>{% for membership in other_memberships %}<a class="side-link" href="{% url 'character-group-detail' membership.group.id %}">{{ membership.group.name }}</a>{% empty %}<p class="empty-state">No other Group memberships.</p>{% endfor %}</div><div><h3>Works</h3>{% for work in works %}<a class="side-link" href="{% url 'work-detail' work.id %}">{{ work.title }}</a>{% empty %}<p class="empty-state">Link this Character to a Scene or POV Chapter to establish Work involvement.</p>{% endfor %}</div></div></section>
+        {% elif section == "appearance" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Appearance</p><h2>Physical and sensory presence</h2></div></div><div class="dossier-field-grid dossier-two-column">{% for field in form %}{% if field.name == 'appearance' or field.name == 'distinctive_features' or field.name == 'clothing' or field.name == 'mannerisms' or field.name == 'sensory_presence' %}<div class="form-field{% if field.name == 'appearance' %} dossier-full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}</div></section>
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Visual references</p><h2>Portraits and Artwork</h2></div><a class="button button-secondary" href="{% url 'library-artwork-list' %}">Open Artwork Library</a></div><p class="empty-state">Artwork connections remain in the private Library and can serve as portraits or appearance references.</p></section>
+        {% elif section == "personality" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Personality</p><h2>Inner pattern and productive contradictions</h2></div></div><div class="dossier-field-grid dossier-two-column">{% for field in form %}{% if field.name == 'personality' or field.name == 'temperament' or field.name == 'values' or field.name == 'fears' or field.name == 'wants' or field.name == 'contradictions' or field.name == 'habits' or field.name == 'voice_notes' %}<div class="form-field{% if field.name == 'personality' %} dossier-full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endif %}{% endfor %}</div></section>
+        {% elif section == "backstory" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Backstory</p><h2>History, origin, and formative pressure</h2></div></div><div class="dossier-field-grid dossier-two-column">{% for field in form %}{% if field.name == 'backstory' or field.name == 'origins' or field.name == 'formative_events' %}<div class="form-field{% if field.name == 'backstory' %} dossier-full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endif %}{% endfor %}</div></section>
+        {% elif section == "arc-notes" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Arc Notes</p><h2>Planned movement without premature canon</h2></div></div><div class="dossier-field-grid dossier-two-column">{% for field in form %}{% if field.name == 'intended_arc' or field.name == 'current_arc_phase' or field.name == 'arc_turning_points' or field.name == 'arc_questions' or field.name == 'arc_predictions' %}<div class="form-field{% if field.name != 'current_arc_phase' %} dossier-full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endif %}{% endfor %}</div></section>
+        {% elif section == "evaluation" %}
+          <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Evaluation</p><h2>Evidence-based Character review</h2><p class="form-support">Track strengths, weaknesses, contradictions, arc movement, relationship pressure, ability continuity, missing information, and next possibilities. AI remains review-first.</p></div><a class="button button-secondary character-ai-button" href="{% url 'character-ai-assist' character.id %}">Generate evaluation</a></div>{% for field in form %}{% if field.name == 'evaluation_notes' %}<div class="form-field"><label for="{{ field.id_for_label }}">Author evaluation</label>{{ field }}</div>{% endif %}{% endfor %}</section>
+        {% endif %}
+        <div class="dossier-save-bar"><span class="save-status" aria-live="polite">Updated {{ character.updated_at|date:"M j, Y, g:i a" }}</span><button class="button button-primary" type="submit">Save {{ section|title }}</button></div>
+      </form>
+      {% if section == "personality" %}<section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Personality sliders</p><h2>Tendencies, not diagnoses</h2></div><a class="button button-secondary" href="{% url 'character-ai-assist' character.id %}">Suggest sliders with AI</a></div><div class="personality-trait-list">{% for trait in character.personality_traits.all %}<article class="personality-trait"><strong>{{ trait.name }}</strong><span>{{ trait.low_label|default:"Low" }} ← {{ trait.score }} → {{ trait.high_label|default:"High" }}</span><meter min="-5" max="5" value="{{ trait.score }}">{{ trait.score }}</meter><form method="post" action="{% url 'character-personality-trait-delete' character.id trait.id %}">{% csrf_token %}<button class="text-button danger-link" type="submit">Remove</button></form></article>{% empty %}<p class="empty-state">Add only dimensions that help you write this Character consistently.</p>{% endfor %}</div><details><summary>Add a personality dimension</summary><form method="post" action="{% url 'character-personality-trait-create' character.id %}">{% csrf_token %}{{ personality_trait_form.as_div }}<button class="button button-secondary" type="submit">Add slider</button></form></details></section>{% endif %}
+      {% elif section == "abilities" %}
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Abilities</p><h2>Individual capabilities, costs, and development</h2><p class="form-support">Shared mechanic abilities appear in Custom Mechanics; borrowed abilities remain in the borrow log.</p></div><a class="button button-primary" href="{% url 'ability-create' character.id %}">Add Ability</a></div>{% for ability in abilities %}<a class="ability-list-row" href="{% url 'ability-detail' character.id ability.id %}"><span><strong>{{ ability.name }}</strong><small>{{ ability.get_mastery_display }} · {{ ability.get_status_display }}</small></span><span>{% if ability.current_stages %}{{ ability.current_stages.0.name }}{% else %}No current stage{% endif %}</span></a>{% empty %}<p class="empty-state">No individual abilities yet.</p>{% endfor %}</section>
+      {% elif section == "bio-arcane" %}
+        {% if mechanic_membership %}<section class="mechanic-designation-panel"><p class="card-label">{{ mechanic_membership.template.designation_label }}</p><div class="mechanic-designation-value">{{ mechanic_membership.designation|default:"Not assigned" }}</div><h2>{{ character.name }}</h2><p>{{ mechanic_membership.template.name }} · {{ mechanic_membership.template.work.title }} · {% if mechanic_membership.active %}Active{% else %}Inactive{% endif %}</p>{% if mechanic_membership.family_group %}<a class="side-link" href="{% url 'character-group-detail' mechanic_membership.family_group.id %}">{{ mechanic_membership.family_group.name }}</a>{% endif %}</section>
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Shared abilities</p><h2>Inherited from {{ mechanic_membership.template.name }}</h2></div></div>{% for ability in mechanic_membership.template.shared_abilities.all %}<article class="mechanic-shared-ability"><h3>{{ ability.name }}</h3><p>{{ ability.description }}</p>{% if ability.limitations %}<p class="warning-copy"><strong>Limits:</strong> {{ ability.limitations }}</p>{% endif %}</article>{% empty %}<p class="empty-state">No shared abilities configured on this mechanic.</p>{% endfor %}<details class="mechanic-rules"><summary>Borrowing rules and consequences</summary><p>{{ mechanic_membership.template.borrowing_rules }}</p><dl><dt>Default cost</dt><dd>{{ mechanic_membership.template.default_cost|default:"Author decides per event." }}</dd><dt>Reduced effectiveness</dt><dd>{{ mechanic_membership.template.reduced_effectiveness_rule|default:"Not configured." }}</dd><dt>Repetition</dt><dd>{{ mechanic_membership.template.repetition_rule|default:"Not configured." }}</dd><dt>Recovery</dt><dd>{{ mechanic_membership.template.recovery_rule|default:"Not configured." }}</dd><dt>Own ability</dt><dd>{{ mechanic_membership.template.own_ability_rule|default:"Not configured." }}</dd><dt>Lasting consequence</dt><dd>{{ mechanic_membership.template.consequence_rule|default:"Not configured." }}</dd></dl></details></section>
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Borrowed Ability Log</p><h2>Costed continuity history</h2></div></div><details><summary>Log Borrow</summary><form method="post" action="{% url 'character-borrow-create' character.id mechanic_membership.id %}">{% csrf_token %}{{ borrowed_ability_form.as_div }}<button class="button button-primary" type="submit">Save Borrow</button></form></details><div class="borrow-log">{% for entry in mechanic_membership.borrowing_log.all %}<article class="borrow-card"><div><h3>{{ entry.ability_name }}</h3><p>Borrowed from <a href="{% url 'character-section' entry.borrowed_from.id 'abilities' %}">{{ entry.borrowed_from.name }}</a>{% if entry.chapter %} · <a href="{% url 'chapter-detail' entry.chapter.work.id entry.chapter.id %}">{{ entry.chapter.title }}</a>{% endif %}{% if entry.scene %} · <a href="{% url 'scene-detail' entry.scene.id %}">{{ entry.scene.title }}</a>{% endif %}</p></div>{% if entry.cost_or_damage %}<p><strong>Cost or damage:</strong> {{ entry.cost_or_damage }}</p>{% endif %}{% if entry.duration %}<p><strong>Duration:</strong> {{ entry.duration }}</p>{% endif %}{% if entry.reduced_effectiveness %}<p><strong>Reduced effectiveness:</strong> {{ entry.reduced_effectiveness }}</p>{% endif %}{% if entry.recovery %}<p><strong>Recovery:</strong> {{ entry.recovery }}</p>{% endif %}{% if entry.lasting_consequence %}<p><strong>Consequence:</strong> {{ entry.lasting_consequence }}</p>{% endif %}<form method="post" action="{% url 'character-borrow-delete' character.id entry.id %}">{% csrf_token %}<button class="text-button danger-link" type="submit">Remove</button></form></article>{% empty %}<p class="empty-state">No borrowed abilities logged.</p>{% endfor %}</div></section>
+        {% else %}<section class="dossier-section"><p class="card-value">No custom mechanic applies to this Character.</p><p class="empty-state">This section appears when the Character is assigned to a Work-specific mechanic template. Generic story rules are never assumed.</p><a class="button button-primary" href="{% url 'character-mechanic-setup' character.id %}">Configure a custom mechanic</a></section>{% endif %}
+      {% elif section == "relationships" %}
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Relationships</p><h2>Personal bonds and evolving pressure</h2></div><div class="action-row"><a class="button button-secondary" href="{% url 'character-relationship-web' %}">Relationship Web</a><a class="button button-primary" href="{% url 'character-relationship-create' character.id %}">Add Relationship</a></div></div>{% for card in relationship_cards %}<article class="relationship-card"><h3><a href="{% url 'character-section' card.other.id 'relationships' %}">{{ card.other.name }}</a></h3>{% if card.relationship.short_label %}<p class="relationship-label">{{ card.relationship.short_label }}</p>{% endif %}<p>{{ card.relationship.get_relationship_type_display }} · {{ card.relationship.get_status_display }} · {{ card.relationship.get_knowledge_state_display }}</p><p>{{ card.relationship.summary|default:"No dynamic recorded yet." }}</p>{% if card.perspective %}<p><strong>{{ character.name }}’s perspective:</strong> {{ card.perspective }}</p>{% endif %}<a class="side-link" href="{% url 'character-relationship-edit' character.id card.relationship.id %}">Edit relationship</a></article>{% empty %}<p class="empty-state">No relationships recorded yet.</p>{% endfor %}</section>
+      {% elif section == "progression" %}
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Progression</p><h2>Stages, events, predictions, and consequences</h2></div></div>{% for ability in abilities %}<article class="progression-ability-card"><h3><a href="{% url 'ability-detail' character.id ability.id %}">{{ ability.name }}</a></h3><p>{{ ability.get_mastery_display }} · {{ ability.get_status_display }}</p><p>{{ ability.stages.count }} stages · {{ ability.events.count }} events · {{ ability.predictions.count }} predictions</p></article>{% empty %}<p class="empty-state">Create an Ability first, then track its stages and significant changes here.</p>{% endfor %}</section>
+      {% elif section == "appearances" %}
+        <section class="dossier-section"><div class="dossier-section-heading"><div><p class="card-label">Appearances</p><h2>Reader order and story placement</h2></div></div><form class="compact-filter" method="get"><label for="appearance-filter">Filter title</label><input id="appearance-filter" name="q" value="{{ request.GET.q }}"><button class="button button-secondary" type="submit">Filter</button></form><div class="appearance-list">{% for link in scene_links %}<article class="appearance-card"><div><p class="card-label">{% if link.scene.chapter %}{{ link.scene.chapter.title }}{% else %}Unplaced Scene{% endif %}</p><h3><a href="{% url 'scene-editor' link.scene.id %}">{{ link.scene.title }}</a></h3><p>{{ link.scene.get_lifecycle_display }}{% if link.scene.chapter.pov_character_id == character.id %} · POV{% endif %}{% if link.scene.work %} · <a href="{% url 'work-detail' link.scene.work.id %}">{{ link.scene.work.title }}</a>{% endif %}</p></div></article>{% empty %}<p class="empty-state">No Scene appearances yet. Link this Character from a Scene or Chapter context panel.</p>{% endfor %}</div></section>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

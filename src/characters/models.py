@@ -17,12 +17,34 @@ class Character(models.Model):
     role = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=120, blank=True)
     summary = models.TextField(blank=True)
+    age = models.CharField(max_length=120, blank=True)
+    tags = models.TextField(blank=True)
     appearance = models.TextField(blank=True)
+    distinctive_features = models.TextField(blank=True)
+    clothing = models.TextField(blank=True)
+    mannerisms = models.TextField(blank=True)
+    sensory_presence = models.TextField(blank=True)
     personality = models.TextField(blank=True)
+    temperament = models.TextField(blank=True)
+    values = models.TextField(blank=True)
+    fears = models.TextField(blank=True)
+    wants = models.TextField(blank=True)
+    contradictions = models.TextField(blank=True)
+    habits = models.TextField(blank=True)
+    backstory = models.TextField(blank=True)
+    origins = models.TextField(blank=True)
+    formative_events = models.TextField(blank=True)
     goals = models.TextField(blank=True)
     internal_conflict = models.TextField(blank=True)
     external_conflict = models.TextField(blank=True)
     voice_notes = models.TextField(blank=True)
+    current_story_function = models.TextField(blank=True)
+    intended_arc = models.TextField(blank=True)
+    current_arc_phase = models.TextField(blank=True)
+    arc_turning_points = models.TextField(blank=True)
+    arc_questions = models.TextField(blank=True)
+    arc_predictions = models.TextField(blank=True)
+    evaluation_notes = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     scenes = models.ManyToManyField(Scene, through="CharacterScene", related_name="characters")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -135,6 +157,211 @@ class CharacterPersonalityTrait(models.Model):
             errors["score"] = "Score must be between -5 and 5."
         if errors:
             raise ValidationError(errors)
+
+
+class CustomMechanicTemplate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="mechanic_templates"
+    )
+    work = models.ForeignKey(
+        "stories.Work", on_delete=models.PROTECT, related_name="mechanic_templates"
+    )
+    name = models.CharField(max_length=200)
+    designation_label = models.CharField(max_length=120, default="Designation")
+    description = models.TextField(blank=True)
+    borrowing_rules = models.TextField(blank=True)
+    default_cost = models.TextField(blank=True)
+    reduced_effectiveness_rule = models.TextField(blank=True)
+    repetition_rule = models.TextField(blank=True)
+    recovery_rule = models.TextField(blank=True)
+    own_ability_rule = models.TextField(blank=True)
+    consequence_rule = models.TextField(blank=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("name", "id")
+        constraints = [
+            models.UniqueConstraint(fields=("work", "name"), name="mechanic_work_name_uniq")
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        if self.work_id and self.work.workspace_id != self.workspace_id:
+            raise ValidationError({"work": "Mechanic Work must belong to this Workspace."})
+
+
+class CustomMechanicSharedAbility(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    template = models.ForeignKey(
+        CustomMechanicTemplate, on_delete=models.CASCADE, related_name="shared_abilities"
+    )
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    limitations = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("order", "name", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("template", "name"), name="mechanic_shared_ability_uniq"
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class CharacterMechanicMembership(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="character_mechanic_memberships"
+    )
+    character = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="mechanic_memberships"
+    )
+    template = models.ForeignKey(
+        CustomMechanicTemplate, on_delete=models.PROTECT, related_name="memberships"
+    )
+    designation = models.CharField(max_length=120, blank=True)
+    family_group = models.ForeignKey(
+        "CharacterGroup",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="mechanic_memberships",
+    )
+    active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("template__name", "designation", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("character", "template"), name="character_mechanic_membership_uniq"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.character} · {self.template}"
+
+    def clean(self):
+        errors = {}
+        for name in ("character", "template", "family_group"):
+            value = getattr(self, name, None)
+            if value and value.workspace_id != self.workspace_id:
+                errors[name] = "Selection must belong to this Workspace."
+        if self.template_id and self.family_group_id and self.family_group.group_type != "family":
+            errors["family_group"] = "Mechanic family must be a Family Group."
+        if errors:
+            raise ValidationError(errors)
+
+
+class BorrowedAbilityLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="borrowed_ability_logs"
+    )
+    membership = models.ForeignKey(
+        CharacterMechanicMembership, on_delete=models.PROTECT, related_name="borrowing_log"
+    )
+    borrowed_from = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="abilities_lent"
+    )
+    ability = models.ForeignKey(
+        "Ability", null=True, blank=True, on_delete=models.PROTECT, related_name="borrowing_log"
+    )
+    ability_name = models.CharField(max_length=200)
+    chapter = models.ForeignKey(
+        "stories.Chapter",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="borrowed_abilities",
+    )
+    scene = models.ForeignKey(
+        "scenes.Scene",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="borrowed_abilities",
+    )
+    story_time = models.CharField(max_length=160, blank=True)
+    cost_or_damage = models.TextField(blank=True)
+    duration = models.CharField(max_length=160, blank=True)
+    reduced_effectiveness = models.TextField(blank=True)
+    limitation_triggered = models.TextField(blank=True)
+    recovery = models.TextField(blank=True)
+    lasting_consequence = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    continuity_implications = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-created_at", "id")
+        indexes = [
+            models.Index(
+                fields=("workspace", "membership", "-created_at"), name="borrow_log_ws_member_idx"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.membership.character} borrowed {self.ability_name}"
+
+    def clean(self):
+        errors = {}
+        for name in ("membership", "borrowed_from", "ability", "chapter", "scene"):
+            value = getattr(self, name, None)
+            if value and value.workspace_id != self.workspace_id:
+                errors[name] = "Selection must belong to this Workspace."
+        if self.membership_id and self.borrowed_from_id == self.membership.character_id:
+            errors["borrowed_from"] = "A Character cannot borrow from themself."
+        if self.ability_id and self.ability.character_id != self.borrowed_from_id:
+            errors["ability"] = "Borrowed Ability must belong to the source Character."
+        if self.scene_id and self.chapter_id and self.scene.chapter_id != self.chapter_id:
+            errors["scene"] = "Scene must belong to the selected Chapter."
+        if errors:
+            raise ValidationError(errors)
+
+
+class CharacterAIFieldProposal(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.PROTECT, related_name="character_ai_proposals"
+    )
+    character = models.ForeignKey(
+        Character, on_delete=models.PROTECT, related_name="ai_field_proposals"
+    )
+    suggestion = models.OneToOneField(
+        "ai_assistance.AICreativeSuggestion",
+        on_delete=models.PROTECT,
+        related_name="character_field_proposal",
+    )
+    description = models.TextField()
+    proposed_values = models.JSONField(default=dict)
+    applied_fields = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+    applied_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at", "id")
+
+    def __str__(self):
+        return f"Field proposal for {self.character}"
+
+    def clean(self):
+        if self.character_id and self.character.workspace_id != self.workspace_id:
+            raise ValidationError({"character": "Character must belong to this Workspace."})
+        if self.suggestion_id and self.suggestion.workspace_id != self.workspace_id:
+            raise ValidationError({"suggestion": "Suggestion must belong to this Workspace."})
 
 
 class CharacterRelationship(models.Model):
