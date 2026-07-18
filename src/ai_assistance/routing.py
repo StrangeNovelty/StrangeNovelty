@@ -26,6 +26,11 @@ TASK_ROUTES = {
     "manuscript_synopsis": OUTLINING,
     # Divergent development and alternatives.
     "story_chat": BRAINSTORMING,
+    "brainstorm_plot": BRAINSTORMING,
+    "brainstorm_realm": BRAINSTORMING,
+    "brainstorm_npc": BRAINSTORMING,
+    "brainstorm_monster": BRAINSTORMING,
+    "brainstorm_item": BRAINSTORMING,
     "research_story": BRAINSTORMING,
     "visual_direction": BRAINSTORMING,
     "character_deepen": BRAINSTORMING,

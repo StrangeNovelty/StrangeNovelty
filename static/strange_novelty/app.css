@@ -2552,6 +2552,39 @@ a.group-card:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Story Engine reconstruction: persistent unified Brainstorm */
+.brainstorm-mode-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; margin-bottom: 2rem; }
+.brainstorm-mode-grid > .dossier-section-heading { grid-column: 1 / -1; }
+.brainstorm-mode-card, .brainstorm-session-card, .brainstorm-control-panel, .brainstorm-result-panel, .context-preview { border: 1px solid var(--color-border-soft); background: var(--color-surface-raised); border-radius: var(--radius-md); }
+.brainstorm-mode-card { display: flex; flex-direction: column; gap: .75rem; padding: 1rem; }
+.brainstorm-mode-card p { color: var(--color-text-secondary); flex: 1; }
+.brainstorm-session-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.brainstorm-session-card { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem; text-decoration: none; }
+.brainstorm-session-card span:first-child { display: grid; gap: .25rem; }
+.brainstorm-session-card small, .brainstorm-session-card em { color: var(--color-text-muted); font-size: .75rem; font-style: normal; }
+.brainstorm-mode-switcher { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); overflow: hidden; }
+.brainstorm-mode-switcher span { padding: .65rem; text-align: center; color: var(--color-text-muted); background: var(--color-surface-nested); border-right: 1px solid var(--color-border-soft); }
+.brainstorm-mode-switcher span:last-child { border-right: 0; }
+.brainstorm-mode-switcher .is-active { color: var(--color-text); background: rgb(166 117 218 / .13); box-shadow: inset 0 -2px 0 var(--color-accent); }
+.brainstorm-form { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1rem; align-items: start; }
+.brainstorm-control-panel, .brainstorm-result-panel { padding: 1.25rem; display: grid; gap: 1rem; }
+.brainstorm-result-panel { position: sticky; top: 1rem; max-height: calc(100vh - 8rem); overflow: auto; }
+.reviewed-result { border-left: 2px solid var(--accent); padding-left: 1rem; }
+.prose-output { color: var(--color-text-secondary); }
+.context-preview { padding: 1rem 1.25rem; }
+.apply-to-story { border: 1px solid rgb(166 117 218 / .42); background: linear-gradient(145deg, var(--color-surface-raised), rgb(166 117 218 / .1)); }
+
+@media (max-width: 74rem) {
+  .brainstorm-mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .brainstorm-form { grid-template-columns: 1fr; }
+  .brainstorm-result-panel { position: static; max-height: none; }
+}
+@media (max-width: 45rem) {
+  .brainstorm-mode-grid, .brainstorm-session-list { grid-template-columns: 1fr; }
+  .brainstorm-mode-switcher { display: flex; overflow-x: auto; }
+  .brainstorm-mode-switcher span { min-width: 9rem; }
+}
 .draw-list, .draw-table { display: grid; gap: 1rem; }
 .draw-list { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
 .draw-table { grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); align-items: start; }

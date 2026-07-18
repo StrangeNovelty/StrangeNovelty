@@ -5,7 +5,12 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 
-from ai_assistance.models import AIContextPack, AICreativeSuggestion
+from ai_assistance.models import (
+    AIChatSession,
+    AIContextPack,
+    AICreativeSuggestion,
+    BrainstormSession,
+)
 from characters.models import Character
 from continuity.models import PlotThread
 from decks.models import DeckCard, SavedDraw
@@ -74,6 +79,8 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "continuity_open_count": 0,
         "timeline_unplaced_count": 0,
         "ai_review_count": 0,
+        "recent_brainstorm": None,
+        "recent_chat": None,
         "writing_statistics": {"today": 0, "week": 0, "streak": 0, "seven_days": []},
         "library_unreviewed_count": 0,
         "publishing_review_count": 0,
@@ -146,6 +153,12 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "ai_review_count": AICreativeSuggestion.objects.filter(
                     workspace=workspace, state__in=("ready", "editing")
                 ).count(),
+                "recent_brainstorm": BrainstormSession.objects.filter(workspace=workspace)
+                .select_related("latest_suggestion", "work")
+                .first(),
+                "recent_chat": AIChatSession.objects.filter(
+                    workspace=workspace, status="active"
+                ).first(),
                 "writing_statistics": writing_statistics(workspace),
                 "library_unreviewed_count": ResearchSource.objects.filter(
                     workspace=workspace, status__in=("unread", "reviewing")

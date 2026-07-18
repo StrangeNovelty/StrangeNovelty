@@ -7,23 +7,24 @@ from django.urls import reverse
 def test_integrated_navigation_exposes_complete_bounded_product_shell():
     source = Path("templates/includes/primary_navigation.html").read_text()
     for label in (
-        "Workspace",
-        "Works",
+        "Dashboard",
+        "Story Workshop",
         "Scenes",
         "Characters",
-        "Continuity",
+        "Plot Threads",
         "Timeline",
         "World",
         "Decks",
         "AI Studio",
-        "Library",
-        "Publishing",
+        "Research &amp; Artwork",
+        "Publication",
         "Search",
         "Create",
-        "Help",
+        "Manual",
+        "Brainstorm",
+        "Family &amp; Groups",
     ):
         assert f">{label}<" in source
-    assert ">Groups<" not in source
     assert 'aria-current="page"' in source
 
 

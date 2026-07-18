@@ -1,14 +1,20 @@
+import uuid
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from ai_assistance.adapters import TerminalAdapterError
+from ai_assistance.brainstorm import MODES as BRAINSTORM_MODES
+from ai_assistance.brainstorm import instruction_for
 from ai_assistance.context import assemble_context
 from ai_assistance.creative_forms import (
+    BrainstormSessionForm,
     ChatMessageForm,
     ChatSessionForm,
     ContextPackForm,
@@ -27,8 +33,12 @@ from ai_assistance.creative_services import (
 from ai_assistance.models import (
     AIChatMessage,
     AIChatSession,
+    AIContextCharacterLink,
+    AIContextDrawLink,
+    AIContextLocationLink,
     AIContextPack,
     AICreativeSuggestion,
+    BrainstormSession,
     VoiceProfile,
 )
 from ai_assistance.tasks import CATEGORIES, TASKS, get_task
@@ -37,6 +47,127 @@ from workspaces.services import resolve_owner_workspace
 
 def workspace_for(request):
     return resolve_owner_workspace(request.user)
+
+
+@never_cache
+@login_required
+def brainstorm_list(request):
+    workspace = workspace_for(request)
+    sessions = workspace.brainstorm_sessions.select_related(
+        "work", "chapter", "draw", "latest_suggestion"
+    )
+    return render(
+        request,
+        "ai_assistance/brainstorm_list.html",
+        {"workspace": workspace, "sessions": sessions, "modes": BRAINSTORM_MODES.values()},
+    )
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def brainstorm_create(request):
+    workspace = workspace_for(request)
+    mode = request.POST.get("mode", "plot")
+    if mode not in BRAINSTORM_MODES:
+        raise Http404
+    pack = AIContextPack.objects.create(
+        workspace=workspace,
+        name=f"Brainstorm {uuid.uuid4()}",
+        description="Context owned by a persistent Story Engine Brainstorm session.",
+        status="active",
+    )
+    session = BrainstormSession.objects.create(
+        workspace=workspace,
+        title=BRAINSTORM_MODES[mode].title,
+        mode=mode,
+        context_pack=pack,
+    )
+    return redirect("brainstorm-detail", session.id)
+
+
+def _save_brainstorm_form(form, session):
+    session = form.save(commit=False)
+    session.mode_settings = {
+        "threat_level": form.cleaned_data.get("threat_level", ""),
+        "discipline": form.cleaned_data.get("discipline", ""),
+    }
+    session.full_clean()
+    session.save()
+    pack = session.context_pack
+    pack.name = f"Brainstorm · {session.title} · {str(session.id)[:8]}"[:240]
+    pack.work = session.work
+    pack.chapter = session.chapter
+    pack.exclusions = session.exclusions
+    pack.author_instructions = session.focus
+    pack.save()
+    pack.aicontextcharacterlink_set.all().delete()
+    pack.aicontextlocationlink_set.all().delete()
+    pack.aicontextdrawlink_set.all().delete()
+    for order, character in enumerate(form.cleaned_data["characters"]):
+        AIContextCharacterLink.objects.create(
+            pack=pack, character=character, role="selected cast", priority=10, order=order
+        )
+    for order, location in enumerate(form.cleaned_data["locations"]):
+        AIContextLocationLink.objects.create(
+            pack=pack, location=location, role="immediate setting", priority=20, order=order
+        )
+    if session.draw:
+        AIContextDrawLink.objects.create(
+            pack=pack, draw=session.draw, role="Story Engine Cards", priority=5
+        )
+    return session
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def brainstorm_detail(request, session_id):
+    workspace = workspace_for(request)
+    session = get_object_or_404(
+        BrainstormSession.objects.select_related(
+            "context_pack", "work", "chapter", "draw", "latest_suggestion"
+        ),
+        id=session_id,
+        workspace=workspace,
+    )
+    form = BrainstormSessionForm(request.POST or None, instance=session, workspace=workspace)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            session = _save_brainstorm_form(form, session)
+            if request.POST.get("action") == "generate":
+                try:
+                    _, suggestion = run_creative_request(
+                        account=request.user,
+                        workspace=workspace,
+                        task_key=BRAINSTORM_MODES[session.mode].task_key,
+                        instruction=instruction_for(session),
+                        pack=session.context_pack,
+                    )
+                except TerminalAdapterError:
+                    form.add_error(None, "The configured provider returned no usable result.")
+                else:
+                    session.latest_suggestion = suggestion
+                    session.save(update_fields=("latest_suggestion", "updated_at"))
+                    return redirect("ai-creative-review", suggestion.id)
+            else:
+                return redirect("brainstorm-detail", session.id)
+    mode = BRAINSTORM_MODES[session.mode]
+    preview = assemble_context(
+        session.context_pack, task=get_task(mode.task_key), instruction=instruction_for(session)
+    )
+    return render(
+        request,
+        "ai_assistance/brainstorm_detail.html",
+        {
+            "session": session,
+            "form": form,
+            "mode": mode,
+            "modes": BRAINSTORM_MODES.values(),
+            "preview": preview,
+            "provider_available": provider_available(),
+        },
+    )
 
 
 CONTEXT_LINKS = {
@@ -316,13 +447,33 @@ def creative_convert(request, suggestion_id):
     form = ConversionForm(request.POST, workspace=workspace)
     if not form.is_valid():
         raise Http404("Conversion preview is invalid.")
-    convert_suggestion(
+    target_type = form.cleaned_data["target_type"]
+    selected_target = (
+        form.cleaned_data["chapter"]
+        if target_type.startswith("chapter_")
+        else form.cleaned_data["timeline"]
+    )
+    created = convert_suggestion(
         suggestion,
-        target_type=form.cleaned_data["target_type"],
+        target_type=target_type,
         title=form.cleaned_data["title"],
         content=form.cleaned_data["content"],
-        target=form.cleaned_data["timeline"],
+        action=form.cleaned_data["action"],
+        target=selected_target,
     )
+    if target_type == "character":
+        return redirect("character-detail", created.id)
+    if target_type in ("location", "region", "creature", "item"):
+        kind = {"item": "items"}.get(target_type, f"{target_type}s")
+        return redirect("world-record-detail", kind=kind, record_id=created.id)
+    if target_type == "plot_thread":
+        return redirect("continuity-thread-detail", created.id)
+    if target_type == "timeline_event":
+        return redirect("timeline-event-detail", created.id)
+    if target_type.startswith("chapter_"):
+        return redirect("chapter-detail", created.work_id, created.id)
+    if target_type == "voice_profile":
+        return redirect("ai-voice-profile", created.id)
     return redirect("ai-creative-review", suggestion.id)
 
 
