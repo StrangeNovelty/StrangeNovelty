@@ -151,3 +151,33 @@ Password loss stops the workflow and requires a separately reviewed staging-only
 procedure. Credentials and private authentication or fixture material remain prohibited from
 Railway variables, repository files, shell history, logs, screenshots, HAR files, tickets,
 chat, and release reports.
+
+## Staging — 2026-07-18 — Real AI provider validation
+
+Classification: **OpenRouter task routing enabled and synthetic creative workflows validated.**
+
+### Release Identity
+
+- Application commit: `dca16095a0bd260e368e805976bd33f4ce694c73`
+- Migration deployment: `701da44b-7c76-44dd-9f30-0eda2646c3cd`
+- Web deployment: `87d637b6-7bff-4f82-a59d-e620381bc663`
+- Worker deployment: `eed2e0c5-0714-4b8e-9046-7bcb889a588a`
+
+### Results
+
+- The staging OpenRouter adapter is enabled with environment-configurable task routing:
+  Aion 3.0 for writing, GLM 5.2 as its retryable alternate, GPT-5 Mini for outlining and
+  analysis, and Claude Sonnet 4.5 for brainstorming. `AI_MODEL` remains the fallback.
+- Synthetic Story Chat, Chapter outline, Scene Brief, Character, Ability, Monster, Deck,
+  Continuity, Timeline, Voice, and editorial requests reached reviewed suggestion states.
+- Explicit Chapter, immutable Scene, Creature, Voice Profile, and planned Timeline Event
+  application/conversion paths retained provenance. Stale Scene sources were blocked.
+- One controlled malformed structured response was retained as failed; the repaired prompt
+  contract then passed. Local fake-provider timeout, cancellation, malformed-output, retry,
+  privacy, Job, and stale-source regressions remain green.
+- Provider usage metadata supplied token counts but no cost value during this validation.
+- The bounded `STAGING AI QA` fixture remains for later regression checks. AI output remains
+  review-first, non-canon, and incapable of silently mutating story records.
+- Change the default or routed model through the documented environment variables. Disable
+  provider calls by setting `AI_ENABLED=false`; no credential belongs in Git or documentation.
+- Staging is healthy. Production remains empty and untouched.
