@@ -4,7 +4,16 @@ from django import forms
 
 from characters.models import Character
 from scenes.models import Scene
-from stories.models import Arc, Chapter, Volume, Work
+from stories.models import (
+    Arc,
+    Chapter,
+    ChapterBeat,
+    ChapterChecklistItem,
+    ChapterPacingProfile,
+    SceneBrief,
+    Volume,
+    Work,
+)
 from workspaces.models import Workspace
 
 
@@ -126,6 +135,10 @@ class ChapterForm(OrderedStructureForm):
             "outline",
             "pov_character",
             "notes",
+            "editorial_concerns",
+            "revision_priorities",
+            "unresolved_questions",
+            "final_check_notes",
         )
         labels = {
             "volume": "Volume (optional)",
@@ -190,6 +203,129 @@ class ChapterForm(OrderedStructureForm):
         ):
             self.add_error("volume", "Select the Volume that contains this Arc.")
         return cleaned
+
+
+class ChapterBeatForm(forms.ModelForm):
+    class Meta:
+        model = ChapterBeat
+        fields = (
+            "order",
+            "title",
+            "beat_type",
+            "summary",
+            "purpose",
+            "pov_character",
+            "intended_scene",
+            "timeline_event",
+            "emotional_direction",
+            "status",
+            "notes",
+        )
+
+    def __init__(self, *args, chapter: Chapter, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.chapter = chapter
+        self.fields["pov_character"].queryset = Character.objects.filter(
+            workspace=chapter.workspace
+        )
+        self.fields["intended_scene"].queryset = Scene.objects.filter(
+            workspace=chapter.workspace, chapter=chapter
+        )
+        self.fields["timeline_event"].queryset = chapter.workspace.timeline_events.all()
+
+
+class SceneBriefForm(forms.ModelForm):
+    class Meta:
+        model = SceneBrief
+        fields = (
+            "status",
+            "pov",
+            "scene_function",
+            "previous_context_summary",
+            "character_wants",
+            "primary_conflict",
+            "stakes",
+            "setting",
+            "atmosphere",
+            "blocking_and_beats",
+            "emotional_movement",
+            "continuity_concerns",
+            "thread_and_clue_opportunities",
+            "opening_beat",
+            "ending_hook",
+            "symbolism",
+            "author_notes",
+        )
+        widgets = {
+            field: forms.Textarea(attrs={"rows": 3})
+            for field in (
+                "scene_function",
+                "previous_context_summary",
+                "character_wants",
+                "primary_conflict",
+                "stakes",
+                "setting",
+                "atmosphere",
+                "blocking_and_beats",
+                "emotional_movement",
+                "continuity_concerns",
+                "thread_and_clue_opportunities",
+                "opening_beat",
+                "ending_hook",
+                "symbolism",
+                "author_notes",
+            )
+        }
+
+
+class ChapterPacingProfileForm(forms.ModelForm):
+    class Meta:
+        model = ChapterPacingProfile
+        fields = (
+            "tension_score",
+            "tension_notes",
+            "dread_score",
+            "dread_notes",
+            "emotional_intimacy_score",
+            "emotional_intimacy_notes",
+            "relationship_tension_score",
+            "relationship_tension_notes",
+            "pacing_energy_score",
+            "pacing_energy_notes",
+            "humor_score",
+            "humor_notes",
+            "action_intensity_score",
+            "action_intensity_notes",
+            "mystery_pressure_score",
+            "mystery_pressure_notes",
+        )
+        widgets = {
+            field: forms.NumberInput(attrs={"min": 1, "max": 10})
+            for field in (
+                "tension_score",
+                "dread_score",
+                "emotional_intimacy_score",
+                "relationship_tension_score",
+                "pacing_energy_score",
+                "humor_score",
+                "action_intensity_score",
+                "mystery_pressure_score",
+            )
+        }
+
+
+class ChapterChecklistItemForm(forms.ModelForm):
+    class Meta:
+        model = ChapterChecklistItem
+        fields = ("label", "order", "notes")
+
+
+class SnapshotForm(forms.Form):
+    label = forms.CharField(max_length=240, initial="Planning milestone")
+
+
+class ChapterStatusForm(forms.Form):
+    status = forms.ChoiceField(choices=Chapter.Status.choices)
 
 
 class _PlacementChoiceField(forms.ModelChoiceField):

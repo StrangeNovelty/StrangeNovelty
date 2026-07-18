@@ -19,6 +19,7 @@ from security_events.taxonomy import (
     SecurityTargetCategory,
 )
 from stories.models import Chapter, Work
+from stories.workshop import writing_statistics
 from timeline.models import TimelineEvent
 from workspaces.services import resolve_owner_workspace
 from worldbuilding.models import CodexEntry, Creature, Location
@@ -70,6 +71,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
         "continuity_open_count": 0,
         "timeline_unplaced_count": 0,
         "ai_review_count": 0,
+        "writing_statistics": {"today": 0, "week": 0, "streak": 0, "seven_days": []},
     }
 
     # Foundation tests use an unsaved synthetic Workspace. Avoid database
@@ -136,6 +138,7 @@ def workspace_home(request: HttpRequest) -> HttpResponse:
                 "ai_review_count": AICreativeSuggestion.objects.filter(
                     workspace=workspace, state__in=("ready", "editing")
                 ).count(),
+                "writing_statistics": writing_statistics(workspace),
             }
         )
         recent_world = []

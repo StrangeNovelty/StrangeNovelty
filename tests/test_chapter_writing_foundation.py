@@ -66,7 +66,7 @@ def test_chapter_workspace_has_sections_post_forms_and_no_dead_ai_controls() -> 
     assert "chapter-scene-order" in template
     assert "chapter-scene-detach" in template
     assert "{% csrf_token %}" in template
-    assert "Build Outline" not in template
+    assert "task=chapter_outline" in template
 
 
 def test_chapter_workspace_styles_cover_overflow_focus_and_narrow_layout() -> None:

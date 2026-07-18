@@ -115,6 +115,9 @@ def create_scene(
             from scenes.search_indexing import invalidate_and_enqueue_scene_search
 
             invalidate_and_enqueue_scene_search(scene, revision)
+            from stories.workshop import record_writing_delta
+
+            record_writing_delta(scene=scene, revision=revision)
         except (IntegrityError, ValidationError) as exc:
             raise DomainIntegrityFailure(
                 "Scene creation could not preserve domain integrity."
@@ -193,6 +196,9 @@ def revise_scene_content(
             from scenes.search_indexing import invalidate_and_enqueue_scene_search
 
             invalidate_and_enqueue_scene_search(scene, revision)
+            from stories.workshop import record_writing_delta
+
+            record_writing_delta(scene=scene, revision=revision, previous_content=current.content)
         except (IntegrityError, ValidationError) as exc:
             raise DomainIntegrityFailure(
                 "Scene revision could not preserve domain integrity."
