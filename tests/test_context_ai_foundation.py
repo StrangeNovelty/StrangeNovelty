@@ -89,6 +89,8 @@ def test_fake_adapter_is_deterministic_and_structured():
 
 
 def test_openrouter_adapter_parses_usage_and_privacy_safe_errors(monkeypatch):
+    sent_payload = {}
+
     class Response:
         def __enter__(self):
             return self
@@ -106,12 +108,19 @@ def test_openrouter_adapter_parses_usage_and_privacy_safe_errors(monkeypatch):
                 }
             ).encode()
 
-    monkeypatch.setattr("urllib.request.urlopen", lambda request, timeout: Response())
+    def urlopen(request, timeout):
+        del timeout
+        sent_payload.update(json.loads(request.data.decode()))
+        return Response()
+
+    monkeypatch.setattr("urllib.request.urlopen", urlopen)
     adapter = OpenRouterAdapter(api_key="synthetic-secret", model="synthetic/model")
     result = adapter.generate(
         AdapterRequest("creative_workspace", "Synthetic", "Context", "task", "v1", "v1", 1000)
     )
     assert result.input_units == 10 and result.output_units == 4 and result.provider == "openrouter"
+    assert "## Author Request\nSynthetic" in sent_payload["messages"][1]["content"]
+    assert "level-two headings" in sent_payload["messages"][0]["content"]
 
     def timeout(*args, **kwargs):
         raise TimeoutError
