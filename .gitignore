@@ -37,6 +37,9 @@ coverage.xml
 # Packaging and generated build artifacts
 build/
 dist/
+node_modules/
+test-results/
+playwright-report/
 *.egg-info/
 .eggs/
 pip-wheel-metadata/

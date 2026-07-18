@@ -181,8 +181,9 @@ def convert_suggestion(suggestion, *, target_type, title, content, action="creat
     from characters.models import Character
     from continuity.models import PlotThread
     from stories.workshop import capture_planning_snapshot
+    from story_engine_next.models import WorldBibleEntry
     from timeline.models import TimelineEvent
-    from worldbuilding.models import Creature, Location, Region, WorldItem
+    from worldbuilding.models import CodexEntry, Creature, Location, Region, WorldItem
 
     if suggestion.state not in ("accepted", "editing"):
         raise ValueError("Suggestion must be reviewed before conversion.")
@@ -208,6 +209,26 @@ def convert_suggestion(suggestion, *, target_type, title, content, action="creat
             description=content,
             notes=f"Created from reviewed AI suggestion {suggestion.id}",
         )
+    elif target_type == "world_bible":
+        created = WorldBibleEntry.objects.create(workspace=workspace, title=title, content=content)
+    elif target_type == "codex":
+        created = CodexEntry.objects.create(
+            workspace=workspace,
+            term=title,
+            category="concept",
+            definition=content,
+            canon_state="draft",
+            provenance_note=f"Created from reviewed AI suggestion {suggestion.id}",
+        )
+    elif target_type == "character_note":
+        if target is None or target.workspace_id != workspace.id:
+            raise ValueError("A Workspace Character is required.")
+        target.notes = (
+            content if not target.notes.strip() else f"{target.notes.rstrip()}\n\n{content}"
+        )
+        target.full_clean()
+        target.save(update_fields=("notes", "updated_at"))
+        created = target
     elif target_type == "creature":
         created = Creature.objects.create(
             workspace=workspace,

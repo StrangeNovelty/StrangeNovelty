@@ -118,6 +118,39 @@ def assemble_context(pack: AIContextPack | None, *, task, instruction, chat_mess
             if record:
                 sections.append((record.__class__.__name__, _record_text(record)))
                 sources.append(_source(record))
+        world_bible_model = apps.get_model("story_engine_next", "WorldBibleEntry")
+        world_bible = world_bible_model.objects.filter(workspace=pack.workspace).order_by(
+            "order", "id"
+        )[:40]
+        if world_bible:
+            sections.append(
+                (
+                    "World Bible",
+                    "\n\n".join(f"### {entry.title}\n{entry.content}" for entry in world_bible),
+                )
+            )
+            sources.extend(_source(entry) for entry in world_bible)
+        for app_label, model_name, label, title_field in (
+            ("worldbuilding", "Region", "Established Regions", "name"),
+            ("worldbuilding", "Location", "Established Locations", "name"),
+            ("worldbuilding", "CodexEntry", "Established Codex", "term"),
+            ("worldbuilding", "WorldItem", "Established Items", "name"),
+            ("worldbuilding", "Creature", "Established Creatures", "name"),
+            ("characters", "CharacterGroup", "Established Groups and Factions", "name"),
+        ):
+            model = apps.get_model(app_label, model_name)
+            records = model.objects.filter(workspace=pack.workspace).order_by(title_field)[:40]
+            if records:
+                sections.append(
+                    (
+                        label,
+                        "\n\n".join(
+                            f"### {getattr(record, title_field)}\n{_record_text(record)}"
+                            for record in records
+                        ),
+                    )
+                )
+                sources.extend(_source(record) for record in records)
         for model in apps.get_models():
             if (
                 model.__module__ != "ai_assistance.models"

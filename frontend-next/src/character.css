@@ -1,0 +1,345 @@
+.inline-create {
+  display: flex;
+  gap: 8px;
+}
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 25px;
+}
+.character-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  text-decoration: none;
+  color: var(--text);
+}
+.character-card h2 {
+  font: 700 17px "Libre Baskerville";
+  margin: 3px 0;
+}
+.character-card p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.character-card small {
+  font-size: 10px;
+  color: #9b88af;
+}
+.portrait-placeholder {
+  width: 58px;
+  height: 68px;
+  min-width: 58px;
+  border: 1px solid #49395f;
+  border-radius: 7px;
+  background: linear-gradient(150deg, #302342, #17121f);
+  display: grid;
+  place-items: center;
+  color: #a682db;
+}
+.character-workspace {
+  min-height: 100vh;
+}
+.character-header {
+  height: 92px;
+  padding: 13px 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid var(--line);
+  background: #111019;
+}
+.character-identity {
+  flex: 1;
+}
+.character-identity .eyebrow {
+  margin: 0;
+}
+.character-identity h1 {
+  font: 700 22px "Libre Baskerville";
+  margin: 3px 0;
+}
+.character-identity span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.character-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.character-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  gap: 1px;
+  overflow: auto;
+  padding: 0 20px;
+  height: 47px;
+  background: #14111b;
+  border-bottom: 1px solid var(--line);
+}
+.character-tabs button {
+  white-space: nowrap;
+  padding: 0 13px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+.character-tabs button.active {
+  color: #fff;
+  border-color: var(--purple);
+  background: #2c203c77;
+}
+.character-section {
+  max-width: 1080px;
+  margin: auto;
+  padding: 27px 34px 70px;
+}
+.section-intro {
+  margin-bottom: 18px;
+}
+.section-intro .eyebrow {
+  margin: 0;
+}
+.section-intro h2 {
+  font: 700 20px "Libre Baskerville";
+}
+.character-section > label {
+  max-width: 820px;
+}
+.character-section > label textarea {
+  width: 100%;
+  line-height: 1.55;
+}
+.record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.record-card {
+  display: block;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+}
+.record-card h3 {
+  font: 700 15px "Libre Baskerville";
+}
+.record-card p,
+.record-card small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.record-card dl {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  font-size: 11px;
+}
+.record-card dt {
+  color: #8e8498;
+}
+.record-card dd {
+  margin: 0;
+}
+.badge {
+  display: inline-flex;
+  border: 1px solid #554269;
+  border-radius: 15px;
+  padding: 3px 7px;
+  color: #c9b0e7;
+  font-size: 9px;
+  margin: 3px;
+}
+.slider-track {
+  height: 5px;
+  background: #352d40;
+  border-radius: 4px;
+  position: relative;
+  margin: 20px 5px 10px;
+}
+.slider-track span {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--purple);
+  transform: translate(-50%, -50%);
+}
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.membership-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+.membership-panels article {
+  display: grid;
+  gap: 7px;
+}
+.membership-panels a {
+  color: #c3a7e7;
+}
+.mechanic-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+}
+.designation {
+  background:
+    radial-gradient(circle at 100% 0, #513577, transparent 55%), var(--panel);
+}
+.span-two {
+  grid-column: span 2;
+}
+.log-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.log-row b {
+  color: var(--text);
+}
+.log-row small {
+  grid-column: 1/-1;
+}
+.appearance-list {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.character-action-modal {
+  width: min(760px, 100%);
+}
+.character-action-modal > textarea,
+.assist-result {
+  width: 100%;
+}
+.assist-result {
+  min-height: 430px;
+}
+.proposal-list {
+  display: grid;
+  gap: 8px;
+  max-height: 55vh;
+  overflow: auto;
+}
+.proposal-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.proposal-list input {
+  width: auto;
+}
+.proposal-list span {
+  display: grid;
+  gap: 4px;
+}
+.proposal-list small {
+  color: var(--muted);
+}
+.proposal-list p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.assist-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.assist-actions button {
+  padding: 11px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+}
+.assist-actions button:hover {
+  border-color: var(--purple);
+  background: #2b203d;
+}
+@media (max-width: 900px) {
+  .character-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .character-actions .save-state {
+    display: none;
+  }
+  .character-header {
+    height: auto;
+    flex-wrap: wrap;
+  }
+  .character-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .record-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .character-grid {
+    grid-template-columns: 1fr;
+  }
+  .inline-create {
+    width: 100%;
+  }
+  .inline-create input {
+    min-width: 0;
+    flex: 1;
+  }
+  .character-header {
+    padding: 55px 12px 12px;
+  }
+  .character-actions {
+    overflow: auto;
+    justify-content: flex-start;
+  }
+  .character-actions a,
+  .character-actions button {
+    white-space: nowrap;
+  }
+  .character-tabs {
+    padding: 0 6px;
+  }
+  .character-section {
+    padding: 22px 14px 55px;
+  }
+  .membership-panels,
+  .mechanic-layout {
+    grid-template-columns: 1fr;
+  }
+  .span-two {
+    grid-column: auto;
+  }
+  .log-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

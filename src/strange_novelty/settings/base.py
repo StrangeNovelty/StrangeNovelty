@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "library.apps.LibraryConfig",
     "publishing.apps.PublishingConfig",
     "operations.apps.OperationsConfig",
+    "story_engine_next.apps.StoryEngineNextConfig",
 ]
 
 MIDDLEWARE = [

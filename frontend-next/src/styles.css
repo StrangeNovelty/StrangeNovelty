@@ -1,0 +1,779 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap");
+:root {
+  color-scheme: dark;
+  --bg: #0d0c13;
+  --side: #121019;
+  --panel: #17151f;
+  --raised: #1d1a27;
+  --nested: #24202f;
+  --line: #302b3d;
+  --soft: #252130;
+  --text: #f1edf5;
+  --muted: #a8a0b1;
+  --purple: #9d6bf2;
+  --purple2: #6f46b9;
+  --gold: #d4b26e;
+  --danger: #e77a83;
+  --success: #7bc9a5;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button,
+a {
+  transition: 0.16s ease;
+}
+button {
+  cursor: pointer;
+}
+.app-frame {
+  min-height: 100vh;
+}
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 222px;
+  background: var(--side);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.brand {
+  height: 70px;
+  padding: 14px 17px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid var(--soft);
+  font-family: "Libre Baskerville", serif;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.brand span:last-of-type {
+  display: grid;
+}
+.brand-mark {
+  width: 33px;
+  height: 33px;
+  border: 1px solid #7653ac;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--purple);
+}
+.brand button {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: 0;
+}
+.nav-scroll {
+  padding: 10px 9px;
+  overflow: auto;
+  flex: 1;
+}
+.nav-group {
+  margin-bottom: 11px;
+}
+.nav-group h2,
+.eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #81788b;
+  margin: 8px 9px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #bcb5c4;
+  text-decoration: none;
+  font-size: 13px;
+  margin: 1px 0;
+}
+.nav-item:hover {
+  background: #211c2d;
+  color: white;
+}
+.nav-item.active {
+  background: linear-gradient(90deg, #4b3178, #35254f);
+  color: white;
+  box-shadow: inset 2px 0 var(--purple);
+}
+.settings {
+  margin: 8px;
+  border-top: 1px solid var(--soft);
+}
+.route-surface {
+  margin-left: 222px;
+  min-height: 100vh;
+}
+.mobile-menu {
+  display: none;
+}
+.page {
+  padding: 34px 42px;
+  max-width: 1500px;
+  margin: auto;
+}
+.page h1,
+.workspace-header h1,
+.title-input {
+  font-family: "Libre Baskerville", serif;
+}
+.page-header,
+.workspace-header,
+.section-heading,
+.result-header,
+.panel-title,
+.button-row,
+.result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.page-header h1,
+.page header h1 {
+  margin: 2px 0 7px;
+  font-size: 30px;
+}
+.page-header p,
+.page header p {
+  color: var(--muted);
+  margin: 0;
+}
+.primary-button,
+.secondary-button,
+.generate-button {
+  border-radius: 6px;
+  padding: 9px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+}
+.primary-button,
+.generate-button {
+  border: 1px solid #a47aeb;
+  background: linear-gradient(180deg, #8c5be0, #6940b2);
+  color: white;
+}
+.secondary-button {
+  border: 1px solid var(--line);
+  background: var(--raised);
+  color: #d7d0df;
+}
+.primary-button:hover,
+.generate-button:hover {
+  filter: brightness(1.12);
+}
+.secondary-button:hover {
+  border-color: #665578;
+  background: #272133;
+}
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #c4a0ff;
+  outline-offset: 2px;
+}
+.panel,
+.session-card,
+.empty-panel {
+  background: linear-gradient(160deg, var(--panel), #14121b);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 28px;
+}
+.panel {
+  padding: 18px;
+}
+.span-two {
+  grid-column: span 2;
+}
+.panel-title {
+  border-bottom: 1px solid var(--soft);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+.panel-title > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.panel-title svg {
+  width: 16px;
+  color: var(--purple);
+}
+.panel-title a {
+  color: #bfa6e9;
+  text-decoration: none;
+  font-size: 12px;
+  display: flex;
+}
+.dashboard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--soft);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px;
+}
+.dashboard-row span:first-child {
+  display: grid;
+}
+.dashboard-row small,
+.muted {
+  color: var(--muted);
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.metric-grid span,
+.large-metric {
+  display: grid;
+  background: var(--raised);
+  padding: 14px;
+  border-radius: 6px;
+}
+.metric-grid b,
+.large-metric {
+  font-size: 23px;
+}
+.metric-grid small,
+.large-metric small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.large-metric.small {
+  font-size: 18px;
+  margin-top: 8px;
+}
+.brainstorm-callout {
+  background:
+    radial-gradient(circle at 90% 5%, #543681 0, transparent 45%), var(--panel);
+}
+.brainstorm-callout h2 {
+  font-family: "Libre Baskerville";
+}
+.session-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 25px;
+}
+.session-card {
+  padding: 17px;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  gap: 13px;
+}
+.session-card > svg {
+  color: var(--purple);
+}
+.session-card h2 {
+  font-size: 15px;
+  margin: 0 0 5px;
+}
+.session-card p,
+.session-card small {
+  color: var(--muted);
+  margin: 0;
+  font-size: 12px;
+}
+.empty-panel {
+  padding: 50px;
+  text-align: center;
+  margin-top: 25px;
+}
+.empty-panel > svg {
+  color: var(--purple);
+  width: 34px;
+  height: 34px;
+}
+.brainstorm-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.workspace-header {
+  height: 70px;
+  min-height: 70px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--line);
+  background: #111019;
+}
+.workspace-header .eyebrow {
+  margin: 0 0 3px;
+}
+.icon-link {
+  color: var(--muted);
+  display: grid;
+}
+.title-input {
+  background: none;
+  border: 0;
+  font-size: 19px;
+  padding: 2px;
+  width: min(40vw, 500px);
+}
+.save-state {
+  font-size: 11px;
+  color: #81798a;
+}
+.mode-tabs {
+  height: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: #121019;
+}
+.mode-tabs button {
+  height: 100%;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+.mode-tabs button.active {
+  color: white;
+  border-color: var(--purple);
+  background: linear-gradient(0deg, #33234f55, transparent);
+}
+.brainstorm-split {
+  display: grid;
+  grid-template-columns: minmax(460px, 46%) 1fr;
+  min-height: 0;
+  flex: 1;
+}
+.brainstorm-inputs {
+  padding: 20px 25px;
+  overflow: auto;
+  border-right: 1px solid var(--line);
+}
+.section-heading h2,
+.result-header h2 {
+  margin: 2px 0;
+  font-family: "Libre Baskerville";
+  font-size: 17px;
+}
+.section-heading .eyebrow,
+.result-header .eyebrow {
+  margin: 0;
+}
+.card-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+}
+.card-chip {
+  position: relative;
+  display: grid;
+  max-width: 100%;
+  background: #241d31;
+  border: 1px solid #493960;
+  border-radius: 7px;
+  padding: 8px 31px 8px 10px;
+  font-size: 12px;
+}
+.card-chip small {
+  color: #9e8daf;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.card-chip button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: #958c9e;
+  padding: 3px;
+}
+.card-chip svg {
+  width: 13px;
+}
+.inline-add {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  margin-bottom: 18px;
+}
+.inline-add input {
+  flex: 1;
+  border: 0;
+  background: none;
+  padding: 9px 10px;
+}
+.inline-add button {
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: none;
+}
+.inline-add svg {
+  width: 15px;
+}
+.field-label,
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #c8c1cf;
+  margin: 14px 0 7px;
+}
+.choice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.choice-chips button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #bdb5c5;
+}
+.choice-chips button.selected {
+  border-color: #8e65cc;
+  background: #392653;
+  color: white;
+}
+textarea,
+input,
+select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #121018;
+  padding: 9px 10px;
+  resize: vertical;
+}
+textarea:focus,
+input:focus {
+  border-color: #7653a9;
+}
+.generate-button {
+  width: 100%;
+  padding: 12px;
+  margin: 17px 0;
+}
+.generate-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.brainstorm-result {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: linear-gradient(145deg, #17131f, #100f16);
+  padding: 20px 25px;
+}
+.result-header {
+  height: 36px;
+}
+.result-editor {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  margin-top: 14px;
+  padding: 20px;
+  line-height: 1.65;
+  font-family: "Libre Baskerville", serif;
+  background: #121018;
+}
+.result-actions {
+  padding-top: 12px;
+  justify-content: flex-end;
+}
+.result-empty {
+  margin: auto;
+  max-width: 390px;
+  text-align: center;
+  color: var(--muted);
+}
+.result-empty svg {
+  width: 38px;
+  height: 38px;
+  color: #62468b;
+}
+.result-empty h3 {
+  font-family: "Libre Baskerville";
+}
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  background: #08070bbd;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.modal {
+  position: relative;
+  background: #1a1722;
+  border: 1px solid #443855;
+  border-radius: 9px;
+  padding: 24px;
+  box-shadow: 0 24px 70px #000b;
+  max-height: 90vh;
+  overflow: auto;
+}
+.draw-modal {
+  width: min(520px, 100%);
+}
+.apply-modal {
+  width: min(680px, 100%);
+}
+.modal h2 {
+  font-family: "Libre Baskerville";
+}
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: none;
+  border: 0;
+}
+.draw-counts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 22px 0;
+}
+.draw-counts button {
+  background: #211c2c;
+  border: 1px solid #493b5d;
+  border-radius: 8px;
+  padding: 18px 5px;
+  display: grid;
+}
+.draw-counts button:hover {
+  border-color: var(--purple);
+  background: #322246;
+}
+.draw-counts b {
+  font-size: 24px;
+}
+.draw-counts span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.apply-modal label input,
+.apply-modal label textarea,
+.apply-modal label select {
+  width: 100%;
+}
+.success-panel {
+  padding: 13px;
+  border: 1px solid #376653;
+  background: #19372b;
+  border-radius: 6px;
+}
+.chat-page {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+.chat-sessions {
+  border-right: 1px solid var(--line);
+  padding: 26px;
+  background: #121019;
+}
+.chat-sessions h1 {
+  font-family: "Libre Baskerville";
+}
+.empty-small {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.chat-conversation {
+  display: flex;
+  flex-direction: column;
+}
+.chat-context {
+  height: 70px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chat-context .eyebrow {
+  margin: 0;
+}
+.chat-empty {
+  margin: auto;
+  text-align: center;
+  color: var(--muted);
+}
+.chat-empty svg {
+  color: var(--purple);
+}
+.chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 15px;
+  border-top: 1px solid var(--line);
+}
+.chat-composer textarea {
+  flex: 1;
+  resize: none;
+}
+.chat-composer button {
+  border: 0;
+}
+@media (max-width: 950px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .brainstorm-split {
+    grid-template-columns: 1fr;
+  }
+  .brainstorm-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .brainstorm-inputs {
+    border-right: 0;
+  }
+  .brainstorm-result {
+    min-height: 620px;
+  }
+  .session-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chat-page {
+    grid-template-columns: 220px 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: 0.2s;
+  }
+  .sidebar.is-open {
+    transform: none;
+  }
+  .sidebar .brand button {
+    display: block;
+  }
+  .nav-scrim {
+    position: fixed;
+    inset: 0;
+    background: #0009;
+    border: 0;
+    z-index: 19;
+  }
+  .mobile-menu {
+    display: grid;
+    position: fixed;
+    right: 12px;
+    top: 12px;
+    z-index: 18;
+    background: #211c2c;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px;
+  }
+  .route-surface {
+    margin-left: 0;
+  }
+  .page {
+    padding: 65px 16px 24px;
+  }
+  .dashboard-grid,
+  .session-grid {
+    grid-template-columns: 1fr;
+  }
+  .span-two {
+    grid-column: auto;
+  }
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .workspace-header {
+    padding-right: 55px;
+  }
+  .save-state {
+    display: none;
+  }
+  .mode-tabs {
+    overflow: auto;
+    padding-left: 7px;
+  }
+  .mode-tabs button {
+    white-space: nowrap;
+    padding: 0 12px;
+  }
+  .brainstorm-split {
+    display: block;
+  }
+  .brainstorm-inputs,
+  .brainstorm-result {
+    padding: 18px 14px;
+  }
+  .draw-counts {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chat-page {
+    display: block;
+    padding-top: 52px;
+  }
+  .chat-sessions {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .chat-conversation {
+    min-height: 70vh;
+  }
+}

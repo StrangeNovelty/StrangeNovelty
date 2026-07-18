@@ -1,7 +1,7 @@
 """Root URL configuration with no private application routes yet."""
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from accounts.views import (
     WorkspaceLoginView,
@@ -314,6 +314,7 @@ from worldbuilding.views import (
 )
 
 urlpatterns = [
+    path("", include("story_engine_next.urls")),
     path("publishing/", publishing_home, name="publishing-home"),
     path("publishing/manuscripts/", publishing_manuscript_list, name="publishing-manuscript-list"),
     path(

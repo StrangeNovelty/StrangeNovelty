@@ -1,0 +1,54 @@
+.chat-session-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 16px;
+}
+.chat-session-list button {
+  display: grid;
+  text-align: left;
+  border: 1px solid transparent;
+  background: none;
+  border-radius: 6px;
+  padding: 9px;
+  color: var(--muted);
+}
+.chat-session-list button.active {
+  background: #2b203d;
+  border-color: #55406e;
+  color: white;
+}
+.chat-session-list small {
+  font-size: 10px;
+}
+.message-history {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+.chat-message {
+  max-width: 78%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.chat-message.author {
+  margin-left: auto;
+  background: #2a2040;
+}
+.chat-message .eyebrow {
+  margin: 0 0 8px;
+}
+.text-button {
+  margin-top: 12px;
+  border: 0;
+  background: none;
+  color: #c7a7ff;
+  padding: 0;
+}

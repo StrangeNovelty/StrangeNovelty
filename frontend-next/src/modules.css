@@ -1,0 +1,130 @@
+.module-tools {
+  display: flex;
+  margin: 22px 0 12px;
+}
+.module-tools label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  min-width: 320px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 0 9px;
+}
+.module-tools input {
+  border: 0;
+  background: none;
+  flex: 1;
+}
+.module-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.module-list .record-card p {
+  overflow-wrap: anywhere;
+}
+.global-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 850px;
+  margin: 25px 0;
+  border: 1px solid #59456d;
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.global-search input {
+  flex: 1;
+  border: 0;
+  background: none;
+  font-size: 16px;
+}
+.search-group {
+  max-width: 900px;
+  margin: 20px 0;
+}
+.search-group h2 {
+  font: 700 15px "Libre Baskerville";
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.search-group h2 span {
+  color: var(--muted);
+}
+.search-group a {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid var(--soft);
+}
+.search-group a:hover {
+  background: var(--panel);
+}
+.search-group p {
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.import-steps {
+  display: flex;
+  gap: 6px;
+  margin: 25px 0;
+}
+.import-steps span {
+  flex: 1;
+  padding: 9px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+}
+.import-steps span.active {
+  border-color: var(--purple);
+  color: white;
+}
+.import-panel {
+  max-width: 850px;
+}
+.import-panel > svg {
+  color: var(--purple);
+}
+.import-panel > textarea {
+  width: 100%;
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  margin-top: 24px;
+}
+.settings-grid section:first-child {
+  grid-row: span 2;
+}
+.settings-grid h2 {
+  font: 700 17px "Libre Baskerville";
+}
+.settings-grid label textarea,
+.settings-grid label select {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .module-list,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .module-tools label {
+    min-width: 0;
+    width: 100%;
+  }
+  .import-steps {
+    overflow: auto;
+  }
+  .import-steps span {
+    min-width: 130px;
+  }
+}
