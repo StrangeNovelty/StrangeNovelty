@@ -38,6 +38,13 @@ AI_ENABLED = parse_bool("AI_ENABLED", default=False)
 AI_ADAPTER = os.environ.get("AI_ADAPTER", "disabled").strip()
 AI_OPENROUTER_API_KEY = os.environ.get("AI_OPENROUTER_API_KEY", "").strip()
 AI_MODEL = os.environ.get("AI_MODEL", "").strip()
+AI_MODEL_WRITING = os.environ.get("AI_MODEL_WRITING", "").strip()
+AI_MODEL_WRITING_ALTERNATE = os.environ.get("AI_MODEL_WRITING_ALTERNATE", "").strip()
+AI_MODEL_OUTLINING = os.environ.get("AI_MODEL_OUTLINING", "").strip()
+AI_MODEL_BRAINSTORMING = os.environ.get("AI_MODEL_BRAINSTORMING", "").strip()
+AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "").strip()
+AI_TIMEOUT_SECONDS = parse_int("AI_TIMEOUT_SECONDS", default=45, minimum=5, maximum=180)
+AI_MAX_OUTPUT_TOKENS = parse_int("AI_MAX_OUTPUT_TOKENS", default=4000, minimum=128, maximum=16000)
 if AI_ADAPTER not in {"disabled", "openrouter"}:
     raise ImproperlyConfigured("Production AI adapter is unsupported.")
 if AI_ENABLED and (AI_ADAPTER != "openrouter" or not AI_OPENROUTER_API_KEY or not AI_MODEL):

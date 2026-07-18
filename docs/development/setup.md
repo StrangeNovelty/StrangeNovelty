@@ -203,7 +203,7 @@ uv run --locked python manage.py apply_legacy_import --account '<account-uuid>' 
 
 Use `--acknowledge-nonempty` only after reviewing duplicate/conflict findings for a non-empty Workspace. Import never merges or overwrites existing Scenes. After restoration, run `quarantine_unfinished_imports`; no Batch or Job resumes automatically.
 
-Phase 10 AI assistance is disabled by default and has no real provider. For synthetic local testing only, set `AI_ENABLED=true` and `AI_ADAPTER=local_fake`, start the ordinary PostgreSQL-backed worker, and use the “Request an AI Scene suggestion” link in an active Scene editor. The fake adapter is deterministic, makes no network or file calls, and returns a non-authoritative proposal requiring explicit review.
+AI assistance is disabled by default. For synthetic local testing only, set `AI_ENABLED=true` and `AI_ADAPTER=local_fake`, start the ordinary PostgreSQL-backed worker, and use the reviewed AI workflows. The fake adapter is deterministic, makes no network or file calls, and returns a non-authoritative proposal requiring explicit review. Hosted OpenRouter configuration and task-specific model routing are described in the context-aware AI reference; credentials remain environment-only.
 
 After restoration, run `quarantine_unfinished_ai_requests` in addition to the existing Job reconciliation. No AI Request, provider operation, or worker resumes automatically. There is no chat, tool use, agent, browsing, file retrieval, embedding, semantic-search, RAG, or automatic-application capability.
 

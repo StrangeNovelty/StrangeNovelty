@@ -5,9 +5,19 @@ import pytest
 
 from ai_assistance.adapters import (
     AdapterRequest,
+    AdapterResult,
     DeterministicFakeAdapter,
     OpenRouterAdapter,
     RetryableAdapterError,
+    RoutedOpenRouterAdapter,
+)
+from ai_assistance.routing import (
+    ANALYSIS,
+    BRAINSTORMING,
+    OUTLINING,
+    TASK_ROUTES,
+    WRITING,
+    route_for_task,
 )
 from ai_assistance.tasks import TASKS
 
@@ -30,6 +40,35 @@ def test_task_registry_covers_visible_creative_workshops():
     } <= categories
     assert TASKS["monster_generate"].conversion_targets
     assert "scene_revision" in TASKS["scene_revision"].conversion_targets
+    assert set(TASKS) == set(TASK_ROUTES)
+
+
+@pytest.mark.parametrize(
+    ("task_key", "category"),
+    (
+        ("scene_rewrite", WRITING),
+        ("chapter_outline", OUTLINING),
+        ("character_deepen", BRAINSTORMING),
+        ("continuity_review", ANALYSIS),
+    ),
+)
+def test_task_model_routing_uses_configurable_categories(settings, task_key, category):
+    settings.AI_MODEL = "owner/fallback"
+    settings.AI_MODEL_WRITING = "owner/writing"
+    settings.AI_MODEL_WRITING_ALTERNATE = "owner/writing-alternate"
+    settings.AI_MODEL_OUTLINING = "owner/outlining"
+    settings.AI_MODEL_BRAINSTORMING = "owner/brainstorming"
+    settings.AI_MODEL_ANALYSIS = "owner/analysis"
+    route = route_for_task(task_key)
+    assert route.category == category
+    assert route.primary == getattr(settings, f"AI_MODEL_{category.upper()}")
+    assert route.alternates == (("owner/writing-alternate",) if category == WRITING else ())
+
+
+def test_task_model_override_preserves_routing_category(settings):
+    settings.AI_MODEL = "owner/fallback"
+    route = route_for_task("chapter_outline", model_override="owner/custom")
+    assert route.category == OUTLINING and route.primary == "owner/custom" and not route.alternates
 
 
 def test_fake_adapter_is_deterministic_and_structured():
@@ -82,6 +121,26 @@ def test_openrouter_adapter_parses_usage_and_privacy_safe_errors(monkeypatch):
         adapter.generate(
             AdapterRequest("creative_workspace", "Synthetic", "Context", "task", "v1", "v1", 1000)
         )
+
+
+def test_routed_openrouter_uses_alternate_only_after_retryable_failure(monkeypatch):
+    attempts = []
+
+    def generate(adapter, request):
+        attempts.append(adapter.model)
+        if adapter.model == "owner/primary":
+            raise RetryableAdapterError("synthetic retry")
+        return AdapterResult("## Result\nSynthetic", "openrouter", adapter.model, "op", 1, 1)
+
+    monkeypatch.setattr(OpenRouterAdapter, "generate", generate)
+    adapter = RoutedOpenRouterAdapter(
+        api_key="synthetic-secret", models=("owner/primary", "owner/alternate")
+    )
+    result = adapter.generate(
+        AdapterRequest("creative_workspace", "Synthetic", "Context", "task", "v1", "v1", 1000)
+    )
+    assert attempts == ["owner/primary", "owner/alternate"]
+    assert result.model == "owner/alternate"
 
 
 def test_ai_templates_and_docs_do_not_contain_credentials_or_private_content():

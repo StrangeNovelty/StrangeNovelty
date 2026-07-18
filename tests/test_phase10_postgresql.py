@@ -72,6 +72,8 @@ def test_enqueue_is_authorized_idempotent_and_contains_no_private_text() -> None
     )
     assert not first.replayed and second.replayed
     assert first.request.id == second.request.id
+    assert first.request.routing_category == "writing"
+    assert first.request.requested_model == "deterministic-v1"
     job = Job.execution_objects.get(id=first.request.job_id)
     assert job.target_id == first.request.id
     assert not hasattr(job, "instruction") and not hasattr(job, "content")
@@ -99,6 +101,8 @@ def test_worker_creates_non_authoritative_suggestion_and_effect() -> None:
     request.refresh_from_db()
     suggestion = AISuggestion.objects.get(request=request)
     assert request.state == AIRequest.State.COMPLETED
+    assert request.routing_category == "writing"
+    assert request.requested_model == "deterministic-v1"
     assert suggestion.state == AISuggestion.State.READY
     assert suggestion.original_output == request.source_revision.content
     assert (
