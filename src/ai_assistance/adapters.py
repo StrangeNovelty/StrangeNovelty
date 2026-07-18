@@ -139,3 +139,27 @@ class OpenRouterAdapter:
             int(usage.get("prompt_tokens", 0)),
             int(usage.get("completion_tokens", 0)),
         )
+
+
+class RoutedOpenRouterAdapter:
+    """Try an explicitly ordered model route after retryable failures only."""
+
+    def __init__(self, *, api_key, models, timeout=45, maximum_tokens=4000):
+        self.adapters = tuple(
+            OpenRouterAdapter(
+                api_key=api_key,
+                model=model,
+                timeout=timeout,
+                maximum_tokens=maximum_tokens,
+            )
+            for model in models
+        )
+
+    def generate(self, request: AdapterRequest) -> AdapterResult:
+        for index, adapter in enumerate(self.adapters):
+            try:
+                return adapter.generate(request)
+            except RetryableAdapterError:
+                if index == len(self.adapters) - 1:
+                    raise
+        raise TerminalAdapterError("No provider model was attempted.")

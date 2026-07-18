@@ -15,6 +15,7 @@ from ai_assistance.adapters import (
     DeterministicFakeAdapter,
     ProviderAdapter,
     RetryableAdapterError,
+    RoutedOpenRouterAdapter,
     TerminalAdapterError,
 )
 from ai_assistance.exceptions import AIRequestConflict, AIRequestUnavailable, StaleSuggestion
@@ -25,6 +26,7 @@ from ai_assistance.models import (
     AISuggestionApplication,
     ProviderEffect,
 )
+from ai_assistance.routing import scene_suggestion_route
 from jobs.exceptions import AmbiguousJobOutcome, RetryableJobError, TerminalJobError
 from jobs.models import Job, JobAttempt
 from jobs.registry import JobContext
@@ -99,6 +101,8 @@ def request_suggestion(
             request_fingerprint=fingerprint,
             idempotency_key=idempotency_key,
             provider=settings.AI_ADAPTER,
+            routing_category=scene_suggestion_route().category,
+            requested_model=scene_suggestion_route().primary or "deterministic-v1",
         )
         AIContextManifest.objects.create(
             request=request,
@@ -164,6 +168,16 @@ def _request_fingerprint(
 def get_configured_adapter() -> ProviderAdapter:
     if settings.AI_ADAPTER == "local_fake" and settings.DEBUG:
         return DeterministicFakeAdapter()
+    if settings.AI_ADAPTER == "openrouter" and settings.AI_OPENROUTER_API_KEY:
+        route = scene_suggestion_route()
+        if not route.primary:
+            raise TerminalAdapterError("No provider model is configured.")
+        return RoutedOpenRouterAdapter(
+            api_key=settings.AI_OPENROUTER_API_KEY,
+            models=(route.primary, *route.alternates),
+            timeout=settings.AI_TIMEOUT_SECONDS,
+            maximum_tokens=settings.AI_MAX_OUTPUT_TOKENS,
+        )
     raise TerminalAdapterError("No production AI provider adapter is configured.")
 
 
@@ -277,7 +291,9 @@ def generate_suggestion(context: JobContext) -> None:
             acknowledged_at=timezone.now(),
         )
         AIRequest.objects.filter(id=request.id).update(
-            state=AIRequest.State.COMPLETED, completed_at=timezone.now()
+            state=AIRequest.State.COMPLETED,
+            requested_model=result.model,
+            completed_at=timezone.now(),
         )
 
 

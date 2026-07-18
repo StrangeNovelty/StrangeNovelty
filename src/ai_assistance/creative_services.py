@@ -6,6 +6,7 @@ from ai_assistance.adapters import (
     AdapterRequest,
     DeterministicFakeAdapter,
     OpenRouterAdapter,
+    RetryableAdapterError,
     TerminalAdapterError,
 )
 from ai_assistance.context import assemble_context, snapshot_is_stale
@@ -15,6 +16,7 @@ from ai_assistance.models import (
     AICreativeSuggestion,
     VoiceProfile,
 )
+from ai_assistance.routing import route_for_task
 from ai_assistance.tasks import get_task
 
 
@@ -28,11 +30,11 @@ def provider_available():
     )
 
 
-def creative_adapter(model_override=""):
+def creative_adapter(model=""):
     if settings.AI_ADAPTER == "local_fake" and settings.DEBUG:
         return DeterministicFakeAdapter(), "deterministic-v1"
     if settings.AI_ADAPTER == "openrouter" and settings.AI_OPENROUTER_API_KEY:
-        model = model_override.strip() or settings.AI_MODEL
+        model = model.strip() or settings.AI_MODEL
         if not model:
             raise TerminalAdapterError("No provider model is configured.")
         return OpenRouterAdapter(
@@ -44,7 +46,6 @@ def creative_adapter(model_override=""):
     raise TerminalAdapterError("No creative provider is configured.")
 
 
-@transaction.atomic
 def run_creative_request(
     *, account, workspace, task_key, instruction, pack=None, chat_messages=(), model_override=""
 ):
@@ -52,7 +53,12 @@ def run_creative_request(
     assembled = assemble_context(
         pack, task=task, instruction=instruction, chat_messages=chat_messages
     )
-    adapter, model = creative_adapter(model_override)
+    route = route_for_task(task_key, model_override=model_override)
+    primary_model = route.primary
+    if settings.AI_ADAPTER == "local_fake" and settings.DEBUG:
+        primary_model = "deterministic-v1"
+    if not primary_model:
+        raise TerminalAdapterError("No provider model is configured for this task.")
     request = AICreativeRequest.objects.create(
         workspace=workspace,
         requested_by=account,
@@ -61,29 +67,49 @@ def run_creative_request(
         instruction=instruction,
         state="running",
         provider=settings.AI_ADAPTER,
-        model_identifier=model,
+        routing_category=route.category,
+        model_identifier=primary_model,
         context_snapshot=assembled.snapshot,
         assembled_context=assembled.text,
         context_hash=assembled.context_hash,
         omission_report=assembled.omissions,
+        provider_metadata={
+            "routing_category": route.category,
+            "configured_primary_model": primary_model,
+        },
     )
     try:
-        result = adapter.generate(
-            AdapterRequest(
-                capability="creative_workspace",
-                instruction=instruction,
-                source_content=assembled.text,
-                prompt_template=task_key,
-                prompt_template_version="v1",
-                configuration_version="creative-v1",
-                maximum_output_characters=200_000,
-            )
+        adapter_request = AdapterRequest(
+            capability="creative_workspace",
+            instruction=instruction,
+            source_content=assembled.text,
+            prompt_template=task_key,
+            prompt_template_version="v1",
+            configuration_version="creative-v1",
+            maximum_output_characters=200_000,
         )
+        attempted_models = []
+        result = None
+        candidates = (primary_model, *route.alternates)
+        for index, model in enumerate(candidates):
+            attempted_models.append(model)
+            try:
+                result = creative_adapter(model)[0].generate(adapter_request)
+                break
+            except RetryableAdapterError:
+                if index == len(candidates) - 1:
+                    raise
+        if result is None:  # pragma: no cover - defensive, candidates always contain primary
+            raise TerminalAdapterError("No provider model was attempted.")
         structured = parse_sections(result.proposed_text, task.output_sections)
     except Exception as exc:
         request.state = "failed"
         request.failure_classification = "provider_or_structure_failure"
-        request.save(update_fields=("state", "failure_classification"))
+        request.provider_metadata = {
+            **request.provider_metadata,
+            "attempted_models": attempted_models,
+        }
+        request.save(update_fields=("state", "failure_classification", "provider_metadata"))
         if isinstance(exc, TerminalAdapterError):
             raise
         raise TerminalAdapterError("Creative provider output could not be validated.") from exc
@@ -92,11 +118,16 @@ def run_creative_request(
     request.provider_metadata = {
         "provider": result.provider,
         "model": result.model,
+        "routing_category": route.category,
+        "configured_primary_model": primary_model,
+        "attempted_models": attempted_models,
+        "used_alternate": result.model != primary_model,
         "operation_identifier": result.operation_identifier,
         "input_units": result.input_units,
         "output_units": result.output_units,
     }
-    request.save(update_fields=("state", "completed_at", "provider_metadata"))
+    request.model_identifier = result.model
+    request.save(update_fields=("state", "completed_at", "model_identifier", "provider_metadata"))
     suggestion = AICreativeSuggestion.objects.create(
         workspace=workspace,
         request=request,

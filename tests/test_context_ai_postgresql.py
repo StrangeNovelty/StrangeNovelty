@@ -7,6 +7,7 @@ from django.test import Client, override_settings
 from django.urls import reverse
 
 from accounts.models import Account
+from ai_assistance.adapters import AdapterResult, RetryableAdapterError
 from ai_assistance.context import assemble_context, snapshot_is_stale
 from ai_assistance.creative_services import run_creative_request
 from ai_assistance.models import (
@@ -194,3 +195,56 @@ def test_provider_disabled_workspace_history_post_mutations_and_isolation():
     outsider = Client()
     outsider.force_login(other_account)
     assert outsider.get(reverse("ai-context-pack-detail", args=(pack.id,))).status_code == 404
+
+
+@override_settings(
+    AI_ENABLED=True,
+    AI_ADAPTER="openrouter",
+    DEBUG=False,
+    AI_OPENROUTER_API_KEY="synthetic-secret",
+    AI_MODEL="owner/fallback",
+    AI_MODEL_WRITING="owner/writing",
+    AI_MODEL_WRITING_ALTERNATE="owner/writing-alternate",
+    AI_MODEL_OUTLINING="owner/outlining",
+    AI_MODEL_BRAINSTORMING="owner/brainstorming",
+    AI_MODEL_ANALYSIS="owner/analysis",
+)
+def test_creative_request_records_route_and_actual_alternate_model(monkeypatch):
+    account, workspace, client, work, chapter, scene, character = setup_domain(
+        "routing@example.invalid"
+    )
+    del client, work, chapter, scene, character
+    attempts = []
+
+    class Adapter:
+        def __init__(self, model):
+            self.model = model
+
+        def generate(self, request):
+            attempts.append(self.model)
+            if self.model == "owner/writing":
+                raise RetryableAdapterError("synthetic retry")
+            return AdapterResult(
+                "## Original\nSynthetic\n\n## Proposed Text\nSynthetic revised",
+                "openrouter",
+                self.model,
+                "synthetic-operation",
+                12,
+                8,
+            )
+
+    monkeypatch.setattr(
+        "ai_assistance.creative_services.creative_adapter", lambda model="": (Adapter(model), model)
+    )
+    request, suggestion = run_creative_request(
+        account=account,
+        workspace=workspace,
+        task_key="scene_rewrite",
+        instruction="Rewrite synthetic prose",
+    )
+    assert suggestion.state == "ready"
+    assert attempts == ["owner/writing", "owner/writing-alternate"]
+    assert request.routing_category == "writing"
+    assert request.model_identifier == "owner/writing-alternate"
+    assert request.provider_metadata["used_alternate"] is True
+    assert request.provider_metadata["attempted_models"] == attempts
