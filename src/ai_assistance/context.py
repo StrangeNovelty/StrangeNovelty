@@ -46,6 +46,54 @@ def _label(model_name):
     return model_name.replace("AIContext", "").replace("Link", "")
 
 
+def _character_context(record):
+    lines = [_record_text(record)]
+    abilities = record.abilities.order_by("name")
+    if abilities:
+        lines.append(
+            "Individual Abilities:\n"
+            + "\n".join(
+                f"- {ability.name}: {ability.description}; limitations: {ability.limitations}; "
+                f"costs: {ability.costs}; mastery: {ability.get_mastery_display()}"
+                for ability in abilities
+            )
+        )
+    memberships = record.group_memberships.select_related("group").order_by("group__name")
+    families = [item for item in memberships if item.group.group_type == "family"]
+    groups = [item for item in memberships if item.group.group_type != "family"]
+    if families:
+        lines.append(
+            "Family:\n"
+            + "\n".join(f"- {item.group.name}: {item.role}; {item.notes}" for item in families)
+        )
+    if groups:
+        lines.append(
+            "Other Groups:\n"
+            + "\n".join(f"- {item.group.name}: {item.role}; {item.notes}" for item in groups)
+        )
+    for membership in record.mechanic_memberships.select_related("template").prefetch_related(
+        "template__shared_abilities", "borrowing_log__borrowed_from"
+    ):
+        lines.append(
+            f"Custom Mechanic: {membership.template.name}; "
+            f"{membership.template.designation_label}: {membership.designation}; "
+            f"rules: {membership.template.borrowing_rules}"
+        )
+        for ability in membership.template.shared_abilities.all():
+            lines.append(
+                f"Shared Ability: {ability.name}; {ability.description}; "
+                f"limitations: {ability.limitations}"
+            )
+        for entry in membership.borrowing_log.all():
+            lines.append(
+                f"Borrowed Ability: {entry.ability_name} from {entry.borrowed_from.name}; "
+                f"cost: {entry.cost_or_damage}; duration: {entry.duration}; "
+                f"recovery: {entry.recovery}; consequence: {entry.lasting_consequence}; "
+                f"continuity: {entry.continuity_implications}"
+            )
+    return "\n".join(lines)
+
+
 def assemble_context(pack: AIContextPack | None, *, task, instruction, chat_messages=()):
     sections = [("Task", f"{task.title}\n{task.description}"), ("Author Request", instruction)]
     sources = []
@@ -85,6 +133,8 @@ def assemble_context(pack: AIContextPack | None, *, task, instruction, chat_mess
                 )
                 record = getattr(link, field.name)
                 content = _record_text(record)
+                if record.__class__.__name__ == "Character":
+                    content = _character_context(record)
                 if record.__class__.__name__ == "ResearchSource":
                     content += (
                         "\nSelected extracted text (unverified unless author-reviewed): "

@@ -4,10 +4,12 @@ from typing import cast
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Count, F, Prefetch, Q
+from django.db import transaction
+from django.db.models import Count, F, Prefetch, ProtectedError, Q
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -16,11 +18,13 @@ from characters.forms import (
     AbilityForm,
     AbilityPredictionForm,
     AbilityStageForm,
+    BorrowedAbilityLogForm,
     CharacterCreateForm,
     CharacterForm,
     CharacterGroupForm,
     CharacterGroupSearchForm,
     CharacterListSearchForm,
+    CharacterMechanicSetupForm,
     CharacterPersonalityTraitForm,
     CharacterRelationshipForm,
     CharacterSceneLinkForm,
@@ -33,10 +37,15 @@ from characters.models import (
     AbilityEvent,
     AbilityPrediction,
     AbilityStage,
+    BorrowedAbilityLog,
     Character,
+    CharacterAIFieldProposal,
     CharacterGroup,
+    CharacterMechanicMembership,
     CharacterPersonalityTrait,
     CharacterRelationship,
+    CustomMechanicSharedAbility,
+    CustomMechanicTemplate,
     GroupMembership,
     GroupRelationship,
 )
@@ -97,13 +106,35 @@ def _authorized_character(request: HttpRequest, character_id: uuid.UUID) -> Char
         raise Http404("Character is unavailable.") from exc
 
 
+CHARACTER_SECTIONS = (
+    "overview",
+    "appearance",
+    "personality",
+    "backstory",
+    "abilities",
+    "bio-arcane",
+    "relationships",
+    "arc-notes",
+    "progression",
+    "evaluation",
+    "appearances",
+)
+
+
 def _detail_context(
-    *, request: HttpRequest, character: Character, form: CharacterForm
+    *, request: HttpRequest, character: Character, form: CharacterForm, section: str = "overview"
 ) -> dict[str, object]:
     workspace = _request_workspace(request)
-    scene_links = character.scene_links.select_related("scene").exclude(
-        scene__lifecycle=Scene.Lifecycle.TRASHED
-    )
+    scene_links = character.scene_links.select_related(
+        "scene", "scene__work", "scene__chapter", "scene__chapter__pov_character"
+    ).exclude(scene__lifecycle=Scene.Lifecycle.TRASHED)
+    appearance_query = request.GET.get("q", "").strip()
+    if appearance_query:
+        scene_links = scene_links.filter(
+            Q(scene__title__icontains=appearance_query)
+            | Q(scene__chapter__title__icontains=appearance_query)
+            | Q(scene__work__title__icontains=appearance_query)
+        )
     abilities = list(
         Ability.objects.filter(workspace=workspace, character=character)
         .prefetch_related(
@@ -142,6 +173,24 @@ def _detail_context(
         .select_related("group")
         .order_by("group__name", "id")
     )
+    family_memberships = [item for item in memberships if item.group.group_type == "family"]
+    other_memberships = [item for item in memberships if item.group.group_type != "family"]
+    mechanic_memberships = list(
+        CharacterMechanicMembership.objects.filter(workspace=workspace, character=character)
+        .select_related("template", "template__work", "family_group")
+        .prefetch_related(
+            "template__shared_abilities",
+            "borrowing_log__borrowed_from",
+            "borrowing_log__ability",
+            "borrowing_log__chapter",
+            "borrowing_log__scene",
+        )
+    )
+    work_ids = {link.scene.work_id for link in scene_links if link.scene.work_id}
+    work_ids.update(character.pov_chapters.values_list("work_id", flat=True))
+    from stories.models import Work
+
+    works = Work.objects.filter(workspace=workspace, id__in=work_ids).order_by("title")
     from worldbuilding.models import (
         CodexCharacterLink,
         CreatureCharacterLink,
@@ -149,8 +198,12 @@ def _detail_context(
         LocationCharacterLink,
     )
 
+    mechanic_membership = mechanic_memberships[0] if mechanic_memberships else None
     return {
         "character": character,
+        "section": section,
+        "character_sections": CHARACTER_SECTIONS,
+        "works": works,
         "form": form,
         "scene_links": scene_links,
         "scene_link_form": CharacterSceneLinkForm(workspace=workspace, character=character),
@@ -164,6 +217,15 @@ def _detail_context(
         "personality_trait_form": CharacterPersonalityTraitForm(),
         "relationship_count": len(relationship_cards),
         "memberships": memberships,
+        "family_memberships": family_memberships,
+        "other_memberships": other_memberships,
+        "mechanic_memberships": mechanic_memberships,
+        "mechanic_membership": mechanic_membership,
+        "borrowed_ability_form": BorrowedAbilityLogForm(
+            workspace=workspace, membership=mechanic_membership
+        )
+        if mechanic_membership
+        else None,
         "group_count": len(memberships),
         "world_location_links": LocationCharacterLink.objects.filter(
             character=character
@@ -297,7 +359,11 @@ def character_create(request: HttpRequest) -> HttpResponse:
 @never_cache
 @login_required
 @require_http_methods(["GET", "POST"])
-def character_detail(request: HttpRequest, character_id: uuid.UUID) -> HttpResponse:
+def character_detail(
+    request: HttpRequest, character_id: uuid.UUID, section: str = "overview"
+) -> HttpResponse:
+    if section not in CHARACTER_SECTIONS:
+        raise Http404("Character section is unavailable.")
     workspace = _request_workspace(request)
     character = _authorized_character(request, character_id)
     form = CharacterForm(request.POST or None, instance=character)
@@ -314,13 +380,311 @@ def character_detail(request: HttpRequest, character_id: uuid.UUID) -> HttpRespo
         except CharacterDomainError:
             form.add_error(None, "The Character could not be saved.")
         else:
-            return _see_other(reverse("character-detail", kwargs={"character_id": character.id}))
+            return _see_other(
+                reverse(
+                    "character-section", kwargs={"character_id": character.id, "section": section}
+                )
+            )
     status = 422 if request.method == "POST" else 200
     return render(
         request,
         "characters/detail.html",
-        _detail_context(request=request, character=character, form=form),
+        _detail_context(request=request, character=character, form=form, section=section),
         status=status,
+    )
+
+
+def _character_context_pack(request, character):
+    from ai_assistance.models import AIContextCharacterLink, AIContextPack
+
+    workspace = _request_workspace(request)
+    name = f"Character · {character.name} · {str(character.id)[:8]}"
+    pack, _ = AIContextPack.objects.get_or_create(
+        workspace=workspace,
+        name=name,
+        defaults={
+            "description": "Character-scoped working context.",
+            "status": "active",
+            "detail_level": "detailed",
+        },
+    )
+    AIContextCharacterLink.objects.get_or_create(
+        pack=pack, character=character, defaults={"role": "Primary Character", "priority": 1}
+    )
+    return pack
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_ai_assist(request, character_id: uuid.UUID) -> HttpResponse:
+    character = _authorized_character(request, character_id)
+    pack = _character_context_pack(request, character)
+    actions = (
+        ("character_deepen", "Deepen this Character"),
+        ("character_goals", "Generate goals and conflicts"),
+        ("character_backstory", "Develop backstory"),
+        ("character_personality", "Refine personality"),
+        ("character_sliders", "Suggest sliders"),
+        ("character_voice", "Evaluate Character voice"),
+        ("character_relationships", "Assess relationship dynamics"),
+        ("character_arc", "Propose arc progression"),
+        ("character_evaluation", "Generate an evaluation"),
+        ("character_continuity", "Identify continuity risks"),
+        ("character_knowledge", "Review knowledge and secrets"),
+        ("ability_consistency", "Assess abilities and limitations"),
+    )
+    if request.method == "POST":
+        task_key = request.POST.get("task_key", "")
+        if task_key not in {key for key, _ in actions}:
+            raise Http404("Character AI action is unavailable.")
+        from ai_assistance.creative_services import run_creative_request
+
+        _, suggestion = run_creative_request(
+            account=request.user,
+            workspace=_request_workspace(request),
+            task_key=task_key,
+            instruction=request.POST.get("instruction")
+            or (
+                "Review this Character using selected story evidence. Keep all proposals "
+                "speculative and identify destination sections."
+            ),
+            pack=pack,
+        )
+        return _see_other(reverse("ai-creative-review", kwargs={"suggestion_id": suggestion.id}))
+    return render(
+        request,
+        "characters/ai_assist.html",
+        {"character": character, "pack": pack, "actions": actions},
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_fill_description(request, character_id: uuid.UUID) -> HttpResponse:
+    character = _authorized_character(request, character_id)
+    if request.method == "POST":
+        description = request.POST.get("description", "").strip()
+        if not description:
+            return render(
+                request,
+                "characters/fill_description.html",
+                {"character": character, "error": "Add a description first."},
+                status=422,
+            )
+        from ai_assistance.creative_services import run_creative_request
+
+        _, suggestion = run_creative_request(
+            account=request.user,
+            workspace=_request_workspace(request),
+            task_key="character_fill_description",
+            instruction=(
+                "Extract only details supported by this author description. "
+                f"Do not invent missing facts.\n\n{description}"
+            ),
+            pack=_character_context_pack(request, character),
+        )
+        mapping = {
+            "Name": "name",
+            "Aliases": "aliases",
+            "Role": "role",
+            "Age": "age",
+            "Appearance": "appearance",
+            "Personality": "personality",
+            "Backstory": "backstory",
+            "Goals": "goals",
+            "Conflicts": "internal_conflict",
+            "Voice": "voice_notes",
+            "Tags": "tags",
+        }
+        structured = suggestion.structured_output or {}
+        values = {
+            field: structured.get(label, "")
+            for label, field in mapping.items()
+            if structured.get(label)
+        }
+        batch = CharacterAIFieldProposal.objects.create(
+            workspace=_request_workspace(request),
+            character=character,
+            suggestion=suggestion,
+            description=description,
+            proposed_values=values,
+        )
+        return _see_other(
+            reverse(
+                "character-fill-review",
+                kwargs={"character_id": character.id, "proposal_id": batch.id},
+            )
+        )
+    return render(request, "characters/fill_description.html", {"character": character})
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_fill_review(request, character_id: uuid.UUID, proposal_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    proposal = (
+        CharacterAIFieldProposal.objects.filter(
+            id=proposal_id, character=character, workspace=workspace
+        )
+        .select_related("suggestion")
+        .first()
+    )
+    if not proposal:
+        raise Http404("Character proposal is unavailable.")
+    rows = [
+        {
+            "field": field,
+            "label": field.replace("_", " ").title(),
+            "proposed": value,
+            "existing": getattr(character, field, ""),
+        }
+        for field, value in proposal.proposed_values.items()
+    ]
+    if request.method == "POST":
+        selected = [
+            field
+            for field in proposal.proposed_values
+            if request.POST.get(f"apply_{field}") == "on"
+        ]
+        with transaction.atomic():
+            locked = Character.objects.select_for_update().get(id=character.id, workspace=workspace)
+            for field in selected:
+                setattr(locked, field, proposal.proposed_values[field])
+            locked.full_clean()
+            locked.save(update_fields=[*selected, "updated_at"] if selected else ["updated_at"])
+            proposal.applied_fields = selected
+            proposal.applied_at = timezone.now()
+            proposal.save(update_fields=["applied_fields", "applied_at"])
+            proposal.suggestion.state = "converted"
+            proposal.suggestion.save(update_fields=["state"])
+        return _see_other(
+            reverse(
+                "character-section", kwargs={"character_id": character.id, "section": "overview"}
+            )
+        )
+    return render(
+        request,
+        "characters/fill_review.html",
+        {"character": character, "proposal": proposal, "rows": rows},
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_delete_view(request, character_id: uuid.UUID) -> HttpResponse:
+    character = _authorized_character(request, character_id)
+    error = ""
+    if request.method == "POST":
+        try:
+            character.delete()
+        except ProtectedError:
+            error = (
+                "This Character has meaningful story links. Remove those links before "
+                "deleting the dossier."
+            )
+        else:
+            return _see_other(reverse("character-list"))
+    return render(
+        request,
+        "characters/delete.html",
+        {"character": character, "error": error},
+        status=409 if error else 200,
+    )
+
+
+@login_required
+@require_POST
+def borrowed_ability_create(
+    request, character_id: uuid.UUID, membership_id: uuid.UUID
+) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    membership = CharacterMechanicMembership.objects.filter(
+        id=membership_id, character=character, workspace=workspace
+    ).first()
+    if not membership:
+        raise Http404("Mechanic membership is unavailable.")
+    form = BorrowedAbilityLogForm(request.POST, workspace=workspace, membership=membership)
+    if form.is_valid():
+        entry = form.save(commit=False)
+        entry.workspace, entry.membership = workspace, membership
+        entry.full_clean()
+        entry.save()
+    return _see_other(
+        reverse("character-section", kwargs={"character_id": character.id, "section": "bio-arcane"})
+    )
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def character_mechanic_setup(request, character_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    form = CharacterMechanicSetupForm(request.POST or None, workspace=workspace)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            template = CustomMechanicTemplate(
+                workspace=workspace,
+                work=form.cleaned_data["work"],
+                name=form.cleaned_data["name"].strip(),
+                designation_label=form.cleaned_data["designation_label"].strip(),
+                borrowing_rules=form.cleaned_data["borrowing_rules"],
+                default_cost=form.cleaned_data["default_cost"],
+                reduced_effectiveness_rule=form.cleaned_data["reduced_effectiveness_rule"],
+                repetition_rule=form.cleaned_data["repetition_rule"],
+                recovery_rule=form.cleaned_data["recovery_rule"],
+                own_ability_rule=form.cleaned_data["own_ability_rule"],
+                consequence_rule=form.cleaned_data["consequence_rule"],
+            )
+            template.full_clean()
+            template.save()
+            membership = CharacterMechanicMembership(
+                workspace=workspace,
+                character=character,
+                template=template,
+                designation=form.cleaned_data["designation"],
+                family_group=form.cleaned_data["family_group"],
+            )
+            membership.full_clean()
+            membership.save()
+            for order, name in enumerate(form.cleaned_data["shared_abilities"].splitlines()):
+                if name := name.strip():
+                    CustomMechanicSharedAbility.objects.create(
+                        template=template, name=name, order=order
+                    )
+        return _see_other(
+            reverse(
+                "character-section",
+                kwargs={"character_id": character.id, "section": "bio-arcane"},
+            )
+        )
+    return render(
+        request,
+        "characters/mechanic_setup.html",
+        {"character": character, "form": form},
+        status=422 if request.method == "POST" else 200,
+    )
+
+
+@login_required
+@require_POST
+def borrowed_ability_delete(request, character_id: uuid.UUID, entry_id: uuid.UUID) -> HttpResponse:
+    workspace = _request_workspace(request)
+    character = _authorized_character(request, character_id)
+    entry = BorrowedAbilityLog.objects.filter(
+        id=entry_id, workspace=workspace, membership__character=character
+    ).first()
+    if not entry:
+        raise Http404("Borrowed Ability entry is unavailable.")
+    entry.delete()
+    return _see_other(
+        reverse("character-section", kwargs={"character_id": character.id, "section": "bio-arcane"})
     )
 
 

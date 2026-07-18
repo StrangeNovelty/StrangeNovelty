@@ -9,7 +9,7 @@ from characters.models import Character, CharacterScene
 
 def test_character_schema_is_typed_workspace_owned_and_timestamped() -> None:
     fields = {field.name for field in Character._meta.fields}
-    assert fields == {
+    assert {
         "id",
         "workspace",
         "name",
@@ -26,7 +26,8 @@ def test_character_schema_is_typed_workspace_owned_and_timestamped() -> None:
         "notes",
         "created_at",
         "updated_at",
-    }
+    }.issubset(fields)
+    assert {"backstory", "age", "intended_arc", "evaluation_notes"}.issubset(fields)
     assert Character._meta.pk.__class__.__name__ == "UUIDField"
     assert Character._meta.get_field("workspace").remote_field.on_delete.__name__ == "PROTECT"
     assert {field.name for field in CharacterScene._meta.fields} == {
@@ -46,19 +47,15 @@ def test_character_forms_keep_creation_small_and_dossier_explicit() -> None:
         "status",
         "summary",
     )
-    assert tuple(CharacterForm().fields) == (
+    assert tuple(CharacterForm().fields)[:5] == (
         "name",
         "aliases",
         "role",
         "status",
         "summary",
-        "appearance",
-        "personality",
-        "goals",
-        "internal_conflict",
-        "external_conflict",
-        "voice_notes",
-        "notes",
+    )
+    assert {"appearance", "personality", "backstory", "evaluation_notes"}.issubset(
+        CharacterForm().fields
     )
 
 
@@ -99,11 +96,11 @@ def test_character_templates_are_dossier_oriented_and_provider_free() -> None:
         path.read_text(encoding="utf-8") for path in sorted(templates.glob("*.html"))
     )
     for heading in (
-        "Identity",
-        "Presence",
-        "Desire and pressure",
-        "On the page",
-        "Scene appearances",
+        "Overview",
+        "Appearance",
+        "Personality",
+        "Arc Notes",
+        "Appearances",
     ):
         assert heading in detail
     assert "Create Character" in list_template

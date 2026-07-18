@@ -50,7 +50,7 @@ def test_world_bible_character_fidelity_and_manual_are_connected():
     character = read("templates/characters/detail.html")
     assert "World Bible" in navigation
     assert "Relationship Web" in navigation
-    assert "Personality Sliders" in character
+    assert "Personality sliders" in character
     assert "World Bible" in manual and "Structured World" in manual
     assert "Apply to Story" in manual
     assert "De-Slop" in manual
