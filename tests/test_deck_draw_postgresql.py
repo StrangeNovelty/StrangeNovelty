@@ -102,6 +102,35 @@ def make_draw(workspace, deck, **kwargs):
     return draw
 
 
+def test_authenticated_draw_creation_accepts_coherent_story_context():
+    workspace, client, work, chapter, deck, _, _, _ = setup_world()
+    character = Character.objects.create(
+        workspace=workspace, name="Synthetic Context Character", summary="Synthetic summary"
+    )
+
+    response = client.post(
+        reverse("deck-draw-create"),
+        {
+            "title": "Synthetic Context Draw",
+            "draw_mode": "free_draw",
+            "decks": [deck.id],
+            "card_count": 2,
+            "favorite_mode": "all",
+            "work": work.id,
+            "chapter": chapter.id,
+            "characters": [character.id],
+            "author_brief": "Synthetic context validation.",
+        },
+    )
+
+    assert response.status_code == 302
+    draw = SavedDraw.objects.get(title="Synthetic Context Draw")
+    assert draw.workspace == workspace and draw.work == work and draw.chapter == chapter
+    assert draw.draw_cards.count() == 2
+    assert draw.context_snapshot["chapter"]["id"] == str(chapter.id)
+    assert draw.context_snapshot["context"][0]["id"] == str(character.id)
+
+
 def test_seeded_free_and_official_draws_are_deterministic_and_enforce_spread():
     workspace, _, _, _, deck, _, _, spread = setup_world()
     first = make_draw(workspace, deck)
