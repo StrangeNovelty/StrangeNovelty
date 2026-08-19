@@ -242,6 +242,18 @@ Start the local development server only after confirming `DATABASE_URL` and appl
 uv run --locked python manage.py runserver --settings=strange_novelty.settings.local
 ```
 
+### Read-only story reset inventory
+
+Inspect the scope of a proposed story-content reset without changing records:
+
+```text
+uv run --locked python manage.py inspect_story_reset --workspace '<workspace-uuid>' --settings=strange_novelty.settings.local
+```
+
+The command reports Workspace-scoped counts under `remove`, `review`, and `preserve`. It
+copies no creative fields, has no destructive mode, and must precede the separate approval
+and implementation of any reset. See `docs/operations/story-content-reset-runbook.md`.
+
 Local routes are:
 
 - `/login/` — normalized-email and password login;
