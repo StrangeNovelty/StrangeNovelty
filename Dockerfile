@@ -26,6 +26,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=build --chown=app:app /app /app
 COPY --chown=app:app scripts ./scripts
+RUN chmod 0755 /app/scripts/*.sh
 ENV PATH="/app/.venv/bin:${PATH}" \
     DJANGO_SETTINGS_MODULE=strange_novelty.settings.production \
     PYTHONDONTWRITEBYTECODE=1 \
